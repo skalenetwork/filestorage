@@ -228,4 +228,33 @@ contract FileStorage {
         }
         return true;
     }
+
+    address constant SML_CONTRACT_ADDRESS = "";
+
+    modifier onlySML() {
+        if (msg.sender == SML_CONTRACT_ADDRESS)
+            _;
+    }
+
+    function addSMLOutput(string memory outputFileName) public onlySML{
+        fileStatus[msg.sender][outputFileName] = STATUS_COMPLETED;
+    }
+
+    function removeSMLOutput(string memory outputFileName) public onlySML{
+        address owner = msg.sender;
+        require(fileStatus[owner][outputFileName] != STATUS_UNEXISTENT, "File not exists");
+        uint blocks = (bytes(outputFileName).length + 31) / 32 + 1;
+        bool success;
+        assembly {
+            let p := mload(0x40)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(fileName, mul(32, i))))
+            }
+            success := call(not(0), 0x0E, 0, p, add(64, mul(blocks, 32)), p, 32)
+        }
+        require(success, "File not deleted");
+        fileStatus[owner][outputFileName] = STATUS_UNEXISTENT;
+    }
 }
