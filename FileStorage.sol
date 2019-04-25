@@ -239,8 +239,8 @@ contract FileStorage {
     }
 
     modifier onlySML() {
-        if (msg.sender == SML_CONTRACT_ADDRESS)
-            _;
+        require(msg.sender == SML_CONTRACT_ADDRESS);
+        _;
     }
 
     function addSMLOutput(string memory outputFileName) public onlySML {
