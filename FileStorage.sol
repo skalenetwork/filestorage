@@ -1,6 +1,10 @@
 pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
 
+interface Validator{
+    function validate(address owner, string fileName) external view returns(bool);
+}
+
 contract FileStorage {
 
     uint constant MAX_CHUNK_SIZE = 2 ** 20;
@@ -24,6 +28,12 @@ contract FileStorage {
     mapping(address => FileInfo[]) fileInfoLists;
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
+
+    address validatorAddress;
+
+    function setValidator(address newValidatorAddress) public {
+        validatorAddress = newValidatorAddress;
+    }
 
     function startUpload(string memory fileName, uint256 fileSize) public {
         address owner = msg.sender;
@@ -94,6 +104,10 @@ contract FileStorage {
             }
         }
         require(isFileUploaded, "File hasn't been uploaded correctly");
+        if (validatorAddress != address(0)){
+            bool isValid = Validator(validatorAddress).validate(owner, fileName);
+            require(isValid, "File is invalid");
+        }
         fileStatus[owner][fileName] = STATUS_COMPLETED;
     }
 
