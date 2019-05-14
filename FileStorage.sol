@@ -106,7 +106,10 @@ contract FileStorage {
         require(isFileUploaded, "File hasn't been uploaded correctly");
         if (validatorAddress != address(0)){
             bool isValid = Validator(validatorAddress).validate(owner, fileName);
-            require(isValid, "File is invalid");
+            if (!isValid){
+                deleteFile(fileName);
+                return;
+            }
         }
         fileStatus[owner][fileName] = STATUS_COMPLETED;
     }
