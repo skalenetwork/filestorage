@@ -1,5 +1,6 @@
 pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
+import "github.com/Arachnid/solidity-stringutils/strings.sol";
 
 contract FileStorage {
 
@@ -25,21 +26,36 @@ contract FileStorage {
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
-    function listFiles(string memory storagePath) public constant returns (bytes32 o) {
-        bool success;
-        address owner = msg.sender;
-        uint blocks = (bytes(storagePath).length + 31) / 32 + 1;
-        assembly {
-            let p := mload(0x40)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(storagePath, mul(32, i))))
-            }
-            success := call(not(0), 0x0F, 0, p, add(64, mul(blocks, 32)), p, 0x20)
-            o := mload(p)
+    struct Directory{
+        string[] contentNames;
+        mapping(string => int) contentTypes;
+        mapping(string => Directory) directories;
+    }
+
+    mapping(address => Directory) rootDirectories;
+    using strings for *;
+
+    function parseDirPath(string memory path) pure returns (string[]){
+        var s = path.toSlice();
+        var delim = "/".toSlice();
+        var parts = new string[](s.count(delim) + 1);
+        for(uint i = 0; i < parts.length; i++) {
+            parts[i] = s.split(delim).toString();
         }
-        require(success, "File not created");
+        return parts;
+    }
+
+    function createDir(string memory path) public{
+        string[] memory dirs = parseDirPath(path);
+        Directory currentDir = rootDirectories[msg.sender];
+        for (uint i = 0; i < dirs.length-1; ++i){
+            require(currentDir.contentTypes[dirs[i]] == 2);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory newDir = dirs[dirs.length-1];
+        require(currentDir.contentTypes[newDir] == 0);
+        currentDir.contentTypes[newDir] = 2;
+        currentDir.contentNames.push(newDir);
     }
 
     function startUpload(string memory fileName, uint256 fileSize) public {
