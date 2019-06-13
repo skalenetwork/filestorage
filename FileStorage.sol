@@ -25,6 +25,23 @@ contract FileStorage {
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
+    function listFiles(string memory storagePath) public constant returns (bytes32 o) {
+        bool success;
+        address owner = msg.sender;
+        uint blocks = (bytes(storagePath).length + 31) / 32 + 1;
+        assembly {
+            let p := mload(0x40)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(storagePath, mul(32, i))))
+            }
+            success := call(not(0), 0x0F, 0, p, add(64, mul(blocks, 32)), p, 0x20)
+            o := mload(p)
+        }
+        require(success, "File not created");
+    }
+
     function startUpload(string memory fileName, uint256 fileSize) public {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] == STATUS_UNEXISTENT, "File already exists");
