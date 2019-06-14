@@ -68,17 +68,37 @@ contract FileStorage {
     }
 
     // TODO: goToDir
-    function listDir(string memory storagePath) public constant returns(string[]){
+    function listDir(string memory storagePath) public constant returns (string[]){
         address owner;
         string memory path;
         (owner, path) = parseStoragePath(storagePath);
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length; ++i){
+        for (uint i = 0; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i]] == 2);
             currentDir = currentDir.directories[dirs[i]];
         }
         return currentDir.contentNames;
+    }
+
+    function deleteDir(string memory path) public {
+        string[] memory dirs = parseDirPath(path);
+        Directory currentDir = rootDirectories[msg.sender];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] == 2);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory targetDir = dirs[dirs.length - 1];
+        require(currentDir.contentTypes[targetDir] == 2);
+        currentDir.contentTypes[targetDir] = 0;
+        delete currentDir.directories[targetDir];
+        for (i = 0; i < currentDir.contentNames.length; ++i) {
+            if (keccak256(abi.encodePacked(currentDir.contentNames[i])) == keccak256(abi.encodePacked(targetDir))) {
+                currentDir.contentNames[i] = currentDir.contentNames[currentDir.contentNames.length - 1];
+                currentDir.contentNames.length--;
+                break;
+            }
+        }
     }
 
     function startUpload(string memory fileName, uint256 fileSize) public {
