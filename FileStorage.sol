@@ -35,14 +35,23 @@ contract FileStorage {
     mapping(address => Directory) rootDirectories;
     using strings for *;
 
-    function parseDirPath(string memory path) pure returns (string[]){
+    function parseDirPath(string memory path) public pure returns (string[] memory decreasePart) {
         var s = path.toSlice();
         var delim = "/".toSlice();
-        var parts = new string[](s.count(delim) + 1);
+        string[] memory parts = new string[](s.count(delim) + 1);
         for(uint i = 0; i < parts.length; i++) {
             parts[i] = s.split(delim).toString();
         }
-        return parts;
+        if (bytes(parts[parts.length-1]).length == 0) {
+            delete parts[parts.length-1];
+            decreasePart = new string[](parts.length-1);
+
+        } else {
+            decreasePart = new string[](parts.length);
+        }
+        for (i = 0; i < decreasePart.length; i++) {
+            decreasePart[i] = parts[i];
+        }
     }
 
     function createDir(string memory path) public{
