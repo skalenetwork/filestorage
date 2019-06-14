@@ -26,7 +26,7 @@ contract FileStorage {
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
-    struct Directory{
+    struct Directory {
         string[] contentNames;
         mapping(string => int) contentTypes;
         mapping(string => Directory) directories;
@@ -39,12 +39,12 @@ contract FileStorage {
         var s = path.toSlice();
         var delim = "/".toSlice();
         string[] memory parts = new string[](s.count(delim) + 1);
-        for(uint i = 0; i < parts.length; i++) {
+        for (uint i = 0; i < parts.length; i++) {
             parts[i] = s.split(delim).toString();
         }
-        if (bytes(parts[parts.length-1]).length == 0) {
-            delete parts[parts.length-1];
-            decreasePart = new string[](parts.length-1);
+        if (bytes(parts[parts.length - 1]).length == 0) {
+            delete parts[parts.length - 1];
+            decreasePart = new string[](parts.length - 1);
 
         } else {
             decreasePart = new string[](parts.length);
@@ -54,17 +54,27 @@ contract FileStorage {
         }
     }
 
-    function createDir(string memory path) public{
+    function createDir(string memory path) public {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
-        for (uint i = 0; i < dirs.length-1; ++i){
+        for (uint i = 0; i < dirs.length - 1; ++i) {
             require(currentDir.contentTypes[dirs[i]] == 2);
             currentDir = currentDir.directories[dirs[i]];
         }
-        string memory newDir = dirs[dirs.length-1];
+        string memory newDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[newDir] == 0);
         currentDir.contentTypes[newDir] = 2;
         currentDir.contentNames.push(newDir);
+    }
+
+    function listDir(string memory path) public constant returns (string[]) {
+        string[] memory dirs = parseDirPath(path);
+        Directory currentDir = rootDirectories[msg.sender];
+        for (uint i = 0; i < dirs.length; ++i) {
+            require(currentDir.contentTypes[dirs[i]] == 2);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        return currentDir.contentNames;
     }
 
     function startUpload(string memory fileName, uint256 fileSize) public {
