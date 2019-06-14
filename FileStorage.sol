@@ -266,7 +266,6 @@ contract FileStorage {
         fileName = new string(fileNameLength);
         for (i = 0; i < fileNameLength; i++) {
             byte char = bytes(storagePath)[i + addressLength + 1];
-            require(char != '/');
             bytes(fileName)[i] = char;
         }
     }
