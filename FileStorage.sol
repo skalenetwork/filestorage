@@ -67,10 +67,14 @@ contract FileStorage {
         currentDir.contentNames.push(newDir);
     }
 
-    function listDir(string memory path) public constant returns (string[]) {
+    // TODO: goToDir
+    function listDir(string memory storagePath) public constant returns(string[]){
+        address owner;
+        string memory path;
+        (owner, path) = parseStoragePath(storagePath);
         string[] memory dirs = parseDirPath(path);
-        Directory currentDir = rootDirectories[msg.sender];
-        for (uint i = 0; i < dirs.length; ++i) {
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length; ++i){
             require(currentDir.contentTypes[dirs[i]] == 2);
             currentDir = currentDir.directories[dirs[i]];
         }
