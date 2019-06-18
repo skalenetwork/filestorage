@@ -15,9 +15,9 @@ contract FileStorage {
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
 
-    uint constant EMPTY = 0;
-    uint constant FILE_TYPE = 1;
-    uint constant DIRECTORY_TYPE = 2;
+    int constant EMPTY = 0;
+    int constant FILE_TYPE = 1;
+    int constant DIRECTORY_TYPE = 2;
 
     struct FileInfo {
         string name;
