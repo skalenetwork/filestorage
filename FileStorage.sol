@@ -54,6 +54,7 @@ contract FileStorage {
         }
     }
 
+    // TODO: Call psc for creating dir
     function createDir(string memory path) public {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
@@ -81,6 +82,8 @@ contract FileStorage {
         return currentDir.contentNames;
     }
 
+    // TODO: Call psc for deleting dir
+    // TODO: Speed up deleting from contentNames
     function deleteDir(string memory path) public {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
@@ -182,6 +185,7 @@ contract FileStorage {
         fileStatus[owner][fileName] = STATUS_COMPLETED;
     }
 
+    // TODO: Speed up deleting from contentNames
     function deleteFile(string memory fileName) public {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] != STATUS_UNEXISTENT, "File not exists");
@@ -197,6 +201,21 @@ contract FileStorage {
             success := call(not(0), 0x0E, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "File not deleted");
+        string[] memory dirs = parseDirPath(fileName);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] == 2);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory pureFileName = dirs[dirs.length-1];
+        currentDir.contentTypes[pureFileName] = 0;
+        for (i = 0; i < currentDir.contentNames.length; ++i) {
+            if (keccak256(abi.encodePacked(currentDir.contentNames[i])) == keccak256(abi.encodePacked(pureFileName))) {
+                currentDir.contentNames[i] = currentDir.contentNames[currentDir.contentNames.length - 1];
+                currentDir.contentNames.length--;
+                break;
+            }
+        }
         fileStatus[owner][fileName] = STATUS_UNEXISTENT;
         uint deletePosition = fileInfoIndex[owner][fileName];
         occupiedStorageSpace[owner] -= fileInfoLists[owner][deletePosition].size;
@@ -299,6 +318,7 @@ contract FileStorage {
         }
     }
 
+    // TODO: Update checkFileName to handle dir paths
     function checkFileName(string memory fileName) private pure returns (bool) {
         uint fileNameLength = bytes(fileName).length;
         if (fileNameLength == 0 || fileNameLength > MAX_FILENAME_LENGTH) {
