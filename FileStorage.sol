@@ -15,6 +15,10 @@ contract FileStorage {
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
 
+    uint constant EMPTY = 0;
+    uint constant FILE_TYPE = 1;
+    uint constant DIRECTORY_TYPE = 2;
+
     struct FileInfo {
         string name;
         uint size;
@@ -61,12 +65,12 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == 2);
+            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory newDir = dirs[dirs.length - 1];
-        require(currentDir.contentTypes[newDir] == 0);
-        currentDir.contentTypes[newDir] = 2;
+        require(currentDir.contentTypes[newDir] == EMPTY);
+        currentDir.contentTypes[newDir] = DIRECTORY_TYPE;
         currentDir.contentNames.push(newDir);
     }
 
@@ -78,7 +82,7 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == 2);
+            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
             currentDir = currentDir.directories[dirs[i]];
         }
         return currentDir.contentNames;
@@ -90,12 +94,12 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == 2);
+            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory targetDir = dirs[dirs.length - 1];
-        require(currentDir.contentTypes[targetDir] == 2);
-        currentDir.contentTypes[targetDir] = 0;
+        require(currentDir.contentTypes[targetDir] == DIRECTORY_TYPE);
+        currentDir.contentTypes[targetDir] = EMPTY;
         delete currentDir.directories[targetDir];
         for (i = 0; i < currentDir.contentNames.length; ++i) {
             if (keccak256(abi.encodePacked(currentDir.contentNames[i])) == keccak256(abi.encodePacked(targetDir))) {
@@ -115,7 +119,7 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == 2);
+            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
             currentDir = currentDir.directories[dirs[i]];
         }
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
@@ -319,6 +323,7 @@ contract FileStorage {
         }
     }
 
+    // TODO: Remove path checker, remain filename validation
     function checkFileName(string memory filePath) private pure returns (bool) {
         var pathSlice = filePath.toSlice();
         var delimiter = "/".toSlice();
