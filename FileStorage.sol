@@ -319,17 +319,21 @@ contract FileStorage {
         }
     }
 
-    // TODO: Update checkFileName to handle dir paths
-    function checkFileName(string memory fileName) private pure returns (bool) {
-        uint fileNameLength = bytes(fileName).length;
-        if (fileNameLength == 0 || fileNameLength > MAX_FILENAME_LENGTH) {
-            return false;
-        }
-        for (uint i = 0; i < fileNameLength; i++) {
-            byte char = bytes(fileName)[i];
-            if (char == '/') {
+    function checkFileName(string memory filePath) private pure returns (bool) {
+        var s = filePath.toSlice();
+        var delim = "/".toSlice();
+        uint partsCount = s.count(delim) + 1;
+        string memory currentPart;
+        for (uint i = 0; i < partsCount; i++) {
+            currentPart = s.split(delim).toString();
+            if (keccak256(abi.encodePacked(currentPart)) == keccak256(abi.encodePacked("..")) ||
+                bytes(currentPart).length == 0) {
                 return false;
             }
+        }
+        uint fileNameLength = bytes(currentPart).length;
+        if (fileNameLength > MAX_FILENAME_LENGTH) {
+            return false;
         }
         return true;
     }
