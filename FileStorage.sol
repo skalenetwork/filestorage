@@ -38,11 +38,11 @@ contract FileStorage {
     using strings for *;
 
     function parseDirPath(string memory path) public pure returns (string[] memory decreasePart) {
-        var s = path.toSlice();
-        var delim = "/".toSlice();
-        string[] memory parts = new string[](s.count(delim) + 1);
+        var pathSlice = path.toSlice();
+        var delimiter = "/".toSlice();
+        string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
         for (uint i = 0; i < parts.length; i++) {
-            parts[i] = s.split(delim).toString();
+            parts[i] = pathSlice.split(delimiter).toString();
         }
         if (bytes(parts[parts.length - 1]).length == 0) {
             delete parts[parts.length - 1];
@@ -206,7 +206,6 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == 2);
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory pureFileName = dirs[dirs.length-1];
@@ -321,12 +320,12 @@ contract FileStorage {
     }
 
     function checkFileName(string memory filePath) private pure returns (bool) {
-        var s = filePath.toSlice();
-        var delim = "/".toSlice();
-        uint partsCount = s.count(delim) + 1;
+        var pathSlice = filePath.toSlice();
+        var delimiter = "/".toSlice();
+        uint partsCount = pathSlice.count(delimiter) + 1;
         string memory currentPart;
         for (uint i = 0; i < partsCount; i++) {
-            currentPart = s.split(delim).toString();
+            currentPart = pathSlice.split(delimiter).toString();
             if (keccak256(abi.encodePacked(currentPart)) == keccak256(abi.encodePacked("..")) ||
                 bytes(currentPart).length == 0) {
                 return false;
