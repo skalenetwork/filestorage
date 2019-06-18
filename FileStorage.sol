@@ -27,6 +27,7 @@ contract FileStorage {
     mapping(address => uint) occupiedStorageSpace;
 
     // TODO: Add contentType constants
+    // TODO: Add contentIndex mapping
     struct Directory {
         string[] contentNames;
         mapping(string => int) contentTypes;
@@ -108,7 +109,7 @@ contract FileStorage {
     function startUpload(string memory fileName, uint256 fileSize) public {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] == STATUS_UNEXISTENT, "File already exists");
-        // require(checkFileName(fileName), "Filename should be <= 256 and not contains '/'");
+        require(checkFileName(fileName), "Filename should be <= 256 and not contains '/'");
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
         string[] memory dirs = parseDirPath(fileName);
