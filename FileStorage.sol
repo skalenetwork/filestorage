@@ -26,6 +26,7 @@ contract FileStorage {
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
+    // TODO: Add contentType constants
     struct Directory {
         string[] contentNames;
         mapping(string => int) contentTypes;
@@ -110,6 +111,12 @@ contract FileStorage {
         // require(checkFileName(fileName), "Filename should be <= 256 and not contains '/'");
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
+        string[] memory dirs = parseDirPath(fileName);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] == 2);
+            currentDir = currentDir.directories[dirs[i]];
+        }
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -123,12 +130,6 @@ contract FileStorage {
             success := call(not(0), 0x0B, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "File not created");
-        string[] memory dirs = parseDirPath(fileName);
-        Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == 2);
-            currentDir = currentDir.directories[dirs[i]];
-        }
         string memory pureFileName = dirs[dirs.length-1];
         currentDir.contentTypes[pureFileName] = 1;
         currentDir.contentNames.push(pureFileName);
