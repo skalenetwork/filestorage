@@ -30,7 +30,6 @@ contract FileStorage {
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
-    // TODO: Add contentType constants
     // TODO: Add contentIndex mapping
     struct Directory {
         string[] contentNames;
@@ -324,20 +323,14 @@ contract FileStorage {
     }
 
     // TODO: Remove path checker, remain filename validation
-    function checkFileName(string memory filePath) private pure returns (bool) {
-        var pathSlice = filePath.toSlice();
-        var delimiter = "/".toSlice();
-        uint partsCount = pathSlice.count(delimiter) + 1;
-        string memory currentPart;
-        for (uint i = 0; i < partsCount; i++) {
-            currentPart = pathSlice.split(delimiter).toString();
-            if (keccak256(abi.encodePacked(currentPart)) == keccak256(abi.encodePacked("..")) ||
-                bytes(currentPart).length == 0) {
-                return false;
-            }
+    function checkFileName(string memory name) private pure returns (bool) {
+        name = pathSlice.split(delimiter).toString();
+        if (keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked("..")) ||
+            bytes(name).length == 0) {
+            return false;
         }
-        uint fileNameLength = bytes(currentPart).length;
-        if (fileNameLength > MAX_FILENAME_LENGTH) {
+        uint nameLength = bytes(name).length;
+        if (nameLength > MAX_FILENAME_LENGTH) {
             return false;
         }
         return true;
