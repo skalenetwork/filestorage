@@ -69,6 +69,7 @@ contract FileStorage {
         }
         string memory newDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[newDir] == EMPTY);
+        require(checkFileName(newDir));
         currentDir.contentTypes[newDir] = DIRECTORY_TYPE;
         currentDir.contentNames.push(newDir);
     }
@@ -322,10 +323,9 @@ contract FileStorage {
         }
     }
 
-    // TODO: Remove path checker, remain filename validation
     function checkFileName(string memory name) private pure returns (bool) {
-        name = pathSlice.split(delimiter).toString();
         if (keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked("..")) ||
+            keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked(".")) ||
             bytes(name).length == 0) {
             return false;
         }
