@@ -64,17 +64,18 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory newDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[newDir] == EMPTY);
         require(checkFileName(newDir));
-        currentDir.contentTypes[newDir] = DIRECTORY_TYPE;
         currentDir.contentNames.push(newDir);
+        currentDir.contentTypes[newDir] = int(currentDir.contentNames.length);
     }
 
     // TODO: goToDir
+    // TODO: return content types
     function listDir(string memory storagePath) public constant returns (string[]){
         address owner;
         string memory path;
@@ -82,7 +83,7 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
             currentDir = currentDir.directories[dirs[i]];
         }
         return currentDir.contentNames;
@@ -94,11 +95,11 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory targetDir = dirs[dirs.length - 1];
-        require(currentDir.contentTypes[targetDir] == DIRECTORY_TYPE);
+        require(currentDir.contentTypes[targetDir] > EMPTY);
         currentDir.contentTypes[targetDir] = EMPTY;
         delete currentDir.directories[targetDir];
         for (i = 0; i < currentDir.contentNames.length; ++i) {
@@ -119,9 +120,10 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] == DIRECTORY_TYPE);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
             currentDir = currentDir.directories[dirs[i]];
         }
+        require(currentDir.contentTypes[fileName] == EMPTY);
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -136,8 +138,8 @@ contract FileStorage {
         }
         require(success, "File not created");
         string memory pureFileName = dirs[dirs.length-1];
-        currentDir.contentTypes[pureFileName] = 1;
         currentDir.contentNames.push(pureFileName);
+        currentDir.contentTypes[pureFileName] = -int(currentDir.contentNames.length);
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
         fileStatus[owner][fileName] = STATUS_UPLOADING;
         fileInfoLists[owner].push(FileInfo({
@@ -213,7 +215,7 @@ contract FileStorage {
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory pureFileName = dirs[dirs.length-1];
-        currentDir.contentTypes[pureFileName] = 0;
+        currentDir.contentTypes[pureFileName] = EMPTY;
         for (i = 0; i < currentDir.contentNames.length; ++i) {
             if (keccak256(abi.encodePacked(currentDir.contentNames[i])) == keccak256(abi.encodePacked(pureFileName))) {
                 currentDir.contentNames[i] = currentDir.contentNames[currentDir.contentNames.length - 1];
