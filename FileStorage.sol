@@ -90,7 +90,6 @@ contract FileStorage {
     }
 
     // TODO: Call psc for deleting dir
-    // TODO: Speed up deleting from contentNames
     function deleteDir(string memory path) public {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[msg.sender];
@@ -100,15 +99,12 @@ contract FileStorage {
         }
         string memory targetDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[targetDir] > EMPTY);
+        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
+        currentDir.contentNames[uint(currentDir.contentTypes[targetDir])-1] = lastContentName;
+        currentDir.contentTypes[lastContentName] = currentDir.contentTypes[targetDir];
         currentDir.contentTypes[targetDir] = EMPTY;
+        currentDir.contentNames.length--;
         delete currentDir.directories[targetDir];
-        for (i = 0; i < currentDir.contentNames.length; ++i) {
-            if (keccak256(abi.encodePacked(currentDir.contentNames[i])) == keccak256(abi.encodePacked(targetDir))) {
-                currentDir.contentNames[i] = currentDir.contentNames[currentDir.contentNames.length - 1];
-                currentDir.contentNames.length--;
-                break;
-            }
-        }
     }
 
     function startUpload(string memory fileName, uint256 fileSize) public {
