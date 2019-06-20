@@ -89,6 +89,7 @@ contract FileStorage {
         return currentDir.contentNames;
     }
 
+    // TODO: fix contentTypes bug
     // TODO: Call psc for deleting dir
     function deleteDir(string memory path) public {
         string[] memory dirs = parseDirPath(path);
@@ -189,6 +190,7 @@ contract FileStorage {
         fileStatus[owner][fileName] = STATUS_COMPLETED;
     }
 
+    // TODO: fix contentTypes bug
     // TODO: Speed up deleting from contentNames
     function deleteFile(string memory fileName) public {
         address owner = msg.sender;
@@ -211,14 +213,12 @@ contract FileStorage {
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory pureFileName = dirs[dirs.length-1];
+        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
+        uint idx = uint(-(currentDir.contentTypes[pureFileName]))-1;
+        currentDir.contentNames[idx] = lastContentName;
+        currentDir.contentTypes[lastContentName] = currentDir.contentTypes[pureFileName];
         currentDir.contentTypes[pureFileName] = EMPTY;
-        for (i = 0; i < currentDir.contentNames.length; ++i) {
-            if (keccak256(abi.encodePacked(currentDir.contentNames[i])) == keccak256(abi.encodePacked(pureFileName))) {
-                currentDir.contentNames[i] = currentDir.contentNames[currentDir.contentNames.length - 1];
-                currentDir.contentNames.length--;
-                break;
-            }
-        }
+        currentDir.contentNames.length--;
         fileStatus[owner][fileName] = STATUS_UNEXISTENT;
         uint deletePosition = fileInfoIndex[owner][fileName];
         occupiedStorageSpace[owner] -= fileInfoLists[owner][deletePosition].size;
