@@ -61,8 +61,9 @@ contract FileStorage {
 
     // TODO: Call psc for creating dir
     function createDir(string memory path) public {
+        address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
-        Directory currentDir = rootDirectories[msg.sender];
+        Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
             require(currentDir.contentTypes[dirs[i]] > EMPTY);
             currentDir = currentDir.directories[dirs[i]];
@@ -70,6 +71,18 @@ contract FileStorage {
         string memory newDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[newDir] == EMPTY);
         require(checkFileName(newDir));
+        uint blocks = (bytes(path).length + 31) / 32 + 1;
+        bool success;
+        assembly {
+            let p := mload(0x40)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(path, mul(32, i))))
+            }
+            success := call(not(0), 0x0F, 0, p, add(64, mul(blocks, 32)), p, 32)
+        }
+        require(success, "Directory not created");
         currentDir.contentNames.push(newDir);
         currentDir.contentTypes[newDir] = int(currentDir.contentNames.length);
     }
@@ -89,6 +102,7 @@ contract FileStorage {
         return currentDir.contentNames;
     }
 
+    // TODO: check dir emptiness
     // TODO: Call psc for deleting dir
     function deleteDir(string memory path) public {
         string[] memory dirs = parseDirPath(path);
