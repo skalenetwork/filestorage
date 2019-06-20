@@ -89,7 +89,6 @@ contract FileStorage {
         return currentDir.contentNames;
     }
 
-    // TODO: fix contentTypes bug
     // TODO: Call psc for deleting dir
     function deleteDir(string memory path) public {
         string[] memory dirs = parseDirPath(path);
@@ -102,7 +101,11 @@ contract FileStorage {
         require(currentDir.contentTypes[targetDir] > EMPTY);
         string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
         currentDir.contentNames[uint(currentDir.contentTypes[targetDir])-1] = lastContentName;
-        currentDir.contentTypes[lastContentName] = currentDir.contentTypes[targetDir];
+        if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[targetDir] < 0) {
+            currentDir.contentTypes[lastContentName] = -currentDir.contentTypes[targetDir];
+        } else {
+            currentDir.contentTypes[lastContentName] = currentDir.contentTypes[targetDir];
+        }
         currentDir.contentTypes[targetDir] = EMPTY;
         currentDir.contentNames.length--;
         delete currentDir.directories[targetDir];
@@ -190,7 +193,6 @@ contract FileStorage {
         fileStatus[owner][fileName] = STATUS_COMPLETED;
     }
 
-    // TODO: fix contentTypes bug
     // TODO: Speed up deleting from contentNames
     function deleteFile(string memory fileName) public {
         address owner = msg.sender;
@@ -216,7 +218,11 @@ contract FileStorage {
         string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
         uint idx = uint(-(currentDir.contentTypes[pureFileName]))-1;
         currentDir.contentNames[idx] = lastContentName;
-        currentDir.contentTypes[lastContentName] = currentDir.contentTypes[pureFileName];
+        if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[pureFileName] < 0) {
+            currentDir.contentTypes[lastContentName] = -currentDir.contentTypes[pureFileName];
+        } else {
+            currentDir.contentTypes[lastContentName] = currentDir.contentTypes[pureFileName];
+        }
         currentDir.contentTypes[pureFileName] = EMPTY;
         currentDir.contentNames.length--;
         fileStatus[owner][fileName] = STATUS_UNEXISTENT;
