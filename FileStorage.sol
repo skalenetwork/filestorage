@@ -2,6 +2,7 @@ pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
 import "github.com/Arachnid/solidity-stringutils/strings.sol";
 
+// TODO: Add constraints
 contract FileStorage {
 
     uint constant MAX_CHUNK_SIZE = 2 ** 20;
@@ -30,7 +31,6 @@ contract FileStorage {
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
-    // TODO: Add contentIndex mapping
     struct Directory {
         string[] contentNames;
         mapping(string => int) contentTypes;
@@ -102,7 +102,6 @@ contract FileStorage {
         return currentDir.contentNames;
     }
 
-    // TODO: check dir emptiness
     function deleteDir(string memory path) public {
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
@@ -113,6 +112,7 @@ contract FileStorage {
         }
         string memory targetDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[targetDir] > EMPTY);
+        require(currentDir.directories[targetDir].contentNames.length == 0);
         uint blocks = (bytes(path).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -219,7 +219,6 @@ contract FileStorage {
         fileStatus[owner][fileName] = STATUS_COMPLETED;
     }
 
-    // TODO: Speed up deleting from contentNames
     function deleteFile(string memory fileName) public {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] != STATUS_UNEXISTENT, "File not exists");
@@ -298,6 +297,7 @@ contract FileStorage {
         return fileStatus[owner][fileName];
     }
 
+    // TODO: Update for directories
     function getFileInfoList(address userAddress) public view returns (FileInfo[] memory) {
         return fileInfoLists[userAddress];
     }
