@@ -59,7 +59,6 @@ contract FileStorage {
         }
     }
 
-    // TODO: Call psc for creating dir
     function createDir(string memory path) public {
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
@@ -87,6 +86,7 @@ contract FileStorage {
         currentDir.contentTypes[newDir] = int(currentDir.contentNames.length);
     }
 
+    // TODO: handle root dir
     // TODO: goToDir
     // TODO: return content types
     function listDir(string memory storagePath) public constant returns (string[]){
@@ -103,16 +103,28 @@ contract FileStorage {
     }
 
     // TODO: check dir emptiness
-    // TODO: Call psc for deleting dir
     function deleteDir(string memory path) public {
+        address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
-        Directory currentDir = rootDirectories[msg.sender];
+        Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
             require(currentDir.contentTypes[dirs[i]] > EMPTY);
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory targetDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[targetDir] > EMPTY);
+        uint blocks = (bytes(path).length + 31) / 32 + 1;
+        bool success;
+        assembly {
+            let p := mload(0x40)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(path, mul(32, i))))
+            }
+            success := call(not(0), 0x10, 0, p, add(64, mul(blocks, 32)), p, 32)
+        }
+        require(success, "Directory not deleted");
         string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
         currentDir.contentNames[uint(currentDir.contentTypes[targetDir])-1] = lastContentName;
         if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[targetDir] < 0) {
