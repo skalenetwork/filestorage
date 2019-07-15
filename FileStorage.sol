@@ -1,6 +1,8 @@
 pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
+import "github.com/Arachnid/solidity-stringutils/strings.sol";
 
+// TODO: Add constraints
 contract FileStorage {
 
     uint constant MAX_CHUNK_SIZE = 2 ** 20;
@@ -14,6 +16,10 @@ contract FileStorage {
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
 
+    int constant EMPTY = 0;
+    int constant FILE_TYPE = 1;
+    int constant DIRECTORY_TYPE = 2;
+
     struct FileInfo {
         string name;
         uint size;
@@ -25,12 +31,125 @@ contract FileStorage {
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
+    struct Directory {
+        string[] contentNames;
+        mapping(string => int) contentTypes;
+        mapping(string => Directory) directories;
+    }
+
+    mapping(address => Directory) rootDirectories;
+    using strings for *;
+
+    function parseDirPath(string memory path) public pure returns (string[] memory decreasePart) {
+        var pathSlice = path.toSlice();
+        var delimiter = "/".toSlice();
+        string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
+        for (uint i = 0; i < parts.length; i++) {
+            parts[i] = pathSlice.split(delimiter).toString();
+        }
+        if (bytes(parts[parts.length - 1]).length == 0) {
+            delete parts[parts.length - 1];
+            decreasePart = new string[](parts.length - 1);
+
+        } else {
+            decreasePart = new string[](parts.length);
+        }
+        for (i = 0; i < decreasePart.length; i++) {
+            decreasePart[i] = parts[i];
+        }
+    }
+
+    function createDir(string memory path) public {
+        address owner = msg.sender;
+        string[] memory dirs = parseDirPath(path);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory newDir = dirs[dirs.length - 1];
+        require(currentDir.contentTypes[newDir] == EMPTY);
+        require(checkFileName(newDir));
+        uint blocks = (bytes(path).length + 31) / 32 + 1;
+        bool success;
+        assembly {
+            let p := mload(0x40)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(path, mul(32, i))))
+            }
+            success := call(not(0), 0x0F, 0, p, add(64, mul(blocks, 32)), p, 32)
+        }
+        require(success, "Directory not created");
+        currentDir.contentNames.push(newDir);
+        currentDir.contentTypes[newDir] = int(currentDir.contentNames.length);
+    }
+
+    // TODO: handle root dir
+    // TODO: goToDir
+    // TODO: return content types
+    function listDir(string memory storagePath) public constant returns (string[]){
+        address owner;
+        string memory path;
+        (owner, path) = parseStoragePath(storagePath);
+        string[] memory dirs = parseDirPath(path);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length; ++i) {
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        return currentDir.contentNames;
+    }
+
+    function deleteDir(string memory path) public {
+        address owner = msg.sender;
+        string[] memory dirs = parseDirPath(path);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory targetDir = dirs[dirs.length - 1];
+        require(currentDir.contentTypes[targetDir] > EMPTY);
+        require(currentDir.directories[targetDir].contentNames.length == 0);
+        uint blocks = (bytes(path).length + 31) / 32 + 1;
+        bool success;
+        assembly {
+            let p := mload(0x40)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(path, mul(32, i))))
+            }
+            success := call(not(0), 0x10, 0, p, add(64, mul(blocks, 32)), p, 32)
+        }
+        require(success, "Directory not deleted");
+        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
+        currentDir.contentNames[uint(currentDir.contentTypes[targetDir])-1] = lastContentName;
+        if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[targetDir] < 0) {
+            currentDir.contentTypes[lastContentName] = -currentDir.contentTypes[targetDir];
+        } else {
+            currentDir.contentTypes[lastContentName] = currentDir.contentTypes[targetDir];
+        }
+        currentDir.contentTypes[targetDir] = EMPTY;
+        currentDir.contentNames.length--;
+        delete currentDir.directories[targetDir];
+    }
+
     function startUpload(string memory fileName, uint256 fileSize) public {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] == STATUS_UNEXISTENT, "File already exists");
         require(checkFileName(fileName), "Filename should be <= 256 and not contains '/'");
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
+        string[] memory dirs = parseDirPath(fileName);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        require(currentDir.contentTypes[fileName] == EMPTY);
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -44,6 +163,9 @@ contract FileStorage {
             success := call(not(0), 0x0B, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "File not created");
+        string memory pureFileName = dirs[dirs.length-1];
+        currentDir.contentNames.push(pureFileName);
+        currentDir.contentTypes[pureFileName] = -int(currentDir.contentNames.length);
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
         fileStatus[owner][fileName] = STATUS_UPLOADING;
         fileInfoLists[owner].push(FileInfo({
@@ -112,6 +234,22 @@ contract FileStorage {
             success := call(not(0), 0x0E, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "File not deleted");
+        string[] memory dirs = parseDirPath(fileName);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory pureFileName = dirs[dirs.length-1];
+        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
+        uint idx = uint(-(currentDir.contentTypes[pureFileName]))-1;
+        currentDir.contentNames[idx] = lastContentName;
+        if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[pureFileName] < 0) {
+            currentDir.contentTypes[lastContentName] = -currentDir.contentTypes[pureFileName];
+        } else {
+            currentDir.contentTypes[lastContentName] = currentDir.contentTypes[pureFileName];
+        }
+        currentDir.contentTypes[pureFileName] = EMPTY;
+        currentDir.contentNames.length--;
         fileStatus[owner][fileName] = STATUS_UNEXISTENT;
         uint deletePosition = fileInfoIndex[owner][fileName];
         occupiedStorageSpace[owner] -= fileInfoLists[owner][deletePosition].size;
@@ -159,6 +297,7 @@ contract FileStorage {
         return fileStatus[owner][fileName];
     }
 
+    // TODO: Update for directories
     function getFileInfoList(address userAddress) public view returns (FileInfo[] memory) {
         return fileInfoLists[userAddress];
     }
@@ -210,21 +349,19 @@ contract FileStorage {
         fileName = new string(fileNameLength);
         for (i = 0; i < fileNameLength; i++) {
             byte char = bytes(storagePath)[i + addressLength + 1];
-            require(char != '/');
             bytes(fileName)[i] = char;
         }
     }
 
-    function checkFileName(string memory fileName) private pure returns (bool) {
-        uint fileNameLength = bytes(fileName).length;
-        if (fileNameLength == 0 || fileNameLength > MAX_FILENAME_LENGTH) {
+    function checkFileName(string memory name) private pure returns (bool) {
+        if (keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked("..")) ||
+            keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked(".")) ||
+            bytes(name).length == 0) {
             return false;
         }
-        for (uint i = 0; i < fileNameLength; i++) {
-            byte char = bytes(fileName)[i];
-            if (char == '/') {
-                return false;
-            }
+        uint nameLength = bytes(name).length;
+        if (nameLength > MAX_FILENAME_LENGTH) {
+            return false;
         }
         return true;
     }
