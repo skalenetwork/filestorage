@@ -1,6 +1,6 @@
 pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
-import "github.com/Arachnid/solidity-stringutils/strings.sol";
+import "./strings.sol";
 
 // TODO: Add constraints
 contract FileStorage {
