@@ -23,19 +23,48 @@ contract('Filestorage', accounts => {
     }
 
     describe('startUpload', function () {
+        let fileName;
+        let fileSize;
+
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
+            fileName = randomstring.generate();
+            fileSize = Math.floor(Math.random()*100);
         });
 
-        it('should startUploading', async function () {
-            let fileName = randomstring.generate();
-            let fileSize = Math.floor(Math.random()*100);
+        it('should create file with 1 status', async function () {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             let storagePath = rmBytesSymbol(accounts[0])+'/'+fileName;
             let status = await filestorage.getFileStatus.call(storagePath);
             let size = await filestorage.getFileSize.call(storagePath);
             assert.equal(status, 1, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect")
+        });
+
+        it('should fail while creating 2 files with the same name', async function () {
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]})
+                .should
+                .eventually
+                .rejectedWith('EVM revert instruction without description message');
+        });
+
+        it('should fail while creating file > 100 mb', async function () {
+            fileSize = 10 ** 8;
+            try{
+                await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], "File should be less than 100 MB");
+            }
+        });
+
+        it('should fail while creating file with name > 255', async function () {
+            fileName = randomstring.generate(256);
+            try{
+                await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], "Filename should be <= 256 and not contains '/'");
+            }
         });
     })
 });
