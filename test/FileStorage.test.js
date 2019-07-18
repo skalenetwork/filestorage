@@ -6,6 +6,7 @@ chai.should();
 chai.use(require('chai-as-promised'));
 
 let randomstring = require('randomstring');
+let path = require('path');
 const FileStorage = artifacts.require("./FileStorage");
 
 contract('Filestorage', accounts => {
