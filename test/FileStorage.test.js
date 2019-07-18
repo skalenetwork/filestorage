@@ -1,4 +1,3 @@
-
 const chai = require('chai');
 const expect = chai.expect;
 const assert = chai.assert;
@@ -34,7 +33,7 @@ contract('Filestorage', accounts => {
 
         it('should create file with 1 status', async function () {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-            let storagePath = rmBytesSymbol(accounts[0])+'/'+fileName;
+            let storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
             let status = await filestorage.getFileStatus.call(storagePath);
             let size = await filestorage.getFileSize.call(storagePath);
             assert.equal(status, 1, 'Status is incorrect');
@@ -114,7 +113,7 @@ contract('Filestorage', accounts => {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
             let fileSize = Math.floor(Math.random()*100);
-            storagePath = rmBytesSymbol(accounts[0])+'/'+fileName;
+            storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
         });
 
@@ -127,7 +126,7 @@ contract('Filestorage', accounts => {
         it('should delete finished file', async function(){
             fileName = randomstring.generate();
             let fileSize = 0;
-            storagePath = rmBytesSymbol(accounts[0])+'/'+fileName;
+            storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.finishUpload(fileName, {from: accounts[0]});
             await filestorage.deleteFile(fileName, {from: accounts[0]});
@@ -143,7 +142,28 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error['receipt']['revertReason'], "File not exists");
             }
-
         });
     });
+
+    describe('finishUpload', function () {
+        it('should finish fully uploaded file', function () {
+
+        });
+
+        it('should finish empty file', function () {
+
+        });
+
+        it('should fail finishing partially uploaded file', function () {
+
+        });
+
+        it('should fail finishing unexisted file', function () {
+
+        });
+
+        it('should fail finishing already finished file', function () {
+
+        });
+    })
 });
