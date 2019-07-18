@@ -43,10 +43,11 @@ contract('Filestorage', accounts => {
 
         it('should fail while creating 2 files with the same name', async function () {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]})
-                .should
-                .eventually
-                .rejectedWith('EVM revert instruction without description message');
+            try{
+                await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], "File already exists");
+            }
         });
 
         it('should fail while creating file > 100 mb', async function () {
