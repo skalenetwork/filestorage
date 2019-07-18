@@ -17,6 +17,11 @@ contract('Filestorage', accounts => {
         return (str[0] === '0' && str[1] === 'x');
     }
 
+    function addBytesSymbol(str) {
+        if (ensureStartsWith0x(str)) return str;
+        return '0x' + str;
+    }
+
     function rmBytesSymbol(str){
         if (!ensureStartsWith0x(str)) return str;
         return str.slice(2);
@@ -120,7 +125,7 @@ contract('Filestorage', accounts => {
 
         it('should delete unfinished file', async function () {
             await filestorage.deleteFile(fileName, {from: accounts[0]});
-            let status = await filestorage.getFileStatus(storagePath);
+            let status = await filestorage.getFileStatus.call(storagePath);
             assert.equal(status, 0);
         });
 
@@ -131,7 +136,7 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.finishUpload(fileName, {from: accounts[0]});
             await filestorage.deleteFile(fileName, {from: accounts[0]});
-            let status = await filestorage.getFileStatus(storagePath);
+            let status = await filestorage.getFileStatus.call(storagePath);
             assert.equal(status, 0);
         });
 
@@ -147,8 +152,27 @@ contract('Filestorage', accounts => {
     });
 
     describe('finishUpload', function () {
-        it('should finish fully uploaded file', function () {
+        let fileName;
+        let storagePath;
 
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            fileName = randomstring.generate();
+            storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
+        });
+
+        it('should finish fully uploaded file', async function () {
+            let fileSize = Math.floor(Math.random()*100);
+            let data = addBytesSymbol(randomstring.generate({
+                length: fileSize,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+
+            let status = await filestorage.getFileStatus.call(storagePath);
+            assert.equal(status, 2, 'Status is not 2');
         });
 
         it('should finish empty file', function () {
