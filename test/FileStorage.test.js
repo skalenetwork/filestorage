@@ -45,24 +45,27 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             try{
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
             } catch (error) {
                 assert.equal(error['receipt']['revertReason'], "File already exists");
             }
         });
 
         it('should fail while creating file > 100 mb', async function () {
-            fileSize = 10 ** 8;
+            fileSize = 10 ** 8 + 1;
             try{
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
             } catch (error) {
                 assert.equal(error['receipt']['revertReason'], "File should be less than 100 MB");
             }
         });
 
-        it('should fail while creating file with name > 255', async function () {
-            fileName = randomstring.generate(256);
+        it('should fail while creating file with name > 256', async function () {
+            fileName = randomstring.generate(257);
             try{
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
             } catch (error) {
                 assert.equal(error['receipt']['revertReason'], "Filename should be <= 256 and not contains '/'");
             }
@@ -89,10 +92,10 @@ contract('Filestorage', accounts => {
                     fileName = randomstring.generate();
                     await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                     fileNames.push(fileName);
+                    assert.fail('File was unexpectfully uploaded');
                 } catch (error) {
                     assert.equal(error['receipt']['revertReason'], "Not enough free space in the Filestorage");
                 }
-                assert.fail('File was unexpectfully uploaded');
             });
 
             afterEach(async function(){
@@ -115,10 +118,32 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
         });
 
-        it('should delete file', async function () {
+        it('should delete unfinished file', async function () {
             await filestorage.deleteFile(fileName, {from: accounts[0]});
             let status = await filestorage.getFileStatus(storagePath);
             assert.equal(status, 0);
+        });
+
+        it('should delete finished file', async function(){
+            fileName = randomstring.generate();
+            let fileSize = 0;
+            storagePath = rmBytesSymbol(accounts[0])+'/'+fileName;
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            await filestorage.deleteFile(fileName, {from: accounts[0]});
+            let status = await filestorage.getFileStatus(storagePath);
+            assert.equal(status, 0);
+        });
+
+        it('should fail deleting unexisted file', async function(){
+            fileName = randomstring.generate();
+            try {
+                await filestorage.deleteFile(fileName, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], "File not exists");
+            }
+
         });
     });
 });
