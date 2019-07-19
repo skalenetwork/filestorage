@@ -8,12 +8,14 @@ chai.use(require('chai-as-promised'));
 let randomstring = require('randomstring');
 let path = require('path');
 const FileStorage = artifacts.require("./FileStorage");
+const UPLOADING_GAS = 10 ** 8;
 
 contract('Filestorage', accounts => {
     let filestorage;
-
     function ensureStartsWith0x(str) {
-        if (str.length < 2) {return false;}
+        if (str.length < 2) {
+            return false;
+        }
         return (str[0] === '0' && str[1] === 'x');
     }
 
@@ -22,7 +24,7 @@ contract('Filestorage', accounts => {
         return '0x' + str;
     }
 
-    function rmBytesSymbol(str){
+    function rmBytesSymbol(str) {
         if (!ensureStartsWith0x(str)) return str;
         return str.slice(2);
     }
@@ -34,7 +36,7 @@ contract('Filestorage', accounts => {
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
-            fileSize = Math.floor(Math.random()*100);
+            fileSize = Math.floor(Math.random() * 100);
         });
 
         it('should create file with 1 status', async function () {
@@ -48,7 +50,7 @@ contract('Filestorage', accounts => {
 
         it('should fail while creating 2 files with the same name', async function () {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-            try{
+            try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                 assert.fail('File was unexpectfully uploaded');
             } catch (error) {
@@ -58,7 +60,7 @@ contract('Filestorage', accounts => {
 
         it('should fail while creating file > 100 mb', async function () {
             fileSize = 10 ** 8 + 1;
-            try{
+            try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                 assert.fail('File was unexpectfully uploaded');
             } catch (error) {
@@ -68,7 +70,7 @@ contract('Filestorage', accounts => {
 
         it('should fail while creating file with name > 256', async function () {
             fileName = randomstring.generate(257);
-            try{
+            try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                 assert.fail('File was unexpectfully uploaded');
             } catch (error) {
@@ -76,10 +78,10 @@ contract('Filestorage', accounts => {
             }
         });
 
-        describe('Free space limit', function(){
+        describe('Free space limit', function () {
             let fileNames;
             let fileCount;
-            before(function(){
+            before(function () {
                 fileSize = 10 ** 8 - 1;
                 fileNames = [];
                 fileCount = 10;
@@ -87,13 +89,13 @@ contract('Filestorage', accounts => {
 
             it('should fail when storage is full', async function () {
                 let i = 0;
-                while(i < fileCount){
+                while (i < fileCount) {
                     fileName = randomstring.generate();
                     fileNames.push(fileName);
                     await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                     ++i;
                 }
-                try{
+                try {
                     fileName = randomstring.generate();
                     await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                     fileNames.push(fileName);
@@ -103,8 +105,8 @@ contract('Filestorage', accounts => {
                 }
             });
 
-            afterEach(async function(){
-                for (let j = 0; j < fileNames.length; ++j){
+            afterEach(async function () {
+                for (let j = 0; j < fileNames.length; ++j) {
                     await filestorage.deleteFile(fileNames[j], {from: accounts[0]});
                 }
             });
@@ -118,7 +120,7 @@ contract('Filestorage', accounts => {
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
-            let fileSize = Math.floor(Math.random()*100);
+            let fileSize = Math.floor(Math.random() * 100);
             storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
         });
@@ -129,7 +131,7 @@ contract('Filestorage', accounts => {
             assert.equal(status, 0);
         });
 
-        it('should delete finished file', async function(){
+        it('should delete finished file', async function () {
             fileName = randomstring.generate();
             let fileSize = 0;
             storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
@@ -140,7 +142,7 @@ contract('Filestorage', accounts => {
             assert.equal(status, 0);
         });
 
-        it('should fail deleting unexisted file', async function(){
+        it('should fail deleting unexisted file', async function () {
             fileName = randomstring.generate();
             try {
                 await filestorage.deleteFile(fileName, {from: accounts[0]});
@@ -162,7 +164,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should finish fully uploaded file', async function () {
-            let fileSize = Math.floor(Math.random()*100);
+            let fileSize = Math.floor(Math.random() * 100);
             let data = addBytesSymbol(randomstring.generate({
                 length: fileSize,
                 charset: 'hex'
@@ -190,7 +192,7 @@ contract('Filestorage', accounts => {
                 charset: 'hex'
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: 10 ** 8});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             try {
                 await filestorage.finishUpload(fileName, {from: accounts[0]});
                 assert.fail('File was unexpectfully finished');
@@ -218,6 +220,65 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error['receipt']['revertReason'], "File not found");
             }
+        });
+    });
+
+    describe('uploadChunk', function () {
+        let fileName;
+
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            fileName = randomstring.generate();
+        });
+
+        it('should upload chunk in empty file', async function () {
+            let fileSize = Math.floor(Math.random() * 100);
+            let data = addBytesSymbol(randomstring.generate({
+                length: fileSize,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0],});
+            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileInfo = fileList.find(obj => {
+                return obj.name === fileName;
+            });
+            assert.equal(fileInfo['isChunkUploaded'][0], true, 'Chunk loaded incorrectly');
+        });
+
+        it('should upload 1MB chunk', async function () {
+            let fileSize = 2 ** 20 + Math.floor(Math.random() * 100);
+            let data = addBytesSymbol(randomstring.generate({
+                length: 2 ** 20,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
+            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileInfo = fileList.find(obj => {
+                return obj.name === fileName;
+            });
+            assert.equal(fileInfo['isChunkUploaded'][0], true, 'Chunk loaded incorrectly');
+        });
+
+        it('should upload several 1MB chunks', function () {
+
+        });
+
+        it('should upload finishing chunk in file', function () {
+
+        });
+
+        it('should fail to upload less than 1MB chunk', async function () {
+
+        });
+
+        it('should fail to upload more than 1MB chunk', async function () {
+
+        });
+
+        it('should fail to upload on the position not multiple 2^20', async function () {
+
         });
     })
 });
