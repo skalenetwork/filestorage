@@ -423,11 +423,44 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to reupload chunk', async function () {
-
+            let fileSize = 1000;
+            let data = addBytesSymbol(randomstring.generate({
+                length: 2 * fileSize,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
+            try {
+                await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
+                assert.fail();
+            } catch (e) {
+                assert.equal(e['receipt']['revertReason'], 'Chunk is already uploaded')
+            }
+            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileInfo = fileList.find(obj => {
+                return obj.name === fileName;
+            });
+            assert.equal(fileInfo['isChunkUploaded'][0], true, 'First chunk loaded incorrectly');
         });
 
         it('should fail to upload on the position not multiple 2^20', async function () {
-
+            let fileSize = CHUNK_LENGTH;
+            let data = addBytesSymbol(randomstring.generate({
+                length: 100,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            try {
+                await filestorage.uploadChunk(fileName, 100, data, {from: accounts[0], gas: UPLOADING_GAS});
+                assert.fail();
+            } catch (e) {
+                assert.equal(e['receipt']['revertReason'], "Incorrect position of chunk")
+            }
+            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileInfo = fileList.find(obj => {
+                return obj.name === fileName;
+            });
+            assert.equal(fileInfo['isChunkUploaded'][0], false, 'First chunk loaded incorrectly');
         });
     })
 });
