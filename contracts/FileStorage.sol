@@ -181,8 +181,9 @@ contract FileStorage {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] == STATUS_UPLOADING, "File not found");
         require(data.length <= MAX_CHUNK_SIZE, "Chunk is too big");
-        require(position % MAX_CHUNK_SIZE == 0, "Incorrect position of chunk");
         uint idx = fileInfoIndex[owner][fileName];
+        uint fileSize = fileInfoLists[owner][idx].size;
+        require(position % MAX_CHUNK_SIZE == 0 && position < fileSize, "Incorrect position of chunk");
         require(fileInfoLists[owner][idx].isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
         uint dataBlocks = (data.length + 31) / 32 + 1;
         uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
