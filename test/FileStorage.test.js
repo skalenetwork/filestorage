@@ -175,20 +175,49 @@ contract('Filestorage', accounts => {
             assert.equal(status, 2, 'Status is not 2');
         });
 
-        it('should finish empty file', function () {
-
+        it('should finish empty file', async function () {
+            let fileSize = 0;
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            let status = await filestorage.getFileStatus.call(storagePath);
+            assert.equal(status, 2, 'Status is not 2');
         });
 
-        it('should fail finishing partially uploaded file', function () {
-
+        it('should fail finishing partially uploaded file', async function () {
+            let fileSize = 2 ** 20 + 10;
+            let data = addBytesSymbol(randomstring.generate({
+                length: fileSize,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: 10 ** 8});
+            try {
+                await filestorage.finishUpload(fileName, {from: accounts[0]});
+                assert.fail('File was unexpectfully finished');
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], "File hasn't been uploaded correctly");
+            }
         });
 
-        it('should fail finishing unexisted file', function () {
-
+        it('should fail finishing unexisted file', async function () {
+            try {
+                await filestorage.finishUpload(fileName, {from: accounts[0]});
+                assert.fail('File was unexpectfully finished');
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], "File not found");
+            }
         });
 
-        it('should fail finishing already finished file', function () {
-
+        it('should fail finishing already finished file', async function () {
+            let fileSize = 0;
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            try {
+                await filestorage.finishUpload(fileName, {from: accounts[0]});
+                assert.fail('File was unexpectfully finished');
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], "File not found");
+            }
         });
     })
 });
