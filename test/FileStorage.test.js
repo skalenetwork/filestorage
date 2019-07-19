@@ -261,12 +261,37 @@ contract('Filestorage', accounts => {
             assert.equal(fileInfo['isChunkUploaded'][0], true, 'Chunk loaded incorrectly');
         });
 
-        it('should upload several 1MB chunks', function () {
-
+        it('should upload several 1MB chunks', async function () {
+            let fileSize = 2 ** 22;
+            let data = addBytesSymbol(randomstring.generate({
+                length: 2 ** 20,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.uploadChunk(fileName, 2 ** 20, data, {from: accounts[0], gas: UPLOADING_GAS});
+            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileInfo = fileList.find(obj => {
+                return obj.name === fileName;
+            });
+            assert.equal(fileInfo['isChunkUploaded'][0], true, 'First chunk loaded incorrectly');
+            assert.equal(fileInfo['isChunkUploaded'][1], true, 'Second chunk loaded incorrectly');
         });
 
-        it('should upload finishing chunk in file', function () {
-
+        it('should upload finishing chunk in file', async function () {
+            let lastChunkSize =  Math.floor(Math.random()*300);
+            let fileSize = 2 ** 21 + lastChunkSize;
+            let data = addBytesSymbol(randomstring.generate({
+                length: lastChunkSize,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 2 ** 21, data, {from: accounts[0], gas: UPLOADING_GAS});
+            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileInfo = fileList.find(obj => {
+                return obj.name === fileName;
+            });
+            assert.equal(fileInfo['isChunkUploaded'][2], true, 'First chunk loaded incorrectly');
         });
 
         it('should fail to upload less than 1MB chunk', async function () {
@@ -274,6 +299,18 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to upload more than 1MB chunk', async function () {
+
+        });
+
+        it('should fail to upload finish chunk of incorrect size', async function () {
+
+        });
+
+        it('should fail to upload incorrect bytes', async function () {
+
+        });
+
+        it('should fail to reupload chunk', async function () {
 
         });
 
