@@ -478,4 +478,30 @@ contract('Filestorage', accounts => {
             }
         });
     });
+
+    describe('readChunk', function () {
+        let fileName;
+        let fileSize;
+        let storagePath;
+
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            fileName = randomstring.generate();
+            fileSize = 3 * CHUNK_LENGTH;
+            storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
+            filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+        });
+
+        it('should return splitted data string', function () {
+        });
+
+        it('should return chunk of 1MB from file', function () {
+        });
+
+        it('should return chunk from position < fileSize', function () {
+        });
+
+        it('should return chunk of length < 1MB', function () {
+        });
+    })
 });
