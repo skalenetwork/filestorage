@@ -168,7 +168,7 @@ contract('Filestorage', accounts => {
         it('should finish fully uploaded file', async function () {
             let fileSize = Math.floor(Math.random() * 100);
             let data = addBytesSymbol(randomstring.generate({
-                length: fileSize,
+                length: 2*fileSize,
                 charset: 'hex'
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
@@ -190,7 +190,7 @@ contract('Filestorage', accounts => {
         it('should fail finishing partially uploaded file', async function () {
             let fileSize = CHUNK_LENGTH + 10;
             let data = addBytesSymbol(randomstring.generate({
-                length: fileSize,
+                length: 2*CHUNK_LENGTH,
                 charset: 'hex'
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
@@ -313,7 +313,7 @@ contract('Filestorage', accounts => {
                 await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
                 assert.fail();
             } catch (error) {
-                assert.equal(error['receipt']['revertReason'], "Chunk is too big");
+                assert.equal(error['receipt']['revertReason'], "Incorrect chunk length");
             }
             let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
             let fileInfo = fileList.find(obj => {
@@ -334,7 +334,7 @@ contract('Filestorage', accounts => {
                 await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
                 assert.fail();
             } catch (error) {
-                assert.equal(error['receipt']['revertReason'], "Chunk is too small");
+                assert.equal(error['receipt']['revertReason'], "Incorrect chunk length");
             }
 
             let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
@@ -356,7 +356,7 @@ contract('Filestorage', accounts => {
                 await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
                 assert.fail();
             } catch (error) {
-                assert.equal(error['receipt']['revertReason'], "Chunk is too big");
+                assert.equal(error['receipt']['revertReason'], "Incorrect chunk length");
             }
             let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
             let fileInfo = fileList.find(obj => {
@@ -377,7 +377,7 @@ contract('Filestorage', accounts => {
                 await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
                 assert.fail();
             } catch (error) {
-                assert.equal(error['receipt']['revertReason'], "Chunk is too small");
+                assert.equal(error['receipt']['revertReason'], "Incorrect chunk length");
             }
             let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
             let fileInfo = fileList.find(obj => {
