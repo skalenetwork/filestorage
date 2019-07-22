@@ -480,19 +480,36 @@ contract('Filestorage', accounts => {
     });
 
     describe('readChunk', function () {
+        const MAX_BLOCK_COUNT = 2 ** 15;
+
         let fileName;
         let fileSize;
         let storagePath;
+        let data;
 
-        beforeEach(async function () {
+        before(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
             fileSize = 3 * CHUNK_LENGTH;
             storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
-            filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            data = addBytesSymbol(randomstring.generate({
+                length: 2 * CHUNK_LENGTH,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.uploadChunk(fileName, CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.uploadChunk(fileName, 2*CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
         });
 
-        it('should return splitted data string', function () {
+        it('should return splitted data string', async function () {
+            let receivedData = await filestorage.readChunk(storagePath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS});
+            assert.isArray(receivedData);
+            assert.isNotEmpty(receivedData);
+            assert.equal(receivedData.length, MAX_BLOCK_COUNT);
+            assert.isTrue(ensureStartsWith0x(receivedData[0]));
+            assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
 
         it('should return chunk of 1MB from file', function () {
