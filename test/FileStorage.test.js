@@ -168,7 +168,7 @@ contract('Filestorage', accounts => {
         it('should finish fully uploaded file', async function () {
             let fileSize = Math.floor(Math.random() * 100);
             let data = addBytesSymbol(randomstring.generate({
-                length: 2*fileSize,
+                length: 2 * fileSize,
                 charset: 'hex'
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
@@ -190,7 +190,7 @@ contract('Filestorage', accounts => {
         it('should fail finishing partially uploaded file', async function () {
             let fileSize = CHUNK_LENGTH + 10;
             let data = addBytesSymbol(randomstring.generate({
-                length: 2*CHUNK_LENGTH,
+                length: 2 * CHUNK_LENGTH,
                 charset: 'hex'
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
@@ -387,7 +387,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to upload incorrect bytes', async function () {
-            let fileSize = Math.floor(Math.random()*1000);
+            let fileSize = Math.floor(Math.random() * 1000);
             let data = addBytesSymbol(randomstring.generate({
                 length: fileSize,
                 charset: 'alphabetic'
@@ -405,7 +405,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to upload bytes without 0x', async function () {
-            let fileSize = Math.floor(Math.random()*1000);
+            let fileSize = Math.floor(Math.random() * 1000);
             let data = randomstring.generate({
                 length: fileSize,
                 charset: 'hex'
@@ -499,7 +499,7 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.uploadChunk(fileName, CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
-            await filestorage.uploadChunk(fileName, 2*CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.uploadChunk(fileName, 2 * CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.finishUpload(fileName, {from: accounts[0]});
         });
 
@@ -512,13 +512,33 @@ contract('Filestorage', accounts => {
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
 
-        it('should return chunk of 1MB from file', function () {
+        it('should return chunk from position < fileSize', async function () {
+            let receivedData = await filestorage.readChunk(storagePath, CHUNK_LENGTH / 2, CHUNK_LENGTH, {gas: UPLOADING_GAS});
+            assert.isArray(receivedData);
+            assert.isNotEmpty(receivedData);
+            assert.equal(receivedData.length, MAX_BLOCK_COUNT);
+            assert.isTrue(ensureStartsWith0x(receivedData[0]));
+            let chunk = addBytesSymbol(data.concat(rmBytesSymbol(data)).slice(CHUNK_LENGTH + 2, 3 * CHUNK_LENGTH + 2));
+            let receivedChunk = addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join(''));
+            assert.isTrue(receivedChunk === chunk);
         });
 
-        it('should return chunk from position < fileSize', function () {
-        });
-
-        it('should return chunk of length < 1MB', function () {
+        it('should return chunk of length < 1MB', async function () {
+            let chunkLength = 100;
+            let receivedData = await filestorage.readChunk(
+                storagePath,
+                CHUNK_LENGTH / 2,
+                chunkLength,
+                {gas: UPLOADING_GAS});
+            assert.isArray(receivedData);
+            assert.isNotEmpty(receivedData);
+            assert.equal(receivedData.length, MAX_BLOCK_COUNT);
+            assert.isTrue(ensureStartsWith0x(receivedData[0]));
+            let chunk = addBytesSymbol(data.concat(rmBytesSymbol(data))
+                .slice(CHUNK_LENGTH + 2, CHUNK_LENGTH + 2 * chunkLength + 2));
+            let receivedChunk = addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')
+                .slice(0, 2 * chunkLength));
+            assert.isTrue(receivedChunk === chunk);
         });
     })
 });
