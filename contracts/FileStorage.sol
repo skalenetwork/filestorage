@@ -271,9 +271,11 @@ contract FileStorage {
         address owner;
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
+        uint idx = fileInfoIndex[owner][fileName];
+        uint fileSize = fileInfoLists[owner][idx].size;
         require(fileStatus[owner][fileName] == STATUS_COMPLETED);
-        require(length <= MAX_CHUNK_SIZE);
-        require(length > 0);
+        require(length <= MAX_CHUNK_SIZE && length > 0);
+        require(position + length <= fileSize);
 
         uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
