@@ -573,7 +573,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to read from position > fileSize - chunklength', async function () {
-            await filestorage.readChunk(storagePath, fileSize - 10, CHUNK_LENGTH, {gas: UPLOADING_GAS})
+            await filestorage.readChunk(storagePath, fileSize - 10, 11, {gas: UPLOADING_GAS})
                 .should
                 .eventually
                 .rejectedWith('EVM revert instruction without description message');
