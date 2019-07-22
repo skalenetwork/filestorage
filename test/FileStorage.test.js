@@ -607,5 +607,50 @@ contract('Filestorage', accounts => {
             let status = await filestorage.getFileStatus(storagePath);
             assert.equal(status, 2);
         });
-    })
+    });
+
+    describe('getFileSize', function () {
+        let fileName;
+        let storagePath;
+
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            fileName = randomstring.generate();
+            storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
+        });
+
+        it('should return size of unfinished file', async function () {
+            let fileSize = 1000000;
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            let returnedSize = await filestorage.getFileSize(storagePath);
+            assert.equal(returnedSize, fileSize);
+        });
+
+        it('should return size of empty file', async function () {
+            let fileSize = 0;
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            let returnedSize = await filestorage.getFileSize(storagePath);
+            assert.equal(returnedSize, fileSize);
+        });
+
+        it('should return size of finished file', async function () {
+            let fileSize = 100;
+            let data = addBytesSymbol(randomstring.generate({
+                length: 2 * fileSize,
+                charset: 'hex'
+            }));
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            let returnedSize = await filestorage.getFileSize(storagePath);
+            assert.equal(returnedSize, fileSize);
+        });
+
+        it('should fail to return size of unexisted file', async function () {
+            await filestorage.getFileSize(storagePath)
+                .should
+                .eventually
+                .rejectedWith('EVM revert instruction without description message');
+        });
+    });
 });
