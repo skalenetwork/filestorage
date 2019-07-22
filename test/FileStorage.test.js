@@ -540,5 +540,43 @@ contract('Filestorage', accounts => {
                 .slice(0, 2 * chunkLength));
             assert.isTrue(receivedChunk === chunk);
         });
-    })
+
+        it('should fail to read more than 1Mb', async function () {
+            await filestorage.readChunk(storagePath, 0, CHUNK_LENGTH + 1, {gas: UPLOADING_GAS})
+                .should
+                .eventually
+                .rejectedWith('EVM revert instruction without description message');
+        });
+
+        it('should fail to read from unexisted file', async function () {
+            let unexistedPath = path.posix.join(rmBytesSymbol(accounts[0]), 'test.txt');
+            await filestorage.readChunk(unexistedPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
+                .should
+                .eventually
+                .rejectedWith('EVM revert instruction without description message');
+        });
+
+        it('should fail to read from unfinished file', async function () {
+            let unfinishedPath = path.posix.join(rmBytesSymbol(accounts[0]), 'test1.txt');
+            filestorage.startUpload('test1.txt', CHUNK_LENGTH, {from: accounts[0]});
+            await filestorage.readChunk(unfinishedPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
+                .should
+                .eventually
+                .rejectedWith('EVM revert instruction without description message');
+        });
+
+        it('should fail to read from position >= fileSize', async function () {
+            await filestorage.readChunk(storagePath, fileSize, 1, {gas: UPLOADING_GAS})
+                .should
+                .eventually
+                .rejectedWith('EVM revert instruction without description message');
+        });
+
+        it('should fail to read from position > fileSize - chunklength', async function () {
+            await filestorage.readChunk(storagePath, fileSize - 10, CHUNK_LENGTH, {gas: UPLOADING_GAS})
+                .should
+                .eventually
+                .rejectedWith('EVM revert instruction without description message');
+        });
+    });
 });
