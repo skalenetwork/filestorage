@@ -579,4 +579,33 @@ contract('Filestorage', accounts => {
                 .rejectedWith('EVM revert instruction without description message');
         });
     });
+
+    describe('getFileStatus', function () {
+        let fileName;
+        let storagePath;
+
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            fileName = randomstring.generate();
+            storagePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
+        });
+
+        it('should return 0 for unexisted file', async function () {
+            let status = await filestorage.getFileStatus(storagePath);
+            assert.equal(status, 0);
+        });
+
+        it('should return 1 for unexisted file', async function () {
+            await filestorage.startUpload(fileName, 10, {from: accounts[0]});
+            let status = await filestorage.getFileStatus(storagePath);
+            assert.equal(status, 1);
+        });
+
+        it('should return 2 for unexisted file', async function () {
+            await filestorage.startUpload(fileName, 0, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            let status = await filestorage.getFileStatus(storagePath);
+            assert.equal(status, 2);
+        });
+    })
 });
