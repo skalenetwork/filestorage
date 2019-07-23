@@ -724,5 +724,29 @@ contract('Filestorage', accounts => {
                 0, CHUNK_LENGTH, {gas: UPLOADING_GAS});
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
+
+        it('should fail to create dirs with the same name', function () {
+
+        });
+
+        it('should fail to create dir and file with the same name', function () {
+
+        });
+
+        it('should fail to create file and dir with the same name', function () {
+
+        });
+
+        it('should fail to create directory with unexisted path', function () {
+
+        });
+
+        it('should fail to create file in unexisted dir', function () {
+
+        });
+
+        it('should fail to create dir with \'..\' or \'.\' or \' \' name', function () {
+
+        });
     })
 });
