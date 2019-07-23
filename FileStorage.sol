@@ -1,7 +1,7 @@
 /*
-    Copyright (C) 2018-2019  SKALE Labs
-
-    This file is a part of SKALE FileStorage.
+    FileStorage.sol - SKALE FileStorage
+    Copyright (C) 2018-Present SKALE Labs
+    @author Dmytro Nazarenko
 
     FileStorage is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -15,7 +15,6 @@
 
     You should have received a copy of the GNU Affero General Public License
     along with FileStorage.  If not, see <https://www.gnu.org/licenses/>.
-
 */
 
 
