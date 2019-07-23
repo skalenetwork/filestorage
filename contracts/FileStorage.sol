@@ -146,10 +146,10 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Incorrect file path");
             currentDir = currentDir.directories[dirs[i]];
         }
-        require(currentDir.contentTypes[fileName] == EMPTY);
+        require(currentDir.contentTypes[fileName] == EMPTY, "Incorrect file path");
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {

@@ -725,16 +725,34 @@ contract('Filestorage', accounts => {
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
 
-        it('should fail to create dirs with the same name', function () {
-
+        it('should fail to create dirs with the same name', async function () {
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            try {
+                await filestorage.createDir(dirName, {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], 'EVM revert instruction without description message');
+            }
         });
 
-        it('should fail to create dir and file with the same name', function () {
-
+        it('should fail to create dir and file with the same name', async function () {
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            try {
+                await filestorage.startUpload(dirName, 0, {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], 'Incorrect file path');
+            }
         });
 
-        it('should fail to create file and dir with the same name', function () {
-
+        it('should fail to create file and dir with the same name', async function () {
+            await filestorage.startUpload(fileName, 0, {from: accounts[0]});
+            try {
+                await filestorage.createDir(fileName, {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], 'EVM revert instruction without description message');
+            }
         });
 
         it('should fail to create directory with unexisted path', function () {
