@@ -669,26 +669,60 @@ contract('Filestorage', accounts => {
         });
 
         it('should create empty dir in root', async function () {
-            console.log(dirName);
             await filestorage.createDir(dirName, {from: accounts[0]});
+            let dir = await filestorage.listDir(dirPath);
+            assert.isArray(dir);
         });
 
         it('should create empty dir in nested dir', async function () {
             let nestedDirName = randomstring.generate();
+            let nestedDirPath = path.posix.join(rmBytesSymbol(accounts[0]), dirName, nestedDirName);
             await filestorage.createDir(dirName, {from: accounts[0]});
             await filestorage.createDir(path.posix.join(dirName, nestedDirName), {from: accounts[0]});
+            let dir = await filestorage.listDir(dirPath);
+            let nestedDir = await filestorage.listDir(nestedDirPath);
+            assert.isArray(dir);
+            assert.isNotEmpty(dir);
+            assert.isTrue(dir.indexOf(nestedDirName) > -1);
+            assert.isArray(nestedDir);
         });
 
-        it('should create file in dir', function () {
-
+        it('should create file in dir', async function () {
+            let fileSize = 100;
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.startUpload(path.posix.join(dirName, fileName), 100, {from: accounts[0]});
+            let status = await filestorage.getFileStatus(path.posix.join(dirPath, fileName));
+            let size = await filestorage.getFileSize(path.posix.join(dirPath, fileName));
+            let dir = await filestorage.listDir(dirPath);
+            assert.equal(status, 1);
+            assert.equal(size, fileSize);
+            assert.isTrue(dir.indexOf(fileName) > -1);
         });
 
-        it('should delete file from dir', function () {
-
+        it('should delete file from dir', async function () {
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.startUpload(path.posix.join(dirName, fileName), 0, {from: accounts[0]});
+            await filestorage.finishUpload(path.posix.join(dirName, fileName), {from: accounts[0]});
+            await filestorage.deleteFile(path.posix.join(dirName, fileName), {from: accounts[0]});
+            let status = await filestorage.getFileStatus(path.posix.join(dirPath, fileName));
+            let dir = await filestorage.listDir(dirPath);
+            assert.equal(status, 0);
+            assert.equal(dir.indexOf(fileName), -1);
         });
 
-        it('should readChunk from file in dir', function () {
-
+        it('should readChunk from file in dir', async function () {
+            let data = addBytesSymbol(randomstring.generate({
+                length: 2*CHUNK_LENGTH,
+                charset: 'hex'
+            }));
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.startUpload(path.posix.join(dirName, fileName), CHUNK_LENGTH, {from: accounts[0]});
+            await filestorage.uploadChunk(path.posix.join(dirName, fileName),
+                0, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.finishUpload(path.posix.join(dirName, fileName), {from: accounts[0]});
+            let receivedData = await filestorage.readChunk(path.posix.join(dirPath, fileName),
+                0, CHUNK_LENGTH, {gas: UPLOADING_GAS});
+            assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
     })
 });
