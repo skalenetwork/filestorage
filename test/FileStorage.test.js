@@ -558,7 +558,7 @@ contract('Filestorage', accounts => {
 
         it('should fail to read from unfinished file', async function () {
             let unfinishedPath = path.posix.join(rmBytesSymbol(accounts[0]), 'test1.txt');
-            filestorage.startUpload('test1.txt', CHUNK_LENGTH, {from: accounts[0]});
+            await filestorage.startUpload('test1.txt', CHUNK_LENGTH, {from: accounts[0]});
             await filestorage.readChunk(unfinishedPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
                 .should
                 .eventually
