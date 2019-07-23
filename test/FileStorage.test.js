@@ -653,4 +653,42 @@ contract('Filestorage', accounts => {
                 .rejectedWith('EVM revert instruction without description message');
         });
     });
+
+    describe('createDir', function () {
+        let fileName;
+        let dirName;
+        let filePath;
+        let dirPath;
+
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            fileName = randomstring.generate();
+            dirName = randomstring.generate();
+            filePath = path.posix.join(rmBytesSymbol(accounts[0]), fileName);
+            dirPath = path.posix.join(rmBytesSymbol(accounts[0]), dirName);
+        });
+
+        it('should create empty dir in root', async function () {
+            console.log(dirName);
+            await filestorage.createDir(dirName, {from: accounts[0]});
+        });
+
+        it('should create empty dir in nested dir', async function () {
+            let nestedDirName = randomstring.generate();
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDir(path.posix.join(dirName, nestedDirName), {from: accounts[0]});
+        });
+
+        it('should create file in dir', function () {
+
+        });
+
+        it('should delete file from dir', function () {
+
+        });
+
+        it('should readChunk from file in dir', function () {
+
+        });
+    })
 });
