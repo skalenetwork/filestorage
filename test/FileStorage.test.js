@@ -755,16 +755,46 @@ contract('Filestorage', accounts => {
             }
         });
 
-        it('should fail to create directory with unexisted path', function () {
-
+        it('should fail to create directory with unexisted path', async function () {
+            try {
+                await filestorage.createDir(path.posix.join(fileName, dirName), {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], 'EVM revert instruction without description message');
+            }
         });
 
-        it('should fail to create file in unexisted dir', function () {
-
+        it('should fail to create file in unexisted dir', async function () {
+            try {
+                await filestorage.startUpload(path.posix.join(dirName, fileName), 0, {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], 'Incorrect file path');
+            }
         });
 
-        it('should fail to create dir with \'..\' or \'.\' or \' \' name', function () {
-
+        it('should fail to create dir with \'..\' or \'.\' or \'\' name', async function () {
+            try {
+                await filestorage.createDir('..', {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                console.log(error);
+                assert.equal(error['receipt']['revertReason'], 'EVM revert instruction without description message');
+            }
+            try {
+                await filestorage.createDir('.', {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                console.log(error);
+                assert.equal(error['receipt']['revertReason'], 'EVM revert instruction without description message');
+            }
+            // try {
+            //     await filestorage.createDir('', {from: accounts[0]});
+            //     assert.fail();
+            // } catch (error) {
+            //     console.log(error);
+            //     assert.equal(error['receipt']['revertReason'], 'EVM revert instruction without description message');
+            // }
         });
     })
 });
