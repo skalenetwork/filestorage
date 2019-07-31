@@ -107,11 +107,11 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory targetDir = dirs[dirs.length - 1];
-        require(currentDir.contentTypes[targetDir] > EMPTY);
+        require(currentDir.contentTypes[targetDir] > EMPTY, "Invalid path");
         require(currentDir.directories[targetDir].contentNames.length == 0);
         uint blocks = (bytes(path).length + 31) / 32 + 1;
         bool success;
@@ -124,7 +124,7 @@ contract FileStorage {
             }
             success := call(not(0), 0x10, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
-        require(success, "Directory not deleted");
+//        require(success, "Directory not deleted");
         string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
         currentDir.contentNames[uint(currentDir.contentTypes[targetDir])-1] = lastContentName;
         if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[targetDir] < 0) {

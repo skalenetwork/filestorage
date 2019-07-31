@@ -796,5 +796,36 @@ contract('Filestorage', accounts => {
             //     assert.equal(error['receipt']['revertReason'], 'EVM revert instruction without description message');
             // }
         });
+    });
+
+    describe('deleteDir', function () {
+        let dirName;
+        let dirPath;
+
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            dirName = randomstring.generate();
+            dirPath = path.posix.join(rmBytesSymbol(accounts[0]), dirName);
+        });
+
+        it('should delete dir from root dir', async function () {
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.deleteDir(dirName, {from: accounts[0]});
+            let root = await filestorage.listDir(rmBytesSymbol(accounts[0])+'/');
+            assert.isTrue(root.indexOf(dirName) === -1);
+        });
+
+        it('should delete dir from nested dir', async function () {
+            let nestedDirName = randomstring.generate();
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDir(path.posix.join(dirName, nestedDirName), {from: accounts[0]});
+            await filestorage.deleteDir(path.posix.join(dirName, nestedDirName), {from: accounts[0]});
+            let root = await filestorage.listDir(path.posix.join(rmBytesSymbol(accounts[0]), dirName));
+            assert.isTrue(root.indexOf(nestedDirName) === -1);
+        });
+
+        it('should fail deleting non-empty dir', function () {
+
+        });
     })
 });
