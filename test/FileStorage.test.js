@@ -824,8 +824,25 @@ contract('Filestorage', accounts => {
             assert.isTrue(root.indexOf(nestedDirName) === -1);
         });
 
-        it('should fail deleting non-empty dir', function () {
+        it('should fail deleting non-empty dir', async function () {
+            let nestedDirName = randomstring.generate();
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDir(path.posix.join(dirName, nestedDirName), {from: accounts[0]});
+            try {
+                await filestorage.deleteDir(dirName, {from: accounts[0]});
+                assert.fail('Directory was unexpectfully deleted');
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], 'Directory is not empty');
+            }
+        });
 
+        it('should fail deleting unexisted dir', async function () {
+            try {
+                await filestorage.deleteDir(dirName, {from: accounts[0]});
+                assert.fail('Directory was unexpectfully deleted');
+            } catch (error) {
+                assert.equal(error['receipt']['revertReason'], 'Invalid path');
+            }
         });
     })
 });
