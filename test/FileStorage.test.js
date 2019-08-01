@@ -844,5 +844,62 @@ contract('Filestorage', accounts => {
                 assert.equal(error['receipt']['revertReason'], 'Invalid path');
             }
         });
-    })
+    });
+
+    describe('listDir', function () {
+        let dirName;
+        let dirPath;
+
+        beforeEach(async function () {
+            filestorage = await FileStorage.new({from: accounts[0]});
+            dirName = randomstring.generate();
+            dirPath = path.posix.join(rmBytesSymbol(accounts[0]), dirName);
+        });
+
+        it('should list dirs and files in directory', async function () {
+            let fileName = randomstring.generate();
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDir(path.posix.join(dirName, dirName), {from: accounts[0]});
+            await filestorage.startUpload(path.posix.join(dirName, fileName), 0, {from: accounts[0]});
+            await filestorage.finishUpload(path.posix.join(dirName, fileName), {from: accounts[0]});
+            let content = await filestorage.listDir(dirPath);
+            assert.isArray(content);
+            assert.isTrue(content.indexOf(dirName) > -1);
+            assert.isTrue(content.indexOf(fileName) > -1);
+        });
+
+        it('should list dirs and files in root directory', async function () {
+            let fileName = randomstring.generate();
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.startUpload(fileName, 0, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            let content = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
+            assert.isArray(content);
+            assert.isTrue(content.indexOf(dirName) > -1);
+            assert.isTrue(content.indexOf(fileName) > -1);
+        });
+
+        it('should return empty list from root directory', async function () {
+            let content = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
+            assert.isArray(content);
+            assert.isEmpty(content);
+        });
+
+        it('should list dirs with different path format', async function () {
+            let content1 = await filestorage.listDir(rmBytesSymbol(accounts[0]));
+            let content2 = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
+            let content3 = await filestorage.listDir('/' + rmBytesSymbol(accounts[0]));
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            let content4 = await filestorage.listDir(dirPath);
+            let content5 = await filestorage.listDir(dirPath + '/');
+            assert.isArray(content1);
+            assert.isArray(content2);
+            assert.isArray(content3);
+            assert.isArray(content4);
+        });
+
+        it('should fail to list unexisted dir', async function () {
+            await filestorage.listDir(dirPath).should.eventually.rejectedWith('Invalid path');
+        });
+    });
 });
