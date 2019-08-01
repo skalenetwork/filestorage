@@ -20,7 +20,7 @@
 
 pragma solidity ^0.4.24;
 pragma experimental ABIEncoderV2;
-import "github.com/Arachnid/solidity-stringutils/strings.sol";
+import "./strings.sol";
 
 // TODO: Add constraints
 contract FileStorage {
@@ -116,7 +116,7 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
         }
         return currentDir.contentNames;
@@ -127,12 +127,12 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory targetDir = dirs[dirs.length - 1];
-        require(currentDir.contentTypes[targetDir] > EMPTY);
-        require(currentDir.directories[targetDir].contentNames.length == 0);
+        require(currentDir.contentTypes[targetDir] > EMPTY, "Invalid path");
+        require(currentDir.directories[targetDir].contentNames.length == 0, "Directory is not empty");
         uint blocks = (bytes(path).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -144,7 +144,7 @@ contract FileStorage {
             }
             success := call(not(0), 0x10, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
-        require(success, "Directory not deleted");
+        require(success, "Directory is not deleted");
         string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
         currentDir.contentNames[uint(currentDir.contentTypes[targetDir])-1] = lastContentName;
         if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[targetDir] < 0) {
@@ -166,10 +166,10 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Incorrect file path");
             currentDir = currentDir.directories[dirs[i]];
         }
-        require(currentDir.contentTypes[fileName] == EMPTY);
+        require(currentDir.contentTypes[fileName] == EMPTY, "Incorrect file path");
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -200,9 +200,12 @@ contract FileStorage {
     function uploadChunk(string memory fileName, uint position, bytes memory data) public {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] == STATUS_UPLOADING, "File not found");
-        require(data.length <= MAX_CHUNK_SIZE, "Chunk is too big");
-        require(position % MAX_CHUNK_SIZE == 0, "Incorrect position of chunk");
         uint idx = fileInfoIndex[owner][fileName];
+        uint fileSize = fileInfoLists[owner][idx].size;
+        require(position % MAX_CHUNK_SIZE == 0 && position < fileSize, "Incorrect position of chunk");
+        require(fileSize - position < MAX_CHUNK_SIZE &&
+                data.length == fileSize - position ||
+                data.length == MAX_CHUNK_SIZE, "Incorrect chunk length");
         require(fileInfoLists[owner][idx].isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
         uint dataBlocks = (data.length + 31) / 32 + 1;
         uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
@@ -288,9 +291,11 @@ contract FileStorage {
         address owner;
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
+        uint idx = fileInfoIndex[owner][fileName];
+        uint fileSize = fileInfoLists[owner][idx].size;
         require(fileStatus[owner][fileName] == STATUS_COMPLETED);
-        require(length <= MAX_CHUNK_SIZE);
-        require(length > 0);
+        require(length <= MAX_CHUNK_SIZE && length > 0);
+        require(position + length <= fileSize);
 
         uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
