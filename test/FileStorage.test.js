@@ -85,10 +85,11 @@ contract('Filestorage', accounts => {
         describe('Free space limit', function () {
             let fileNames;
             let fileCount;
-            before(function () {
+            let fileSize;
+            beforeEach(function () {
                 fileSize = MAX_FILESIZE - 1;
                 fileNames = [];
-                fileCount = 10;
+                fileCount = 100;
             });
 
             it('should fail when storage is full', async function () {
