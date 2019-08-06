@@ -27,7 +27,7 @@ contract FileStorage {
 
     uint constant MAX_CHUNK_SIZE = 2 ** 20;
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
-    uint constant MAX_FILENAME_LENGTH = 256;
+    uint constant MAX_FILENAME_LENGTH = 255;
     uint constant MAX_FILESIZE = 10 ** 8;
 
     uint constant MAX_STORAGE_SPACE = 10 ** 10;
@@ -84,12 +84,12 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY);
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory newDir = dirs[dirs.length - 1];
-        require(currentDir.contentTypes[newDir] == EMPTY);
-        require(checkFileName(newDir));
+        require(currentDir.contentTypes[newDir] == EMPTY, "File or directory exists");
+        require(checkFileName(newDir), "Invalid directory name");
         uint blocks = (bytes(path).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -160,16 +160,16 @@ contract FileStorage {
     function startUpload(string memory fileName, uint256 fileSize) public {
         address owner = msg.sender;
         require(fileStatus[owner][fileName] == STATUS_UNEXISTENT, "File already exists");
-        require(checkFileName(fileName), "Filename should be <= 256 and not contains '/'");
+        require(checkFileName(fileName), "Filename should be < 256");
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Incorrect file path");
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
         }
-        require(currentDir.contentTypes[fileName] == EMPTY, "Incorrect file path");
+        require(currentDir.contentTypes[fileName] == EMPTY, "File or directory exists");
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -202,7 +202,7 @@ contract FileStorage {
         require(fileStatus[owner][fileName] == STATUS_UPLOADING, "File not found");
         uint idx = fileInfoIndex[owner][fileName];
         uint fileSize = fileInfoLists[owner][idx].size;
-        require(position % MAX_CHUNK_SIZE == 0 && position < fileSize, "Incorrect position of chunk");
+        require(position % MAX_CHUNK_SIZE == 0 && position < fileSize, "Incorrect chunk position");
         require(fileSize - position < MAX_CHUNK_SIZE &&
                 data.length == fileSize - position ||
                 data.length == MAX_CHUNK_SIZE, "Incorrect chunk length");
@@ -293,9 +293,9 @@ contract FileStorage {
         (owner, fileName) = parseStoragePath(storagePath);
         uint idx = fileInfoIndex[owner][fileName];
         uint fileSize = fileInfoLists[owner][idx].size;
-        require(fileStatus[owner][fileName] == STATUS_COMPLETED);
-        require(length <= MAX_CHUNK_SIZE && length > 0);
-        require(position + length <= fileSize);
+        require(fileStatus[owner][fileName] == STATUS_COMPLETED, "File hasn't been uploaded");
+        require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
+        require(position + length <= fileSize, "Incorrect chunk position");
 
         uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
@@ -312,7 +312,7 @@ contract FileStorage {
             mstore(add(32, p_position), length)
             success := call(not(0), 0x0A, 0, p, mul(32, add(3, fileNameBlocks)), out, mul(32, returnedDataBlocks))
         }
-        require(success);
+        require(success, "Chunk wasn't read");
     }
 
     function getFileStatus(string memory storagePath) public view returns (int) {
@@ -331,7 +331,8 @@ contract FileStorage {
         address owner;
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
-        require(fileStatus[owner][fileName] == STATUS_UPLOADING || fileStatus[owner][fileName] == STATUS_COMPLETED);
+        require(fileStatus[owner][fileName] == STATUS_UPLOADING ||
+                fileStatus[owner][fileName] == STATUS_COMPLETED, "File not found");
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -349,7 +350,7 @@ contract FileStorage {
 
     function parseStoragePath(string memory storagePath) private pure returns (address owner, string memory fileName) {
         uint addressLength = 40;
-        require(bytes(storagePath).length > addressLength);
+        require(bytes(storagePath).length > addressLength, "Invalid storagePath");
         bytes memory ownerAddress = new bytes(addressLength);
         for (uint i = 0; i < addressLength; i++) {
             ownerAddress[i] = bytes(storagePath)[i];
@@ -357,7 +358,7 @@ contract FileStorage {
         uint result = 0;
         for (i = 0; i < addressLength; i++) {
             uint c = uint(ownerAddress[i]);
-            require((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 102));
+            require((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 102), "Invalid storagePath");
             if (c >= 48 && c <= 57) {
                 result = result * 16 + (c - 48);
             }
@@ -369,7 +370,7 @@ contract FileStorage {
             }
         }
         owner = address(result);
-        require(bytes(storagePath)[addressLength] == '/');
+        require(bytes(storagePath)[addressLength] == '/', "Invalid storagePath");
         uint fileNameLength = bytes(storagePath).length - addressLength - 1;
         fileName = new string(fileNameLength);
         for (i = 0; i < fileNameLength; i++) {

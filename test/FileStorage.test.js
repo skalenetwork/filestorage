@@ -32,7 +32,7 @@ contract('Filestorage', accounts => {
     }
 
     describe('startUpload', function () {
-        const MAX_FILENAME_LENGTH = 256;
+        const MAX_FILENAME_LENGTH = 255;
         const MAX_FILESIZE = 10 ** 8;
         let fileName;
         let fileSize;
@@ -72,13 +72,13 @@ contract('Filestorage', accounts => {
             }
         });
 
-        it('should fail while creating file with name > 256', async function () {
+        it('should fail while creating file with name > 255', async function () {
             fileName = randomstring.generate(MAX_FILENAME_LENGTH + 1);
             try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                 assert.fail('File was unexpectfully uploaded');
             } catch (error) {
-                assert.equal(error.receipt.revertReason, "Filename should be <= 256 and not contains '/'");
+                assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
         });
 
@@ -452,7 +452,7 @@ contract('Filestorage', accounts => {
                 await filestorage.uploadChunk(fileName, 100, data, {from: accounts[0], gas: UPLOADING_GAS});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, "Incorrect position of chunk")
+                assert.equal(error.receipt.revertReason, "Incorrect chunk position")
             }
             let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
             let fileInfo = fileList.find(obj => {
@@ -472,7 +472,7 @@ contract('Filestorage', accounts => {
                 await filestorage.uploadChunk(fileName, fileSize, data, {from: accounts[0], gas: UPLOADING_GAS});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, "Incorrect position of chunk")
+                assert.equal(error.receipt.revertReason, "Incorrect chunk position")
             }
         });
     });
@@ -543,7 +543,7 @@ contract('Filestorage', accounts => {
             await filestorage.readChunk(storagePath, 0, CHUNK_LENGTH + 1, {gas: UPLOADING_GAS})
                 .should
                 .eventually
-                .rejectedWith('EVM revert instruction without description message');
+                .rejectedWith('Incorrect chunk length');
         });
 
         it('should fail to read from unexisted file', async function () {
@@ -551,7 +551,7 @@ contract('Filestorage', accounts => {
             await filestorage.readChunk(unexistedPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
                 .should
                 .eventually
-                .rejectedWith('EVM revert instruction without description message');
+                .rejectedWith('File hasn\'t been uploaded');
         });
 
         it('should fail to read from unfinished file', async function () {
@@ -560,21 +560,21 @@ contract('Filestorage', accounts => {
             await filestorage.readChunk(unfinishedPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
                 .should
                 .eventually
-                .rejectedWith('EVM revert instruction without description message');
+                .rejectedWith('File hasn\'t been uploaded');
         });
 
         it('should fail to read from position >= fileSize', async function () {
             await filestorage.readChunk(storagePath, fileSize, 1, {gas: UPLOADING_GAS})
                 .should
                 .eventually
-                .rejectedWith('EVM revert instruction without description message');
+                .rejectedWith('Incorrect chunk position');
         });
 
         it('should fail to read from position > fileSize - chunklength', async function () {
             await filestorage.readChunk(storagePath, fileSize - 10, 11, {gas: UPLOADING_GAS})
                 .should
                 .eventually
-                .rejectedWith('EVM revert instruction without description message');
+                .rejectedWith('Incorrect chunk position');
         });
     });
 
@@ -648,7 +648,7 @@ contract('Filestorage', accounts => {
             await filestorage.getFileSize(storagePath)
                 .should
                 .eventually
-                .rejectedWith('EVM revert instruction without description message');
+                .rejectedWith('File not found');
         });
     });
 
@@ -729,7 +729,7 @@ contract('Filestorage', accounts => {
                 await filestorage.createDir(dirName, {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'EVM revert instruction without description message');
+                assert.equal(error.receipt.revertReason, 'File or directory exists');
             }
         });
 
@@ -739,7 +739,7 @@ contract('Filestorage', accounts => {
                 await filestorage.startUpload(dirName, 0, {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'Incorrect file path');
+                assert.equal(error.receipt.revertReason, 'File or directory exists');
             }
         });
 
@@ -749,7 +749,7 @@ contract('Filestorage', accounts => {
                 await filestorage.createDir(fileName, {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'EVM revert instruction without description message');
+                assert.equal(error.receipt.revertReason, 'File or directory exists');
             }
         });
 
@@ -758,7 +758,7 @@ contract('Filestorage', accounts => {
                 await filestorage.createDir(path.join(fileName, dirName), {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'EVM revert instruction without description message');
+                assert.equal(error.receipt.revertReason, 'Invalid path');
             }
         });
 
@@ -767,7 +767,7 @@ contract('Filestorage', accounts => {
                 await filestorage.startUpload(path.join(dirName, fileName), 0, {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'Incorrect file path');
+                assert.equal(error.receipt.revertReason, 'Invalid path');
             }
         });
 
@@ -776,19 +776,19 @@ contract('Filestorage', accounts => {
                 await filestorage.createDir('..', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'EVM revert instruction without description message');
+                assert.equal(error.receipt.revertReason, 'Invalid directory name');
             }
             try {
                 await filestorage.createDir('.', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'EVM revert instruction without description message');
+                assert.equal(error.receipt.revertReason, 'Invalid directory name');
             }
             try {
                 await filestorage.createDir('', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'EVM revert instruction without description message');
+                assert.equal(error.receipt.revertReason, 'Invalid directory name');
             }
         });
     });
