@@ -71,23 +71,17 @@ contract FileStorage {
     mapping(address => Directory) rootDirectories;
     using strings for *;
 
-    function parseDirPath(string memory path) public pure returns (string[] memory decreasePart) {
-        var pathSlice = path.toSlice();
-        var delimiter = "/".toSlice();
-        string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
-        for (uint i = 0; i < parts.length; i++) {
-            parts[i] = pathSlice.split(delimiter).toString();
+    function getContentInfo(address owner, string path) private view returns (ContentInfo){
+        string[] memory dirs = parseDirPath(path);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
+            currentDir = currentDir.directories[dirs[i]];
         }
-        if (bytes(parts[parts.length - 1]).length == 0) {
-            delete parts[parts.length - 1];
-            decreasePart = new string[](parts.length - 1);
-
-        } else {
-            decreasePart = new string[](parts.length);
-        }
-        for (i = 0; i < decreasePart.length; i++) {
-            decreasePart[i] = parts[i];
-        }
+        string memory contentName = dirs[dirs.length - 1];
+        require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
+        ContentInfo result = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
+        return result;
     }
 
     function createDir(string memory path) public {
@@ -169,7 +163,6 @@ contract FileStorage {
 
     function startUpload(string memory fileName, uint256 fileSize) public {
         address owner = msg.sender;
-        require(fileStatus[owner][fileName] == STATUS_UNEXISTENT, "File already exists");
         require(checkFileName(fileName), "Filename should be < 256");
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
@@ -194,15 +187,14 @@ contract FileStorage {
         }
         require(success, "File not created");
         string memory pureFileName = dirs[dirs.length-1];
-
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
-        fileStatus[owner][fileName] = STATUS_UPLOADING;
-        fileInfoLists[owner].push(FileInfo({
-            name : fileName,
-            size : fileSize,
-            isChunkUploaded : isChunkUploaded
-            }));
-        fileInfoIndex[owner][fileName] = fileInfoLists[owner].length - 1;
+//        fileStatus[owner][fileName] = STATUS_UPLOADING;
+//        fileInfoLists[owner].push(FileInfo({
+//            name : fileName,
+//            size : fileSize,
+//            isChunkUploaded : isChunkUploaded
+//            }));
+//        fileInfoIndex[owner][fileName] = fileInfoLists[owner].length - 1;
         currentDir.contents.push(ContentInfo({
             name : pureFileName,
             isFile : true,
@@ -216,14 +208,15 @@ contract FileStorage {
 
     function uploadChunk(string memory fileName, uint position, bytes memory data) public {
         address owner = msg.sender;
-        require(fileStatus[owner][fileName] == STATUS_UPLOADING, "File not found");
-        uint idx = fileInfoIndex[owner][fileName];
-        uint fileSize = fileInfoLists[owner][idx].size;
-        require(position % MAX_CHUNK_SIZE == 0 && position < fileSize, "Incorrect chunk position");
-        require(fileSize - position < MAX_CHUNK_SIZE &&
-                data.length == fileSize - position ||
+        ContentInfo memory file = getContentInfo(owner, fileName);
+        require(file.status == STATUS_UPLOADING, "File not found");
+//        uint idx = fileInfoIndex[owner][fileName];
+//        uint fileSize = fileInfoLists[owner][idx].size;
+        require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
+        require(file.size - position < MAX_CHUNK_SIZE &&
+                data.length == file.size - position ||
                 data.length == MAX_CHUNK_SIZE, "Incorrect chunk length");
-        require(fileInfoLists[owner][idx].isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
+        require(file.isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
         uint dataBlocks = (data.length + 31) / 32 + 1;
         uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
@@ -241,22 +234,22 @@ contract FileStorage {
             success := call(not(0), 0x0C, 0, p, add(96, mul(32, add(dataBlocks, fileNameBlocks))), p, 32)
         }
         require(success, "Chunk wasn't uploaded");
-        fileInfoLists[msg.sender][idx].isChunkUploaded[position / MAX_CHUNK_SIZE] = true;
+        file.isChunkUploaded[position / MAX_CHUNK_SIZE] = true;
     }
 
     function finishUpload(string memory fileName) public {
         address owner = msg.sender;
-        require(fileStatus[owner][fileName] == STATUS_UPLOADING, "File not found");
+        ContentInfo memory file = getContentInfo(owner, fileName);
+        require(file.status == STATUS_UPLOADING, "File not found");
         bool isFileUploaded = true;
-        uint idx = fileInfoIndex[msg.sender][fileName];
-        uint chunkCount = fileInfoLists[msg.sender][idx].isChunkUploaded.length;
+        uint chunkCount = file.isChunkUploaded.length;
         for (uint i = 0; i < chunkCount; ++i) {
-            if (fileInfoLists[msg.sender][idx].isChunkUploaded[i] == false) {
+            if (file.isChunkUploaded[i] == false) {
                 isFileUploaded = false;
             }
         }
         require(isFileUploaded, "File hasn't been uploaded correctly");
-        fileStatus[owner][fileName] = STATUS_COMPLETED;
+        file.status = STATUS_COMPLETED;
     }
 
     function deleteFile(string memory fileName) public {
@@ -332,7 +325,8 @@ contract FileStorage {
         address owner;
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
-        return fileStatus[owner][fileName];
+        ContentInfo memory file = getContentInfo(owner, fileName);
+        return file.status;
     }
 
     // TODO: Update for directories
@@ -344,8 +338,9 @@ contract FileStorage {
         address owner;
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
-        require(fileStatus[owner][fileName] == STATUS_UPLOADING ||
-                fileStatus[owner][fileName] == STATUS_COMPLETED, "File not found");
+        ContentInfo memory file = getContentInfo(owner, fileName);
+        require(file.status == STATUS_UPLOADING ||
+                file.status == STATUS_COMPLETED, "File not found");
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -389,6 +384,25 @@ contract FileStorage {
         for (i = 0; i < fileNameLength; i++) {
             byte char = bytes(storagePath)[i + addressLength + 1];
             bytes(fileName)[i] = char;
+        }
+    }
+
+    function parseDirPath(string memory path) private pure returns (string[] memory decreasePart) {
+        var pathSlice = path.toSlice();
+        var delimiter = "/".toSlice();
+        string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
+        for (uint i = 0; i < parts.length; i++) {
+            parts[i] = pathSlice.split(delimiter).toString();
+        }
+        if (bytes(parts[parts.length - 1]).length == 0) {
+            delete parts[parts.length - 1];
+            decreasePart = new string[](parts.length - 1);
+
+        } else {
+            decreasePart = new string[](parts.length);
+        }
+        for (i = 0; i < decreasePart.length; i++) {
+            decreasePart[i] = parts[i];
         }
     }
 

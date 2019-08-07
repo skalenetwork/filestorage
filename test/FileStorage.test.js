@@ -46,8 +46,8 @@ contract('Filestorage', accounts => {
         it('should create file with 1 status', async function () {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             let storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
-            let status = await filestorage.getFileStatus.call(storagePath);
-            let size = await filestorage.getFileSize.call(storagePath);
+            let status = await filestorage.getFileStatus(storagePath);
+            let size = await filestorage.getFileSize(storagePath);
             assert.equal(status, 1, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect")
         });
@@ -58,7 +58,7 @@ contract('Filestorage', accounts => {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                 assert.fail('File was unexpectfully uploaded');
             } catch (error) {
-                assert.equal(error.receipt.revertReason, "File already exists");
+                assert.equal(error.receipt.revertReason, 'File or directory exists');
             }
         });
 
@@ -593,13 +593,13 @@ contract('Filestorage', accounts => {
             assert.equal(status, 0);
         });
 
-        it('should return 1 for unexisted file', async function () {
+        it('should return 1 for unfinished file', async function () {
             await filestorage.startUpload(fileName, 10, {from: accounts[0]});
             let status = await filestorage.getFileStatus(storagePath);
             assert.equal(status, 1);
         });
 
-        it('should return 2 for unexisted file', async function () {
+        it('should return 2 for finished file', async function () {
             await filestorage.startUpload(fileName, 0, {from: accounts[0]});
             await filestorage.finishUpload(fileName, {from: accounts[0]});
             let status = await filestorage.getFileStatus(storagePath);
