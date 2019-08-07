@@ -797,6 +797,7 @@ contract('Filestorage', accounts => {
         });
     });
 
+    // TODO: delete file first, dir - remain and vice versa
     describe('deleteDir', function () {
         let dirName;
         let dirPath;
@@ -863,8 +864,8 @@ contract('Filestorage', accounts => {
             await filestorage.finishUpload(path.join(dirName, fileName), {from: accounts[0]});
             let content = await filestorage.listDir(dirPath);
             assert.isArray(content);
-            assert.isTrue(content.indexOf(dirName) > -1);
-            assert.isTrue(content.indexOf(fileName) > -1);
+            assert.isArray(content.find(obj => { return obj.name === dirName; }));
+            assert.isArray(content.find(obj => { return obj.name === fileName; }));
         });
 
         it('should list dirs and files in root directory', async function () {
@@ -874,8 +875,8 @@ contract('Filestorage', accounts => {
             await filestorage.finishUpload(fileName, {from: accounts[0]});
             let content = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             assert.isArray(content);
-            assert.isTrue(content.indexOf(dirName) > -1);
-            assert.isTrue(content.indexOf(fileName) > -1);
+            assert.isArray(content.find(obj => { return obj.name === dirName; }));
+            assert.isArray(content.find(obj => { return obj.name === fileName; }));
         });
 
         it('should return empty list from root directory', async function () {

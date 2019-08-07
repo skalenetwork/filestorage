@@ -113,13 +113,11 @@ contract FileStorage {
             success := call(not(0), 0x0F, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "Directory not created");
-        currentDir.contentNames.push(newDir);
-        currentDir.contentTypes[newDir] = int(currentDir.contentNames.length);
-
-        ContentInfo directoryInfo;
+        ContentInfo memory directoryInfo;
         directoryInfo.name = newDir;
         directoryInfo.isFile = false;
         currentDir.contents.push(directoryInfo);
+        currentDir.contentTypes[newDir] = int(currentDir.contents.length);
     }
 
     // TODO: handle root dir
@@ -148,7 +146,7 @@ contract FileStorage {
         }
         string memory targetDir = dirs[dirs.length - 1];
         require(currentDir.contentTypes[targetDir] > EMPTY, "Invalid path");
-        require(currentDir.directories[targetDir].contentNames.length == 0, "Directory is not empty");
+        require(currentDir.directories[targetDir].contents.length == 0, "Directory is not empty");
         uint blocks = (bytes(path).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -161,15 +159,11 @@ contract FileStorage {
             success := call(not(0), 0x10, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "Directory is not deleted");
-        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
-        currentDir.contentNames[uint(currentDir.contentTypes[targetDir])-1] = lastContentName;
-        if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[targetDir] < 0) {
-            currentDir.contentTypes[lastContentName] = -currentDir.contentTypes[targetDir];
-        } else {
-            currentDir.contentTypes[lastContentName] = currentDir.contentTypes[targetDir];
-        }
+        ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
+        currentDir.contents[uint(currentDir.contentTypes[targetDir])-1] = lastContent;
+        currentDir.contentTypes[lastContent.name] = currentDir.contentTypes[targetDir];
         currentDir.contentTypes[targetDir] = EMPTY;
-        currentDir.contentNames.length--;
+        currentDir.contents.length--;
         delete currentDir.directories[targetDir];
     }
 
