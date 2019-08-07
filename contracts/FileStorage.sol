@@ -46,13 +46,24 @@ contract FileStorage {
         bool[] isChunkUploaded;
     }
 
+    struct ContentInfo {
+        string name;
+        bool isFile;
+        uint size;
+        int status;
+        bool[] isChunkUploaded;
+    }
+
+    // TODO: remove fileStatus, fileInfo, fileInfoIndex
     mapping(address => mapping(string => int)) fileStatus;
     mapping(address => FileInfo[]) fileInfoLists;
     mapping(address => mapping(string => uint)) fileInfoIndex;
     mapping(address => uint) occupiedStorageSpace;
 
+    // TODO: add info about files
     struct Directory {
         string[] contentNames;
+        ContentInfo[] contents;
         mapping(string => int) contentTypes;
         mapping(string => Directory) directories;
     }
@@ -104,12 +115,17 @@ contract FileStorage {
         require(success, "Directory not created");
         currentDir.contentNames.push(newDir);
         currentDir.contentTypes[newDir] = int(currentDir.contentNames.length);
+
+        ContentInfo directoryInfo;
+        directoryInfo.name = newDir;
+        directoryInfo.isFile = false;
+        currentDir.contents.push(directoryInfo);
     }
 
     // TODO: handle root dir
     // TODO: goToDir
     // TODO: return content types
-    function listDir(string memory storagePath) public constant returns (string[]){
+    function listDir(string memory storagePath) public constant returns (ContentInfo[]){
         address owner;
         string memory path;
         (owner, path) = parseStoragePath(storagePath);
@@ -119,7 +135,7 @@ contract FileStorage {
             require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
         }
-        return currentDir.contentNames;
+        return currentDir.contents;
     }
 
     function deleteDir(string memory path) public {
@@ -194,6 +210,13 @@ contract FileStorage {
             isChunkUploaded : isChunkUploaded
             }));
         fileInfoIndex[owner][fileName] = fileInfoLists[owner].length - 1;
+        currentDir.contents.push(ContentInfo({
+            name : pureFileName,
+            isFile : true,
+            size : fileSize,
+            status : STATUS_UPLOADING,
+            isChunkUploaded : isChunkUploaded
+        }));
         occupiedStorageSpace[owner] += fileSize;
     }
 
@@ -263,8 +286,11 @@ contract FileStorage {
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory pureFileName = dirs[dirs.length-1];
-        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
         uint idx = uint(-(currentDir.contentTypes[pureFileName]))-1;
+//        currentDir.contents[idx] = currentDir.contents[currentDir.contents.length - 1];
+//        currentDir.contents.length--;
+
+        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
         currentDir.contentNames[idx] = lastContentName;
         if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[pureFileName] < 0) {
             currentDir.contentTypes[lastContentName] = -currentDir.contentTypes[pureFileName];
