@@ -122,7 +122,6 @@ contract FileStorage {
 
     // TODO: handle root dir
     // TODO: goToDir
-    // TODO: return content types
     function listDir(string memory storagePath) public constant returns (ContentInfo[]){
         address owner;
         string memory path;
@@ -136,6 +135,7 @@ contract FileStorage {
         return currentDir.contents;
     }
 
+    // TODO: delete dir with all content in it
     function deleteDir(string memory path) public {
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
@@ -194,8 +194,7 @@ contract FileStorage {
         }
         require(success, "File not created");
         string memory pureFileName = dirs[dirs.length-1];
-        currentDir.contentNames.push(pureFileName);
-        currentDir.contentTypes[pureFileName] = -int(currentDir.contentNames.length);
+
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
         fileStatus[owner][fileName] = STATUS_UPLOADING;
         fileInfoLists[owner].push(FileInfo({
@@ -211,6 +210,7 @@ contract FileStorage {
             status : STATUS_UPLOADING,
             isChunkUploaded : isChunkUploaded
         }));
+        currentDir.contentTypes[pureFileName] = int(currentDir.contents.length);
         occupiedStorageSpace[owner] += fileSize;
     }
 
@@ -280,19 +280,12 @@ contract FileStorage {
             currentDir = currentDir.directories[dirs[i]];
         }
         string memory pureFileName = dirs[dirs.length-1];
-        uint idx = uint(-(currentDir.contentTypes[pureFileName]))-1;
-//        currentDir.contents[idx] = currentDir.contents[currentDir.contents.length - 1];
-//        currentDir.contents.length--;
-
-        string memory lastContentName = currentDir.contentNames[currentDir.contentNames.length - 1];
-        currentDir.contentNames[idx] = lastContentName;
-        if (currentDir.contentTypes[lastContentName] * currentDir.contentTypes[pureFileName] < 0) {
-            currentDir.contentTypes[lastContentName] = -currentDir.contentTypes[pureFileName];
-        } else {
-            currentDir.contentTypes[lastContentName] = currentDir.contentTypes[pureFileName];
-        }
+        uint idx = uint(currentDir.contentTypes[pureFileName])-1;
+        ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
+        currentDir.contents[idx] = lastContent;
+        currentDir.contents.length--;
+        currentDir.contentTypes[lastContent.name] = currentDir.contentTypes[pureFileName];
         currentDir.contentTypes[pureFileName] = EMPTY;
-        currentDir.contentNames.length--;
         fileStatus[owner][fileName] = STATUS_UNEXISTENT;
         uint deletePosition = fileInfoIndex[owner][fileName];
         occupiedStorageSpace[owner] -= fileInfoLists[owner][deletePosition].size;

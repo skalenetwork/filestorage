@@ -714,7 +714,7 @@ contract('Filestorage', accounts => {
 
         it('should readChunk from file in dir', async function () {
             let data = addBytesSymbol(randomstring.generate({
-                length: 2*CHUNK_LENGTH,
+                length: 2 * CHUNK_LENGTH,
                 charset: 'hex'
             }));
             await filestorage.createDir(dirName, {from: accounts[0]});
@@ -811,7 +811,7 @@ contract('Filestorage', accounts => {
         it('should delete dir from root dir', async function () {
             await filestorage.createDir(dirName, {from: accounts[0]});
             await filestorage.deleteDir(dirName, {from: accounts[0]});
-            let root = await filestorage.listDir(rmBytesSymbol(accounts[0])+'/');
+            let root = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             assert.isTrue(root.indexOf(dirName) === -1);
         });
 
@@ -864,8 +864,12 @@ contract('Filestorage', accounts => {
             await filestorage.finishUpload(path.join(dirName, fileName), {from: accounts[0]});
             let content = await filestorage.listDir(dirPath);
             assert.isArray(content);
-            assert.isArray(content.find(obj => { return obj.name === dirName; }));
-            assert.isArray(content.find(obj => { return obj.name === fileName; }));
+            assert.isArray(content.find(obj => {
+                return obj.name === dirName;
+            }));
+            assert.isArray(content.find(obj => {
+                return obj.name === fileName;
+            }));
         });
 
         it('should list dirs and files in root directory', async function () {
@@ -875,8 +879,12 @@ contract('Filestorage', accounts => {
             await filestorage.finishUpload(fileName, {from: accounts[0]});
             let content = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             assert.isArray(content);
-            assert.isArray(content.find(obj => { return obj.name === dirName; }));
-            assert.isArray(content.find(obj => { return obj.name === fileName; }));
+            assert.isArray(content.find(obj => {
+                return obj.name === dirName;
+            }));
+            assert.isArray(content.find(obj => {
+                return obj.name === fileName;
+            }));
         });
 
         it('should return empty list from root directory', async function () {
