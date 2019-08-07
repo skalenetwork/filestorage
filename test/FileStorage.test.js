@@ -681,7 +681,9 @@ contract('Filestorage', accounts => {
             let nestedDir = await filestorage.listDir(nestedDirPath);
             assert.isArray(dir);
             assert.isNotEmpty(dir);
-            assert.isTrue(dir.indexOf(nestedDirName) > -1);
+            assert.isArray(dir.find(obj => {
+                return obj.name === nestedDirName;
+            }));
             assert.isArray(nestedDir);
         });
 
@@ -694,7 +696,9 @@ contract('Filestorage', accounts => {
             let dir = await filestorage.listDir(dirPath);
             assert.equal(status, 1);
             assert.equal(size, fileSize);
-            assert.isTrue(dir.indexOf(fileName) > -1);
+            assert.isArray(dir.find(obj => {
+                return obj.name === fileName;
+            }));
         });
 
         it('should delete file from dir', async function () {
