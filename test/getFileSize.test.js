@@ -71,7 +71,7 @@ contract('Filestorage', accounts => {
             await filestorage.getFileSize(storagePath)
                 .should
                 .eventually
-                .rejectedWith('File not found');
+                .rejectedWith('Invalid path');
         });
     });
 });
