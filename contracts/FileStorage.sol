@@ -188,13 +188,6 @@ contract FileStorage {
         require(success, "File not created");
         string memory pureFileName = dirs[dirs.length-1];
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
-//        fileStatus[owner][fileName] = STATUS_UPLOADING;
-//        fileInfoLists[owner].push(FileInfo({
-//            name : fileName,
-//            size : fileSize,
-//            isChunkUploaded : isChunkUploaded
-//            }));
-//        fileInfoIndex[owner][fileName] = fileInfoLists[owner].length - 1;
         currentDir.contents.push(ContentInfo({
             name : pureFileName,
             isFile : true,
@@ -210,8 +203,6 @@ contract FileStorage {
         address owner = msg.sender;
         ContentInfo memory file = getContentInfo(owner, fileName);
         require(file.status == STATUS_UPLOADING, "File not found");
-//        uint idx = fileInfoIndex[owner][fileName];
-//        uint fileSize = fileInfoLists[owner][idx].size;
         require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
         require(file.size - position < MAX_CHUNK_SIZE &&
                 data.length == file.size - position ||
