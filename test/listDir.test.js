@@ -20,6 +20,11 @@ contract('Filestorage', accounts => {
         return (str[0] === '0' && str[1] === 'x');
     }
 
+    function addBytesSymbol(str) {
+        if (ensureStartsWith0x(str)) return str;
+        return '0x' + str;
+    }
+
     function rmBytesSymbol(str) {
         if (!ensureStartsWith0x(str)) return str;
         return str.slice(2);
@@ -46,6 +51,26 @@ contract('Filestorage', accounts => {
             assert.isArray(content.find(obj => {
                 return obj.name === dirName;
             }));
+            assert.isArray(content.find(obj => {
+                return obj.name === fileName;
+            }));
+        });
+
+        it('should list files with chunks in directory', async function () {
+            let fileName = randomstring.generate();
+            let data = addBytesSymbol(randomstring.generate({
+                length: 2 * CHUNK_LENGTH,
+                charset: 'hex'
+            }));
+            let filePath = path.join(dirName, fileName);
+            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.uploadChunk(filePath, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.uploadChunk(filePath, CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
+            await filestorage.startUpload(filePath, 3*CHUNK_LENGTH, {from: accounts[0]});
+            await filestorage.finishUpload(filePath, {from: accounts[0]});
+            let content = await filestorage.listDir(dirPath);
+            console.log(content);
+            assert.isArray(content);
             assert.isArray(content.find(obj => {
                 return obj.name === fileName;
             }));

@@ -48,7 +48,11 @@ contract('Filestorage', accounts => {
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0]});
-            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            try {
+                await filestorage.finishUpload(fileName, {from: accounts[0]});
+            } catch (e) {
+                console.log(e);
+            }
 
             let status = await filestorage.getFileStatus.call(storagePath);
             assert.equal(status, 2, 'Status is not 2');
@@ -57,7 +61,11 @@ contract('Filestorage', accounts => {
         it('should finish empty file', async function () {
             let fileSize = 0;
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            try {
+                await filestorage.finishUpload(fileName, {from: accounts[0]});
+            } catch (e) {
+                console.log(e);
+            }
             let status = await filestorage.getFileStatus.call(storagePath);
             assert.equal(status, 2, 'Status is not 2');
         });
