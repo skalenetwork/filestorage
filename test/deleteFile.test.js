@@ -60,7 +60,7 @@ contract('Filestorage', accounts => {
                 await filestorage.deleteFile(fileName, {from: accounts[0]});
                 assert.fail('File was unexpectfully uploaded');
             } catch (error) {
-                assert.equal(error.receipt.revertReason, "File not exists");
+                assert.equal(error.receipt.revertReason, 'Invalid path');
             }
         });
     });

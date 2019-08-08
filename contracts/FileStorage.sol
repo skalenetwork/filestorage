@@ -245,7 +245,8 @@ contract FileStorage {
 
     function deleteFile(string memory fileName) public {
         address owner = msg.sender;
-        require(fileStatus[owner][fileName] != STATUS_UNEXISTENT, "File not exists");
+        ContentInfo memory file = getContentInfo(owner, fileName);
+        require(file.status != STATUS_UNEXISTENT, "File not exists");
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -263,21 +264,13 @@ contract FileStorage {
         for (uint i = 0; i < dirs.length - 1; ++i) {
             currentDir = currentDir.directories[dirs[i]];
         }
-        string memory pureFileName = dirs[dirs.length-1];
-        uint idx = uint(currentDir.contentTypes[pureFileName])-1;
+        uint idx = uint(currentDir.contentTypes[file.name])-1;
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
         currentDir.contents[idx] = lastContent;
         currentDir.contents.length--;
-        currentDir.contentTypes[lastContent.name] = currentDir.contentTypes[pureFileName];
-        currentDir.contentTypes[pureFileName] = EMPTY;
-        fileStatus[owner][fileName] = STATUS_UNEXISTENT;
-        uint deletePosition = fileInfoIndex[owner][fileName];
-        occupiedStorageSpace[owner] -= fileInfoLists[owner][deletePosition].size;
-        FileInfo memory tempInfo = fileInfoLists[owner][fileInfoLists[owner].length - 1];
-        fileInfoLists[owner][deletePosition] = tempInfo;
-        fileInfoIndex[owner][tempInfo.name] = deletePosition;
-        fileInfoIndex[owner][fileName] = 0;
-        fileInfoLists[owner].length--;
+        currentDir.contentTypes[lastContent.name] = currentDir.contentTypes[file.name];
+        currentDir.contentTypes[file.name] = EMPTY;
+        occupiedStorageSpace[owner] -= file.size;
     }
 
     function readChunk(string memory storagePath, uint position, uint length)
@@ -316,7 +309,19 @@ contract FileStorage {
         address owner;
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
-        ContentInfo memory file = getContentInfo(owner, fileName);
+        string[] memory dirs = parseDirPath(fileName);
+        Directory currentDir = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            if (currentDir.contentTypes[dirs[i]] == EMPTY) {
+                return STATUS_UNEXISTENT;
+            }
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory contentName = dirs[dirs.length - 1];
+        if (currentDir.contentTypes[contentName] == EMPTY) {
+            return STATUS_UNEXISTENT;
+        }
+        ContentInfo file = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
         return file.status;
     }
 
