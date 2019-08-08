@@ -104,7 +104,7 @@ contract('Filestorage', accounts => {
             await filestorage.readChunk(unexistedPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
                 .should
                 .eventually
-                .rejectedWith('File hasn\'t been uploaded');
+                .rejectedWith('Invalid path');
         });
 
         it('should fail to read from unfinished file', async function () {

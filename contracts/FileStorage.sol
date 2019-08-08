@@ -294,12 +294,10 @@ contract FileStorage {
         address owner;
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
-        uint idx = fileInfoIndex[owner][fileName];
-        uint fileSize = fileInfoLists[owner][idx].size;
-        require(fileStatus[owner][fileName] == STATUS_COMPLETED, "File hasn't been uploaded");
+        ContentInfo memory file = getContentInfo(owner, fileName);
+        require(file.status == STATUS_COMPLETED, "File hasn't been uploaded");
         require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
-        require(position + length <= fileSize, "Incorrect chunk position");
-
+        require(position + length <= file.size, "Incorrect chunk position");
         uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
         bool success;
