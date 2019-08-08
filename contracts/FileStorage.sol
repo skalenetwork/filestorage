@@ -99,6 +99,7 @@ contract FileStorage {
 
     function createDir(string memory path) public {
         address owner = msg.sender;
+        require(bytes(path).length > 0, "Invalid directory name");
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
