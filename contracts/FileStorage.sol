@@ -71,6 +71,19 @@ contract FileStorage {
     mapping(address => Directory) rootDirectories;
     using strings for *;
 
+    function getContentInfo(string path) private returns (ContentInfo storage){
+        string[] memory dirs = parseDirPath(path);
+        Directory storage currentDir = rootDirectories[msg.sender];
+        for (uint i = 0; i < dirs.length - 1; ++i) {
+            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
+            currentDir = currentDir.directories[dirs[i]];
+        }
+        string memory contentName = dirs[dirs.length - 1];
+        require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
+        ContentInfo storage result = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
+        return result;
+    }
+
     function getContentInfo(address owner, string path) private view returns (ContentInfo){
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
@@ -201,7 +214,7 @@ contract FileStorage {
 
     function uploadChunk(string memory fileName, uint position, bytes memory data) public {
         address owner = msg.sender;
-        ContentInfo memory file = getContentInfo(owner, fileName);
+        ContentInfo storage file = getContentInfo(fileName);
         require(file.status == STATUS_UPLOADING, "File not found");
         require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
         require(file.size - position < MAX_CHUNK_SIZE &&
@@ -230,7 +243,7 @@ contract FileStorage {
 
     function finishUpload(string memory fileName) public {
         address owner = msg.sender;
-        ContentInfo memory file = getContentInfo(owner, fileName);
+        ContentInfo storage file = getContentInfo(fileName);
         require(file.status == STATUS_UPLOADING, "File not found");
         bool isFileUploaded = true;
         uint chunkCount = file.isChunkUploaded.length;
