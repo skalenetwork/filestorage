@@ -99,7 +99,6 @@ contract FileStorage {
 
     function createDir(string memory path) public {
         address owner = msg.sender;
-        require(bytes(path).length > 0, "Invalid directory name");
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length - 1; ++i) {
@@ -398,6 +397,7 @@ contract FileStorage {
     function parseDirPath(string memory path) private pure returns (string[] memory decreasePart) {
         var pathSlice = path.toSlice();
         var delimiter = "/".toSlice();
+        require(bytes(path).length > 0, "Invalid path");
         string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
         for (uint i = 0; i < parts.length; i++) {
             parts[i] = pathSlice.split(delimiter).toString();

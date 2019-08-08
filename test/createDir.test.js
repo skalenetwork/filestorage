@@ -171,7 +171,7 @@ contract('Filestorage', accounts => {
                 await filestorage.createDir('', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
-                assert.equal(error.receipt.revertReason, 'Invalid directory name');
+                assert.equal(error.receipt.revertReason, 'Invalid path');
             }
         });
     });
