@@ -46,7 +46,7 @@ contract('Filestorage', accounts => {
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -61,7 +61,7 @@ contract('Filestorage', accounts => {
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -77,7 +77,7 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.uploadChunk(fileName, CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -94,7 +94,7 @@ contract('Filestorage', accounts => {
             }));
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk(fileName, 2 ** 21, data, {from: accounts[0], gas: UPLOADING_GAS});
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -115,7 +115,7 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Incorrect chunk length");
             }
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -137,7 +137,7 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, "Incorrect chunk length");
             }
 
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -158,7 +158,7 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Incorrect chunk length");
             }
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -179,7 +179,7 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Incorrect chunk length");
             }
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -197,7 +197,7 @@ contract('Filestorage', accounts => {
                 .should
                 .eventually
                 .rejectedWith('invalid bytes value');
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -215,7 +215,7 @@ contract('Filestorage', accounts => {
                 .should
                 .eventually
                 .rejectedWith('invalid bytes value');
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -236,7 +236,7 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Chunk is already uploaded')
             }
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
@@ -256,7 +256,7 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Incorrect chunk position")
             }
-            let fileList = await filestorage.getFileInfoList(rmBytesSymbol(accounts[0]));
+            let fileList = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
             let fileInfo = fileList.find(obj => {
                 return obj.name === fileName;
             });
