@@ -60,26 +60,26 @@ contract FileStorage {
 
     using strings for *;
 
-    function createDir(string memory path) public {
-        require(bytes(path).length > 0, "Invalid path");
+    function createDir(string memory directoryPath) public {
+        require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
-        string[] memory dirs = parseDirPath(path);
+        string[] memory dirs = parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
+        string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentTypes[newDir] == EMPTY, "File or directory exists");
-        require(checkFileName(newDir), "Invalid directory name");
-        uint blocks = (bytes(path).length + 31) / 32 + 1;
+        require(checkContentName(newDir), "Invalid directory name");
+        uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         bool success;
         assembly {
             let p := mload(0x40)
             mstore(p, owner)
             let ptr := add(p, 32)
             for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(path, mul(32, i))))
+                mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
             }
             success := call(not(0), 0x0F, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
@@ -92,25 +92,25 @@ contract FileStorage {
     }
 
     // TODO: delete dir with all content in it
-    function deleteDir(string memory path) public {
+    function deleteDir(string memory directoryPath) public {
         address owner = msg.sender;
-        string[] memory dirs = parseDirPath(path);
+        string[] memory dirs = parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory targetDir = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
+        string memory targetDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentTypes[targetDir] > EMPTY, "Invalid path");
         require(currentDir.directories[targetDir].contents.length == 0, "Directory is not empty");
-        uint blocks = (bytes(path).length + 31) / 32 + 1;
+        uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         bool success;
         assembly {
             let p := mload(0x40)
             mstore(p, owner)
             let ptr := add(p, 32)
             for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(path, mul(32, i))))
+                mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
             }
             success := call(not(0), 0x10, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
@@ -123,27 +123,27 @@ contract FileStorage {
         delete currentDir.directories[targetDir];
     }
 
-    function startUpload(string memory fileName, uint256 fileSize) public {
+    function startUpload(string memory filePath, uint256 fileSize) public {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
-        string[] memory dirs = parseDirPath(fileName);
+        string[] memory dirs = parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : fileName;
+        string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDir.contentTypes[pureFileName] == EMPTY, "File or directory exists");
-        require(checkFileName(pureFileName), "Filename should be < 256");
-        uint blocks = (bytes(fileName).length + 31) / 32 + 1;
+        require(checkContentName(pureFileName), "Filename should be < 256");
+        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         bool success;
         assembly {
             let p := mload(0x40)
             mstore(p, owner)
             let ptr := add(p, 32)
             for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(fileName, mul(32, i))))
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
             mstore(add(ptr, mul(blocks, 32)), fileSize)
             success := call(not(0), 0x0B, 0, p, add(64, mul(blocks, 32)), p, 32)
@@ -161,9 +161,9 @@ contract FileStorage {
         occupiedStorageSpace[owner] += fileSize;
     }
 
-    function uploadChunk(string memory fileName, uint position, bytes memory data) public {
+    function uploadChunk(string memory filePath, uint position, bytes memory data) public {
         address owner = msg.sender;
-        ContentInfo storage file = getContentInfo(owner, fileName);
+        ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == STATUS_UPLOADING, "File not found");
         require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
         require(file.size - position < MAX_CHUNK_SIZE &&
@@ -171,28 +171,28 @@ contract FileStorage {
                 data.length == MAX_CHUNK_SIZE, "Incorrect chunk length");
         require(file.isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
         uint dataBlocks = (data.length + 31) / 32 + 1;
-        uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
+        uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
         bool success;
         assembly {
             let p := mload(0x40)
             mstore(p, owner)
             let ptr := add(p, 32)
-            for {let i := 0} lt(i, fileNameBlocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(fileName, mul(32, i))))
+            for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
-            mstore(add(ptr, mul(32, fileNameBlocks)), position)
+            mstore(add(ptr, mul(32, filePathBlocks)), position)
             for {let i := 0} lt(i, dataBlocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, add(add(1, fileNameBlocks), i))), mload(add(data, mul(32, i))))
+                mstore(add(ptr, mul(32, add(add(1, filePathBlocks), i))), mload(add(data, mul(32, i))))
             }
-            success := call(not(0), 0x0C, 0, p, add(96, mul(32, add(dataBlocks, fileNameBlocks))), p, 32)
+            success := call(not(0), 0x0C, 0, p, add(96, mul(32, add(dataBlocks, filePathBlocks))), p, 32)
         }
         require(success, "Chunk wasn't uploaded");
         file.isChunkUploaded[position / MAX_CHUNK_SIZE] = true;
     }
 
-    function finishUpload(string memory fileName) public {
+    function finishUpload(string memory filePath) public {
         address owner = msg.sender;
-        ContentInfo storage file = getContentInfo(owner, fileName);
+        ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == STATUS_UPLOADING, "File not found");
         bool isFileUploaded = true;
         uint chunkCount = file.isChunkUploaded.length;
@@ -205,23 +205,23 @@ contract FileStorage {
         file.status = STATUS_COMPLETED;
     }
 
-    function deleteFile(string memory fileName) public {
+    function deleteFile(string memory filePath) public {
         address owner = msg.sender;
-        ContentInfo memory file = getContentInfo(owner, fileName);
+        ContentInfo memory file = getContentInfo(owner, filePath);
         require(file.status != STATUS_UNEXISTENT, "File not exists");
-        uint blocks = (bytes(fileName).length + 31) / 32 + 1;
+        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         bool success;
         assembly {
             let p := mload(0x40)
             mstore(p, owner)
             let ptr := add(p, 32)
             for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(fileName, mul(32, i))))
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
             success := call(not(0), 0x0E, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "File not deleted");
-        string[] memory dirs = parseDirPath(fileName);
+        string[] memory dirs = parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             currentDir = currentDir.directories[dirs[i - 1]];
@@ -321,20 +321,20 @@ contract FileStorage {
         require(success);
     }
 
-    function getContentInfo(address owner, string path) private view returns (ContentInfo storage){
-        string[] memory dirs = parseDirPath(path);
+    function getContentInfo(address owner, string contentPath) private view returns (ContentInfo storage){
+        string[] memory dirs = parseDirPath(contentPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
+        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : contentPath;
         require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
         ContentInfo storage result = currentDir.contents[currentDir.contentTypes[contentName] - 1];
         return result;
     }
 
-    function parseStoragePath(string memory storagePath) private pure returns (address owner, string memory fileName) {
+    function parseStoragePath(string memory storagePath) private pure returns (address owner, string memory filePath) {
         uint addressLength = 40;
         require(bytes(storagePath).length > addressLength, "Invalid storagePath");
         bytes memory ownerAddress = new bytes(addressLength);
@@ -358,15 +358,15 @@ contract FileStorage {
         owner = address(result);
         require(bytes(storagePath)[addressLength] == '/', "Invalid storagePath");
         uint fileNameLength = bytes(storagePath).length - addressLength - 1;
-        fileName = new string(fileNameLength);
+        filePath = new string(fileNameLength);
         for (i = 0; i < fileNameLength; i++) {
             byte char = bytes(storagePath)[i + addressLength + 1];
-            bytes(fileName)[i] = char;
+            bytes(filePath)[i] = char;
         }
     }
 
-    function parseDirPath(string memory path) private pure returns (string[] memory decreasePart) {
-        strings.slice memory pathSlice = path.toSlice();
+    function parseDirPath(string memory directoryPath) private pure returns (string[] memory decreasePart) {
+        strings.slice memory pathSlice = directoryPath.toSlice();
         strings.slice memory delimiter = "/".toSlice();
         string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
         for (uint i = 0; i < parts.length; i++) {
@@ -384,13 +384,13 @@ contract FileStorage {
         }
     }
 
-    function checkFileName(string memory name) private pure returns (bool) {
-        if (keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked("..")) ||
-        keccak256(abi.encodePacked(name)) == keccak256(abi.encodePacked(".")) ||
-        bytes(name).length == 0) {
+    function checkContentName(string memory contentName) private pure returns (bool) {
+        if (keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("..")) ||
+        keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked(".")) ||
+        bytes(contentName).length == 0) {
             return false;
         }
-        uint nameLength = bytes(name).length;
+        uint nameLength = bytes(contentName).length;
         if (nameLength > MAX_FILENAME_LENGTH) {
             return false;
         }
