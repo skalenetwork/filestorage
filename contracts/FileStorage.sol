@@ -24,7 +24,6 @@ pragma experimental ABIEncoderV2;
 import "./strings.sol";
 
 // TODO: Add constraints
-// TODO: dirs.length - 1
 contract FileStorage {
 
     uint constant MAX_CHUNK_SIZE = 2 ** 20;
@@ -38,9 +37,9 @@ contract FileStorage {
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
 
-    int constant EMPTY = 0;
-    int constant FILE_TYPE = 1;
-    int constant DIRECTORY_TYPE = 2;
+    uint constant EMPTY = 0;
+    uint constant FILE_TYPE = 1;
+    uint constant DIRECTORY_TYPE = 2;
 
     struct ContentInfo {
         string name;
@@ -52,7 +51,7 @@ contract FileStorage {
 
     struct Directory {
         ContentInfo[] contents;
-        mapping(string => int) contentTypes;
+        mapping(string => uint) contentTypes;
         mapping(string => Directory) directories;
     }
 
@@ -65,7 +64,7 @@ contract FileStorage {
         require(bytes(path).length > 0, "Invalid path");
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
-        Directory currentDir = rootDirectories[owner];
+        Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
@@ -89,14 +88,14 @@ contract FileStorage {
         directoryInfo.name = newDir;
         directoryInfo.isFile = false;
         currentDir.contents.push(directoryInfo);
-        currentDir.contentTypes[newDir] = int(currentDir.contents.length);
+        currentDir.contentTypes[newDir] = currentDir.contents.length;
     }
 
     // TODO: delete dir with all content in it
     function deleteDir(string memory path) public {
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
-        Directory currentDir = rootDirectories[owner];
+        Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
@@ -117,7 +116,7 @@ contract FileStorage {
         }
         require(success, "Directory is not deleted");
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
-        currentDir.contents[uint(currentDir.contentTypes[targetDir]) - 1] = lastContent;
+        currentDir.contents[currentDir.contentTypes[targetDir] - 1] = lastContent;
         currentDir.contentTypes[lastContent.name] = currentDir.contentTypes[targetDir];
         currentDir.contentTypes[targetDir] = EMPTY;
         currentDir.contents.length--;
@@ -129,7 +128,7 @@ contract FileStorage {
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
         string[] memory dirs = parseDirPath(fileName);
-        Directory currentDir = rootDirectories[owner];
+        Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
@@ -158,13 +157,13 @@ contract FileStorage {
             status : STATUS_UPLOADING,
             isChunkUploaded : isChunkUploaded
         }));
-        currentDir.contentTypes[pureFileName] = int(currentDir.contents.length);
+        currentDir.contentTypes[pureFileName] = currentDir.contents.length;
         occupiedStorageSpace[owner] += fileSize;
     }
 
     function uploadChunk(string memory fileName, uint position, bytes memory data) public {
         address owner = msg.sender;
-        ContentInfo storage file = getContentInfo(fileName);
+        ContentInfo storage file = getContentInfo(owner, fileName);
         require(file.status == STATUS_UPLOADING, "File not found");
         require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
         require(file.size - position < MAX_CHUNK_SIZE &&
@@ -193,7 +192,7 @@ contract FileStorage {
 
     function finishUpload(string memory fileName) public {
         address owner = msg.sender;
-        ContentInfo storage file = getContentInfo(fileName);
+        ContentInfo storage file = getContentInfo(owner, fileName);
         require(file.status == STATUS_UPLOADING, "File not found");
         bool isFileUploaded = true;
         uint chunkCount = file.isChunkUploaded.length;
@@ -223,11 +222,11 @@ contract FileStorage {
         }
         require(success, "File not deleted");
         string[] memory dirs = parseDirPath(fileName);
-        Directory currentDir = rootDirectories[owner];
+        Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        uint idx = uint(currentDir.contentTypes[file.name]) - 1;
+        uint idx = currentDir.contentTypes[file.name] - 1;
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
         currentDir.contents[idx] = lastContent;
         currentDir.contents.length--;
@@ -272,7 +271,7 @@ contract FileStorage {
         string memory path;
         (owner, path) = parseStoragePath(storagePath);
         string[] memory dirs = parseDirPath(path);
-        Directory currentDir = rootDirectories[owner];
+        Directory storage currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
@@ -285,7 +284,7 @@ contract FileStorage {
         string memory fileName;
         (owner, fileName) = parseStoragePath(storagePath);
         string[] memory dirs = parseDirPath(fileName);
-        Directory currentDir = rootDirectories[owner];
+        Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             if (currentDir.contentTypes[dirs[i - 1]] == EMPTY) {
                 return STATUS_UNEXISTENT;
@@ -296,7 +295,7 @@ contract FileStorage {
         if (currentDir.contentTypes[contentName] == EMPTY) {
             return STATUS_UNEXISTENT;
         }
-        ContentInfo file = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
+        ContentInfo memory file = currentDir.contents[currentDir.contentTypes[contentName] - 1];
         return file.status;
     }
 
@@ -322,29 +321,16 @@ contract FileStorage {
         require(success);
     }
 
-    function getContentInfo(string path) private returns (ContentInfo storage){
+    function getContentInfo(address owner, string path) private view returns (ContentInfo storage){
         string[] memory dirs = parseDirPath(path);
-        Directory storage currentDir = rootDirectories[msg.sender];
+        Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
         require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
-        ContentInfo storage result = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
-        return result;
-    }
-
-    function getContentInfo(address owner, string path) private view returns (ContentInfo){
-        string[] memory dirs = parseDirPath(path);
-        Directory currentDir = rootDirectories[owner];
-        for (uint i = 1; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
-            currentDir = currentDir.directories[dirs[i - 1]];
-        }
-        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
-        require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
-        ContentInfo result = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
+        ContentInfo storage result = currentDir.contents[currentDir.contentTypes[contentName] - 1];
         return result;
     }
 
@@ -380,8 +366,8 @@ contract FileStorage {
     }
 
     function parseDirPath(string memory path) private pure returns (string[] memory decreasePart) {
-        var pathSlice = path.toSlice();
-        var delimiter = "/".toSlice();
+        strings.slice memory pathSlice = path.toSlice();
+        strings.slice memory delimiter = "/".toSlice();
         string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
         for (uint i = 0; i < parts.length; i++) {
             parts[i] = pathSlice.split(delimiter).toString();
