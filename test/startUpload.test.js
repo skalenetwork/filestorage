@@ -74,6 +74,44 @@ contract('Filestorage', accounts => {
             }
         });
 
+        it('should fail while creating file with invalid name', async function () {
+            try {
+                await filestorage.startUpload('', fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, "Filename should be < 256");
+            }
+            try {
+                await filestorage.startUpload('.', fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, "Filename should be < 256");
+            }
+            try {
+                await filestorage.startUpload('..', fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, "Filename should be < 256");
+            }
+        });
+
+        it('should fail while creating file with invalid name in dirs', async function () {
+            await filestorage.createDir('dir', {from: accounts[0]});
+            try {
+                await filestorage.startUpload('dir/.', fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, "Filename should be < 256");
+            }
+            try {
+                await filestorage.startUpload('dir/..', fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectfully uploaded');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, "Filename should be < 256");
+            }
+            await filestorage.deleteDir('dir', {from: accounts[0]});
+        });
+
         describe('Free space limit', function () {
             let fileNames;
             let fileCount;

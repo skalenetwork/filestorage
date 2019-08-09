@@ -66,11 +66,11 @@ contract FileStorage {
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
-            currentDir = currentDir.directories[dirs[i]];
+        for (uint i = 1; i < dirs.length; ++i) {
+            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory newDir = dirs[dirs.length - 1];
+        string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
         require(currentDir.contentTypes[newDir] == EMPTY, "File or directory exists");
         require(checkFileName(newDir), "Invalid directory name");
         uint blocks = (bytes(path).length + 31) / 32 + 1;
@@ -97,11 +97,11 @@ contract FileStorage {
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
-            currentDir = currentDir.directories[dirs[i]];
+        for (uint i = 1; i < dirs.length; ++i) {
+            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory targetDir = dirs[dirs.length - 1];
+        string memory targetDir = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
         require(currentDir.contentTypes[targetDir] > EMPTY, "Invalid path");
         require(currentDir.directories[targetDir].contents.length == 0, "Directory is not empty");
         uint blocks = (bytes(path).length + 31) / 32 + 1;
@@ -126,16 +126,17 @@ contract FileStorage {
 
     function startUpload(string memory fileName, uint256 fileSize) public {
         address owner = msg.sender;
-        require(checkFileName(fileName), "Filename should be < 256");
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
-            currentDir = currentDir.directories[dirs[i]];
+        for (uint i = 1; i < dirs.length; ++i) {
+            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            currentDir = currentDir.directories[dirs[i - 1]];
         }
-        require(currentDir.contentTypes[fileName] == EMPTY, "File or directory exists");
+        string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : fileName;
+        require(currentDir.contentTypes[pureFileName] == EMPTY, "File or directory exists");
+        require(checkFileName(pureFileName), "Filename should be < 256");
         uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -149,7 +150,6 @@ contract FileStorage {
             success := call(not(0), 0x0B, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "File not created");
-        string memory pureFileName = dirs[dirs.length - 1];
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
         currentDir.contents.push(ContentInfo({
             name : pureFileName,
@@ -224,8 +224,8 @@ contract FileStorage {
         require(success, "File not deleted");
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            currentDir = currentDir.directories[dirs[i]];
+        for (uint i = 1; i < dirs.length; ++i) {
+            currentDir = currentDir.directories[dirs[i - 1]];
         }
         uint idx = uint(currentDir.contentTypes[file.name]) - 1;
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
@@ -286,13 +286,13 @@ contract FileStorage {
         (owner, fileName) = parseStoragePath(storagePath);
         string[] memory dirs = parseDirPath(fileName);
         Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            if (currentDir.contentTypes[dirs[i]] == EMPTY) {
+        for (uint i = 1; i < dirs.length; ++i) {
+            if (currentDir.contentTypes[dirs[i - 1]] == EMPTY) {
                 return STATUS_UNEXISTENT;
             }
-            currentDir = currentDir.directories[dirs[i]];
+            currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory contentName = dirs[dirs.length - 1];
+        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : fileName;
         if (currentDir.contentTypes[contentName] == EMPTY) {
             return STATUS_UNEXISTENT;
         }
@@ -325,11 +325,11 @@ contract FileStorage {
     function getContentInfo(string path) private returns (ContentInfo storage){
         string[] memory dirs = parseDirPath(path);
         Directory storage currentDir = rootDirectories[msg.sender];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
-            currentDir = currentDir.directories[dirs[i]];
+        for (uint i = 1; i < dirs.length; ++i) {
+            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory contentName = dirs[dirs.length - 1];
+        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
         require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
         ContentInfo storage result = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
         return result;
@@ -338,11 +338,11 @@ contract FileStorage {
     function getContentInfo(address owner, string path) private view returns (ContentInfo){
         string[] memory dirs = parseDirPath(path);
         Directory currentDir = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length - 1; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
-            currentDir = currentDir.directories[dirs[i]];
+        for (uint i = 1; i < dirs.length; ++i) {
+            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory contentName = dirs[dirs.length - 1];
+        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : path;
         require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
         ContentInfo result = currentDir.contents[uint(currentDir.contentTypes[contentName]) - 1];
         return result;
