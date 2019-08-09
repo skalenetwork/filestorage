@@ -25,6 +25,7 @@ import "./strings.sol";
 
 // TODO: Add constraints
 contract FileStorage {
+    using strings for *;
 
     uint constant MAX_CHUNK_SIZE = 2 ** 20;
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
@@ -37,9 +38,7 @@ contract FileStorage {
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
 
-    uint constant EMPTY = 0;
-    uint constant FILE_TYPE = 1;
-    uint constant DIRECTORY_TYPE = 2;
+    uint constant EMPTY_INDEX = 0;
 
     struct ContentInfo {
         string name;
@@ -51,14 +50,12 @@ contract FileStorage {
 
     struct Directory {
         ContentInfo[] contents;
-        mapping(string => uint) contentTypes;
+        mapping(string => uint) contentIndexes;
         mapping(string => Directory) directories;
     }
 
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
-
-    using strings for *;
 
     function createDir(string memory directoryPath) public {
         require(bytes(directoryPath).length > 0, "Invalid path");
@@ -66,11 +63,11 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
-        require(currentDir.contentTypes[newDir] == EMPTY, "File or directory exists");
+        require(currentDir.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
         require(checkContentName(newDir), "Invalid directory name");
         uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         bool success;
@@ -88,7 +85,7 @@ contract FileStorage {
         directoryInfo.name = newDir;
         directoryInfo.isFile = false;
         currentDir.contents.push(directoryInfo);
-        currentDir.contentTypes[newDir] = currentDir.contents.length;
+        currentDir.contentIndexes[newDir] = currentDir.contents.length;
     }
 
     // TODO: delete dir with all content in it
@@ -97,11 +94,11 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory targetDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
-        require(currentDir.contentTypes[targetDir] > EMPTY, "Invalid path");
+        require(currentDir.contentIndexes[targetDir] > EMPTY_INDEX, "Invalid path");
         require(currentDir.directories[targetDir].contents.length == 0, "Directory is not empty");
         uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         bool success;
@@ -116,9 +113,9 @@ contract FileStorage {
         }
         require(success, "Directory is not deleted");
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
-        currentDir.contents[currentDir.contentTypes[targetDir] - 1] = lastContent;
-        currentDir.contentTypes[lastContent.name] = currentDir.contentTypes[targetDir];
-        currentDir.contentTypes[targetDir] = EMPTY;
+        currentDir.contents[currentDir.contentIndexes[targetDir] - 1] = lastContent;
+        currentDir.contentIndexes[lastContent.name] = currentDir.contentIndexes[targetDir];
+        currentDir.contentIndexes[targetDir] = EMPTY_INDEX;
         currentDir.contents.length--;
         delete currentDir.directories[targetDir];
     }
@@ -130,11 +127,11 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
-        require(currentDir.contentTypes[pureFileName] == EMPTY, "File or directory exists");
+        require(currentDir.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
         require(checkContentName(pureFileName), "Filename should be < 256");
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         bool success;
@@ -157,7 +154,7 @@ contract FileStorage {
             status : STATUS_UPLOADING,
             isChunkUploaded : isChunkUploaded
         }));
-        currentDir.contentTypes[pureFileName] = currentDir.contents.length;
+        currentDir.contentIndexes[pureFileName] = currentDir.contents.length;
         occupiedStorageSpace[owner] += fileSize;
     }
 
@@ -226,12 +223,12 @@ contract FileStorage {
         for (uint i = 1; i < dirs.length; ++i) {
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        uint idx = currentDir.contentTypes[file.name] - 1;
+        uint idx = currentDir.contentIndexes[file.name] - 1;
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
         currentDir.contents[idx] = lastContent;
         currentDir.contents.length--;
-        currentDir.contentTypes[lastContent.name] = currentDir.contentTypes[file.name];
-        currentDir.contentTypes[file.name] = EMPTY;
+        currentDir.contentIndexes[lastContent.name] = currentDir.contentIndexes[file.name];
+        currentDir.contentIndexes[file.name] = EMPTY_INDEX;
         occupiedStorageSpace[owner] -= file.size;
     }
 
@@ -273,7 +270,7 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(path);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i]] > EMPTY, "Invalid path");
+            require(currentDir.contentIndexes[dirs[i]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i]];
         }
         return currentDir.contents;
@@ -286,16 +283,16 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(fileName);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
-            if (currentDir.contentTypes[dirs[i - 1]] == EMPTY) {
+            if (currentDir.contentIndexes[dirs[i - 1]] == EMPTY_INDEX) {
                 return STATUS_UNEXISTENT;
             }
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : fileName;
-        if (currentDir.contentTypes[contentName] == EMPTY) {
+        if (currentDir.contentIndexes[contentName] == EMPTY_INDEX) {
             return STATUS_UNEXISTENT;
         }
-        ContentInfo memory file = currentDir.contents[currentDir.contentTypes[contentName] - 1];
+        ContentInfo memory file = currentDir.contents[currentDir.contentIndexes[contentName] - 1];
         return file.status;
     }
 
@@ -325,12 +322,12 @@ contract FileStorage {
         string[] memory dirs = parseDirPath(contentPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
-            require(currentDir.contentTypes[dirs[i - 1]] > EMPTY, "Invalid path");
+            require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : contentPath;
-        require(currentDir.contentTypes[contentName] > EMPTY, "Invalid path");
-        ContentInfo storage result = currentDir.contents[currentDir.contentTypes[contentName] - 1];
+        require(currentDir.contentIndexes[contentName] > EMPTY_INDEX, "Invalid path");
+        ContentInfo storage result = currentDir.contents[currentDir.contentIndexes[contentName] - 1];
         return result;
     }
 
