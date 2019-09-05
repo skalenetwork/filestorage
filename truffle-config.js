@@ -3,10 +3,11 @@ require('dotenv').config();
 
 module.exports = {
   networks: {
-      server: {
+      skaled: {
           gasPrice: 0,
           network_id: "*",
-          provider: () => new PrivateKeyProvider(process.env.PRIVATEKEY, process.env.ENTRYPOINT)
+          provider: () => new PrivateKeyProvider(process.env.PRIVATEKEY, process.env.ENTRYPOINT),
+          skipDryRun: true
       },
   },
 
