@@ -5,4 +5,4 @@ install:
 - npm install -g truffle
 script:
 - truffle compile
-- truffle deploy --network skaled
+- truffle test --network skaled

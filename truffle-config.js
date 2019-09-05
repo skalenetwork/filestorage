@@ -6,8 +6,7 @@ module.exports = {
       skaled: {
           gasPrice: 0,
           network_id: "*",
-          provider: () => new PrivateKeyProvider(process.env.PRIVATEKEY, process.env.ENTRYPOINT),
-          skipDryRun: true
+          provider: () => new PrivateKeyProvider(process.env.PRIVATEKEY, process.env.ENTRYPOINT)
       },
   },
 
