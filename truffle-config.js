@@ -14,5 +14,9 @@ module.exports = {
     solc: {
       version: "0.4.24"
     }
+  },
+
+  mocha: {
+      enableTimeouts: false
   }
 };
