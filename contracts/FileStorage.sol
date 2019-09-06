@@ -32,8 +32,6 @@ contract FileStorage {
     uint constant MAX_FILENAME_LENGTH = 255;
     uint constant MAX_FILESIZE = 10 ** 8;
 
-    uint constant MAX_STORAGE_SPACE = 10 ** 10;
-
     int constant STATUS_UNEXISTENT = 0;
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
@@ -56,6 +54,17 @@ contract FileStorage {
 
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
+
+    uint public MAX_STORAGE_SPACE;
+
+    function setStorageSpace() public {
+        uint configStorageSpace;
+        uint MAX_STORAGE_SPACE_PTR = 0;
+        assembly {
+            configStorageSpace := sload(MAX_STORAGE_SPACE_PTR)
+        }
+        MAX_STORAGE_SPACE = configStorageSpace;
+    }
 
     function createDir(string memory directoryPath) public {
         require(bytes(directoryPath).length > 0, "Invalid path");
