@@ -1,4 +1,4 @@
-const PrivateKeyProvider = require("truffle-privatekey-provider");
+const PrivateKeyProvider = require("@truffle/hdwallet-provider");
 require('dotenv').config();
 
 module.exports = {
