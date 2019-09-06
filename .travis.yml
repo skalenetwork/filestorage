@@ -2,7 +2,7 @@ language: node_js
 node_js: 10
 install:
 - npm install
-- npm install -g truffle
+- npm install -g truffle@5.0.27
 script:
 - truffle compile
 - truffle test --network skaled
