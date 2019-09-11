@@ -1,9 +1,9 @@
-const PrivateKeyProvider = require("truffle-privatekey-provider");
+const PrivateKeyProvider = require("@truffle/hdwallet-provider");
 require('dotenv').config();
 
 module.exports = {
   networks: {
-      server: {
+      skaled: {
           gasPrice: 0,
           network_id: "*",
           provider: () => new PrivateKeyProvider(process.env.PRIVATEKEY, process.env.ENTRYPOINT)
@@ -14,5 +14,9 @@ module.exports = {
     solc: {
       version: "0.4.24"
     }
+  },
+
+  mocha: {
+      enableTimeouts: false
   }
 };
