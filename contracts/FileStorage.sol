@@ -55,7 +55,7 @@ contract FileStorage {
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
 
-    uint MAX_STORAGE_SPACE = 0;
+    uint internal MAX_STORAGE_SPACE = 0;
 
     function createDir(string memory directoryPath) public {
         if (MAX_STORAGE_SPACE == 0) {
@@ -323,7 +323,7 @@ contract FileStorage {
         }
         require(success);
     }
-    
+
     function getStorageSpace() public view returns (uint) {
         return MAX_STORAGE_SPACE;
     }
@@ -336,7 +336,7 @@ contract FileStorage {
         }
         MAX_STORAGE_SPACE = configStorageSpace;
     }
-    
+
     function getContentInfo(address owner, string contentPath) private view returns (ContentInfo storage){
         string[] memory dirs = parseDirPath(contentPath);
         Directory storage currentDir = rootDirectories[owner];
