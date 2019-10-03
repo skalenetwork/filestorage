@@ -11,10 +11,6 @@ const FileStorage = artifacts.require("./FileStorage");
 contract('Filestorage', accounts => {
     let filestorage;
 
-    before(async function () {
-        await getFunds(accounts[0]);
-    });
-
     describe('getStorageSpace', function () {
         it('should return 0 for FileStorage', async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
