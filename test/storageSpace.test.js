@@ -1,3 +1,4 @@
+const getFunds = require('./utils/getFunds');
 const chai = require('chai');
 const assert = chai.assert;
 
@@ -9,6 +10,10 @@ const FileStorage = artifacts.require("./FileStorage");
 
 contract('Filestorage', accounts => {
     let filestorage;
+
+    before(function () {
+        getFunds(accounts[0]);
+    });
 
     describe('getStorageSpace', function () {
         it('should return 0 for FileStorage', async function () {
