@@ -32,8 +32,6 @@ contract FileStorage {
     uint constant MAX_FILENAME_LENGTH = 255;
     uint constant MAX_FILESIZE = 10 ** 8;
 
-    uint constant MAX_STORAGE_SPACE = 10 ** 10;
-
     int constant STATUS_UNEXISTENT = 0;
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
@@ -57,7 +55,12 @@ contract FileStorage {
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
 
+    uint internal MAX_STORAGE_SPACE = 0;
+
     function createDir(string memory directoryPath) public {
+        if (MAX_STORAGE_SPACE == 0) {
+            setStorageSpace();
+        }
         require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
         string[] memory dirs = parseDirPath(directoryPath);
@@ -121,6 +124,9 @@ contract FileStorage {
     }
 
     function startUpload(string memory filePath, uint256 fileSize) public {
+        if (MAX_STORAGE_SPACE == 0) {
+            setStorageSpace();
+        }
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
@@ -316,6 +322,19 @@ contract FileStorage {
             fileSize := mload(p)
         }
         require(success);
+    }
+
+    function getStorageSpace() public view returns (uint) {
+        return MAX_STORAGE_SPACE;
+    }
+
+    function setStorageSpace() private {
+        uint configStorageSpace;
+        uint MAX_STORAGE_SPACE_PTR = 0;
+        assembly {
+            configStorageSpace := sload(MAX_STORAGE_SPACE_PTR)
+        }
+        MAX_STORAGE_SPACE = configStorageSpace;
     }
 
     function getContentInfo(address owner, string contentPath) private view returns (ContentInfo storage){
