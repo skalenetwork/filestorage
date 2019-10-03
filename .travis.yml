@@ -5,3 +5,5 @@ install:
 script:
 - truffle compile
 - truffle test --network skaled
+after_script:
+- npx solidity-coverage
