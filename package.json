@@ -10,9 +10,6 @@
     "type": "git",
     "url": "git+https://github.com/skalenetwork/filestorage.git"
   },
-  "scripts": {
-    "coverage": "codecov"
-  },
   "devDependencies": {
     "dotenv": "^7.0.0",
     "chai": "^4.2.0",
