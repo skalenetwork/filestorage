@@ -6,5 +6,5 @@ script:
 - truffle compile
 - truffle test --network skaled || travis_terminate 1
 after_script:
-- npx solidity-coverage || travis_terminate 2
+- npx solidity-coverage
 - cat coverage/lcov.info | npx codecov
