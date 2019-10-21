@@ -4,7 +4,7 @@ install:
 - npm install
 script:
 - truffle compile
-- truffle test --network skaled || travis_terminate 1
+- truffle test --network skaled
 after_script:
 - npx solidity-coverage
 - cat coverage/lcov.info | npx codecov
