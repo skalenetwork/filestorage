@@ -32,6 +32,8 @@ contract FileStorage {
     uint constant MAX_FILENAME_LENGTH = 255;
     uint constant MAX_FILESIZE = 10 ** 8;
 
+    uint internal MAX_CONTENT_COUNT = 2 ** 13;
+
     int constant STATUS_UNEXISTENT = 0;
     int constant STATUS_UPLOADING = 1;
     int constant STATUS_COMPLETED = 2;
@@ -69,6 +71,7 @@ contract FileStorage {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
+        require(currentDir.contents.length < MAX_CONTENT_COUNT, "Directory is full");
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
         require(checkContentName(newDir), "Invalid directory name");
@@ -136,6 +139,7 @@ contract FileStorage {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
+        require(currentDir.contents.length < MAX_CONTENT_COUNT, "Directory is full");
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDir.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
         require(checkContentName(pureFileName), "Filename should be < 256");
