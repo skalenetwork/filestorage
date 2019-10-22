@@ -3,8 +3,9 @@ const Filestorage = artifacts.require("FileStorage");
 const getFunds = require("../test/utils/getFunds");
 
 module.exports = async function(deployer) {
-    let currentNetwork = Object.keys( deployer.networks )[0];
-    await getFunds(deployer.networks[currentNetwork].from);
+    if (deployer.network === 'skaled') {
+        await getFunds(deployer.networks[deployer.network].from);
+    }
     deployer.deploy(Migrations);
     deployer.deploy(Filestorage);
 };
