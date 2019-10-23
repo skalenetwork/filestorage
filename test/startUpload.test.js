@@ -127,10 +127,11 @@ contract('Filestorage', accounts => {
             let fileNames;
             let fileCount;
             let fileSize;
-            beforeEach(function () {
+            beforeEach(async function () {
+                await filestorage.setStorageSpace(MAX_FILESIZE);
                 fileSize = MAX_FILESIZE - 1;
                 fileNames = [];
-                fileCount = 100;
+                fileCount = 1;
             });
 
             it('should fail when storage is full', async function () {
