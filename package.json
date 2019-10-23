@@ -1,27 +1,28 @@
 {
   "name": "@skalenetwork/filestorage",
-  "author": "SKALE Labs and contributors",
+  "private": true,
   "keywords": [
     "SKALE",
-    "ethereum",
-    "blockchain"
+    "blockchain",
+    "ethereum"
   ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/skalenetwork/filestorage.git"
   },
+  "author": "SKALE Labs and contributors",
+  "dependencies": {
+    "@truffle/hdwallet-provider": "^1.0.18"
+  },
   "devDependencies": {
-    "dotenv": "^7.0.0",
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "codecov": "^3.3.0",
+    "dotenv": "^8.2.0",
     "randomstring": "^1.1.5",
     "solidity-coverage": "^0.6.7",
     "truffle": "^5.0.27",
     "truffle-privatekey-provider": "^1.3.0",
     "web3": "^1.2.1"
-  },
-  "dependencies": {
-    "@truffle/hdwallet-provider": "^1.0.18"
   }
 }
