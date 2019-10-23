@@ -112,14 +112,26 @@ contract('Filestorage', accounts => {
             await filestorage.deleteDir('dir', {from: accounts[0]});
         });
 
+        it('should fail whether directory is full', async function () {
+            await filestorage.setContentCount(1);
+            await filestorage.startUpload(fileName, 0, {from: accounts[0]});
+            try {
+                await filestorage.startUpload('testFile', 0, {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Directory is full');
+            }
+        });
+
         describe('Free space limit', function () {
             let fileNames;
             let fileCount;
             let fileSize;
-            beforeEach(function () {
+            beforeEach(async function () {
+                await filestorage.setStorageSpace(MAX_FILESIZE);
                 fileSize = MAX_FILESIZE - 1;
                 fileNames = [];
-                fileCount = 100;
+                fileCount = 1;
             });
 
             it('should fail when storage is full', async function () {

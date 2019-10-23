@@ -4,6 +4,10 @@
 ### Solidity ###
 build/
 
+### Coverage ###
+coverage.json
+coverage/
+
 ### Node ###
 # Dependency directories
 node_modules

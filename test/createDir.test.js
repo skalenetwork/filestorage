@@ -174,5 +174,16 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
         });
+
+        it('should fail whether directory is full', async function () {
+            await filestorage.setContentCount(1);
+            await filestorage.startUpload(fileName, 0, {from: accounts[0]});
+            try {
+                await filestorage.createDir('testDir', {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Directory is full');
+            }
+        });
     });
 });
