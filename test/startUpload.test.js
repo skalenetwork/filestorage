@@ -1,12 +1,13 @@
 const chai = require('chai');
 const assert = chai.assert;
-
 chai.should();
 chai.use(require('chai-as-promised'));
+require('dotenv').config();
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
+const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
 
 contract('Filestorage', accounts => {
     let filestorage;
@@ -28,11 +29,13 @@ contract('Filestorage', accounts => {
         const MAX_FILESIZE = 10 ** 8;
         let fileName;
         let fileSize;
+        let foreignAddress;
 
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
             fileSize = Math.floor(Math.random() * 100);
+            foreignAddress = privateKeyToAddress(process.env.SCHAIN_OWNER_PK);
         });
 
         it('should create file with 1 status', async function () {

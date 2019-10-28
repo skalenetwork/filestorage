@@ -26,4 +26,9 @@ async function getFunds(account) {
     return true;
 }
 
-module.exports = getFunds;
+function privateKeyToAddress(privateKey) {
+    return web3.eth.accounts.privateKeyToAccount(privateKey).address;
+}
+
+module.exports.getFunds = getFunds;
+module.exports.privateKeyToAddress = privateKeyToAddress;
