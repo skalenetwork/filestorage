@@ -30,7 +30,7 @@ contract('Filestorage', accounts => {
         const MAX_FILESIZE = 10 ** 8;
         let fileName;
         let fileSize;
-        let foreignDir = 'testDir';
+        let foreignDir = 'foreignDir';
 
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
@@ -125,6 +125,8 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
+            tx = filestorage.contract.methods.deleteDir(foreignDir);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
         });
 
         it('should fail whether directory is full', async function () {
@@ -173,10 +175,5 @@ contract('Filestorage', accounts => {
                 }
             });
         });
-
-        after(async function() {
-            let tx = filestorage.contract.methods.deleteDir(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
-        })
     });
 });

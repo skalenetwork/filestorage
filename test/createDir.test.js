@@ -7,6 +7,7 @@ chai.use(require('chai-as-promised'));
 let randomstring = require('randomstring');
 let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
+const sendTransaction = require('./utils/helper').sendTransaction;
 const UPLOADING_GAS = 10 ** 8;
 const CHUNK_LENGTH = 2 ** 20;
 
@@ -36,11 +37,13 @@ contract('Filestorage', accounts => {
         let dirName;
         let filePath;
         let dirPath;
+        let foreignDir;
 
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
             dirName = randomstring.generate();
+            foreignDir = 'foreignDir';
             filePath = path.join(rmBytesSymbol(accounts[0]), fileName);
             dirPath = path.join(rmBytesSymbol(accounts[0]), dirName);
         });
@@ -184,6 +187,19 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Directory is full');
             }
+        });
+
+        it('should fail to create dir in foreign dir', async function () {
+            let tx = filestorage.contract.methods.createDir(foreignDir);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            try {
+                await filestorage.createDir(path.join(foreignDir, 'dir'), {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Invalid path');
+            }
+            tx = filestorage.contract.methods.deleteDir(foreignDir);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
         });
     });
 });
