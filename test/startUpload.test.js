@@ -8,6 +8,7 @@ let randomstring = require('randomstring');
 let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
 const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
+const sendTransaction = require('./utils/helper').sendTransaction;
 
 contract('Filestorage', accounts => {
     let filestorage;
@@ -29,13 +30,13 @@ contract('Filestorage', accounts => {
         const MAX_FILESIZE = 10 ** 8;
         let fileName;
         let fileSize;
-        let foreignAddress;
+        let foreignDir = 'testDir';
 
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
             fileSize = Math.floor(Math.random() * 100);
-            foreignAddress = privateKeyToAddress(process.env.SCHAIN_OWNER_PK);
+            foreignDir = privateKeyToAddress(process.env.SCHAIN_OWNER_PK);
         });
 
         it('should create file with 1 status', async function () {
@@ -115,6 +116,17 @@ contract('Filestorage', accounts => {
             await filestorage.deleteDir('dir', {from: accounts[0]});
         });
 
+        it('should fail to create file in foreign dir', async function () {
+            let tx = filestorage.contract.methods.createDir(foreignDir);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            try {
+                await filestorage.startUpload(path.join(foreignDir, fileName), 0, {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Invalid path');
+            }
+        });
+
         it('should fail whether directory is full', async function () {
             await filestorage.setContentCount(1);
             await filestorage.startUpload(fileName, 0, {from: accounts[0]});
@@ -161,5 +173,10 @@ contract('Filestorage', accounts => {
                 }
             });
         });
+
+        after(async function() {
+            let tx = filestorage.contract.methods.deleteDir(foreignDir);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+        })
     });
 });
