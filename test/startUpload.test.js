@@ -30,13 +30,13 @@ contract('Filestorage', accounts => {
         const MAX_FILESIZE = 10 ** 8;
         let fileName;
         let fileSize;
-        let foreignDir = 'foreignDir';
+        let foreignDir;
 
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
             fileSize = Math.floor(Math.random() * 100);
-            foreignDir = privateKeyToAddress(process.env.SCHAIN_OWNER_PK);
+            foreignDir = 'foreignDir';
         });
 
         it('should create file with 1 status', async function () {
