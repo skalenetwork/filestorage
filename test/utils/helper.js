@@ -1,4 +1,4 @@
-require('dotenv').config({ path: '../../.env' });
+require('dotenv').config();
 const Web3 = require('web3');
 const testBalance = '2';
 const rootPrivateKey = process.env.SCHAIN_OWNER_PK;
@@ -30,5 +30,21 @@ function privateKeyToAddress(privateKey) {
     return web3.eth.accounts.privateKeyToAccount(privateKey).address;
 }
 
+async function sendTransaction(transactionData, to, gas, privateKey) {
+    let encoded = transactionData.encodeABI();
+    let account = web3.eth.accounts.privateKeyToAccount(privateKey).address;
+    let nonce = await web3.eth.getTransactionCount(account);
+    let tx = {
+        from: account,
+        data: encoded,
+        gas: gas,
+        to: to,
+        nonce: nonce
+    };
+    let signedTx = await web3.eth.accounts.signTransaction(tx, privateKey);
+    return await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
+}
+
 module.exports.getFunds = getFunds;
 module.exports.privateKeyToAddress = privateKeyToAddress;
+module.exports.sendTransaction = sendTransaction;
