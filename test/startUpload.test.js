@@ -1,12 +1,14 @@
 const chai = require('chai');
 const assert = chai.assert;
-
 chai.should();
 chai.use(require('chai-as-promised'));
+require('dotenv').config();
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
+const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
+const sendTransaction = require('./utils/helper').sendTransaction;
 
 contract('Filestorage', accounts => {
     let filestorage;
@@ -28,11 +30,13 @@ contract('Filestorage', accounts => {
         const MAX_FILESIZE = 10 ** 8;
         let fileName;
         let fileSize;
+        let foreignDir;
 
         beforeEach(async function () {
             filestorage = await FileStorage.new({from: accounts[0]});
             fileName = randomstring.generate();
             fileSize = Math.floor(Math.random() * 100);
+            foreignDir = 'foreignDir';
         });
 
         it('should create file with 1 status', async function () {
@@ -110,6 +114,19 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
             await filestorage.deleteDir('dir', {from: accounts[0]});
+        });
+
+        it('should fail to create file in foreign dir', async function () {
+            let tx = filestorage.contract.methods.createDir(foreignDir);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            try {
+                await filestorage.startUpload(path.join(foreignDir, fileName), 0, {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Invalid path');
+            }
+            tx = filestorage.contract.methods.deleteDir(foreignDir);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
         });
 
         it('should fail whether directory is full', async function () {

@@ -1,4 +1,3 @@
-const getFunds = require('./utils/getFunds');
 const chai = require('chai');
 const assert = chai.assert;
 
