@@ -219,3 +219,26 @@ Object `ContentInfo` can be file or directory and contains:
 | `uint` size                | File size, in bytes                                                              |
 | `int` status               | File uploading status                                                            |
 | `bool[]` isChunkUploaded   | Array with statuses of each chunk (`true` - chunk uploaded, `false` - otherwise) |
+
+## Build
+Need to create .env file with following data:
+```bash
+ENTRYPOINT='SKALE endpoint'
+PRIVATEKEY='Private key from test account'
+```
+Compile `FileStorage.sol`:
+```bash
+truffle compile --network skaled
+```
+
+## Test
+Tests are running only on SKALE Chains. Need to create .env file with following data:
+```bash
+ENTRYPOINT='SKALE endpoint'
+SCHAIN_OWNER_PK='Private key of SKALE endpoint owner (or account with money)'
+PRIVATEKEY='Private key from test account'
+```
+Run tests:
+```bash
+truffle test --network skaled
+```
