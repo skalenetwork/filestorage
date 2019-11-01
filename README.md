@@ -30,6 +30,13 @@ Creates empty file on EVM with specific name and size. Owner of the file - messa
 * Maximum filesize is **100,000,000** bytes
 * Owner should have enough free space
 
+**Parameters:**
+
+| Parameter           | Description                                                       |
+| ------------------- | ----------------------------------------------------------------- |
+| `string` filePath   | Path to the file in account directory                             |
+| `uint256` fileSize  | Uploaded file size in bytes                                       |
+
 #### uploadChunk
 
 ```solidity
@@ -37,6 +44,14 @@ function uploadChunk(string memory filePath, uint position, bytes memory data)
 ```
 Uploads 1MB chunk of data from specific position in specific file by file owner.
 * Function is called by file owner.
+
+**Parameters:**
+
+| Parameter           | Description                                                       |
+| ------------------- | ----------------------------------------------------------------- |
+| `string` filePath   | Path to the file in account directory                             |
+| `uint` position     | Uploaded chunk position                                           |
+| `bytes` data        | Uploaded chunk data                                               |
 
 #### finishUpload
 
@@ -46,6 +61,12 @@ function finishUpload(string memory filePath)
 Finishes uploading of the file. Checks whether all chunks are uploaded correctly.
 * Function is called by file owner.
 
+**Parameters:**
+
+| Parameter           | Description                                                       |
+| ------------------- | ----------------------------------------------------------------- |
+| `string` filePath   | Path to the file in account directory                             |
+
 #### deleteFile
 
 ```solidity
@@ -53,6 +74,12 @@ function deleteFile(string memory filePath)
 ```
 Deletes file from Filestorage.
 * Function is called by file owner.
+
+**Parameters:**
+
+| Parameter           | Description                                                       |
+| ------------------- | ----------------------------------------------------------------- |
+| `string` filePath   | Path to the file in account directory                             |
 
 #### readChunk
 
@@ -63,6 +90,21 @@ function readChunk(string memory storagePath, uint position, uint length)
         returns (bytes32[MAX_BLOCK_COUNT] memory out)
 ```
 Reads chunk from file from specific position with specific length. Returns `bytes32` array of fixed size with requested data.
+* Maximum length of the chunk to read is 1Mb
+
+**Parameters:**
+
+| Parameter            | Description                                                       |
+| -------------------- | ----------------------------------------------------------------- |
+| `string` storagePath | Full path of the file in Filestorage                              |
+| `uint` position      | First byte to read from                                           |
+| `uint` length        | Uploaded chunk length                                             |
+
+**Returns:**
+
+| Parameter            | Description                                      |
+| -------------------- | ------------------------------------------------ |
+| `bytes32[]` out      | Requested chunk data splitted on `bytes32` array |
 
 #### getFileSize
 
@@ -73,6 +115,18 @@ function getFileSize(string memory storagePath)
         returns (uint fileSize)
 ```
 Gets size of the requested file in bytes.
+
+**Parameters:**
+
+| Parameter            | Description                                                       |
+| -------------------- | ----------------------------------------------------------------- |
+| `string` storagePath | Full path of the file in Filestorage                              |
+
+**Returns:**
+
+| Parameter            | Description                      |
+| -------------------- | -------------------------------- |
+| `uint` fileSize      | Size of requested file           |
 
 #### getFileStatus
 
@@ -86,6 +140,18 @@ Returns status of the requested file:
 * 0 - file does not exist
 * 1 - file is created but uploading not finished yet
 * 2 - file is fully uploaded
+
+**Parameters:**
+
+| Parameter            | Description                                                       |
+| -------------------- | ----------------------------------------------------------------- |
+| `string` storagePath | Full path of the file in Filestorage                              |
+
+**Returns:**
+
+| Parameter            | Description                        |
+| -------------------- | ---------------------------------- |
+| `uint` fileStatus    | Status of requested file           |
 
 ### Directory interaction methods
 
@@ -102,6 +168,12 @@ Creates directory in Filestorage. Owner of the directory - message sender.
 * Function is called by directory owner
 * Maximum amount of directories and files in one directory is **8196**
 
+**Parameters:**
+
+| Parameter                | Description                                                       |
+| ------------------------ | ----------------------------------------------------------------- |
+| `string` directoryPath   | Path to the directory in account root directory                   |
+
 #### deleteDir
 
 ```solidity
@@ -109,6 +181,12 @@ function deleteDir(string memory directoryPath)
 ```
 Deletes directory from Filestorage.
 * Function is called by directory owner
+
+**Parameters:**
+
+| Parameter                | Description                                                       |
+| ------------------------ | ----------------------------------------------------------------- |
+| `string` directoryPath   | Path to the directory in account root directory                   |
 
 #### listDir
 
@@ -119,3 +197,25 @@ function listDir(string memory storagePath)
         returns (ContentInfo[])
 ```
 List information about content of the specific directory.
+
+**Parameters:**
+
+| Parameter                | Description                                           |
+| ------------------------ | ----------------------------------------------------- |
+| `string` storagePath     | Full path of the directory in Filestorage             |
+
+**Returns:**
+
+| Parameter            | Description                          |
+| -------------------- | ------------------------------------ |
+| `ContentInfo[]`      | Array of content stored in directory |
+
+Object `ContentInfo` can be file or directory and contains:
+
+| Field                      | Description                                                                      |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `string` name              | Content name                                                                     |
+| `bool` isFile              | Whether content is file                                                          |
+| `uint` size                | File size, in bytes                                                              |
+| `int` status               | File uploading status                                                            |
+| `bool[]` isChunkUploaded   | Array with statuses of each chunk (`true` - chunk uploaded, `false` - otherwise) |
