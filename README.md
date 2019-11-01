@@ -14,6 +14,11 @@ work with Filestorage precompiled smart contracts. Smart contract language - Sol
 
 ## API Reference
 ### File interaction methods
+
+To begin the uploading process, the file should be broken into chunks of 1MB (< 1MB for the last chunk) which are uploaded as separate transactions to FileStorage.sol. 
+The pipeline of uploading file is: creating empty file of fixed size on EVM by calling `startUpload`, uploading data chunk by chunk with
+`uploadChunk`, checking the file validity and finishing process with `finishUpload`.
+
 #### startUpload
 
 ```solidity
@@ -84,6 +89,10 @@ Returns status of the requested file:
 
 ### Directory interaction methods
 
+Filestorage is represented with unix-based filesystem that consisted of files and directories. Directories are stored 
+in `Directory` structure that contains information about its content in `ContentInfo` structure. Maximum amount of content
+in separate directory is **8196**.
+
 #### createDir
 
 ```solidity
@@ -109,4 +118,4 @@ function listDir(string memory storagePath)
         view 
         returns (ContentInfo[])
 ```
-List information about content of the directory
+List information about content of the specific directory.
