@@ -14,15 +14,18 @@ work with Filestorage precompiled smart contracts. Smart contract language - Sol
 
 ## API Reference
 ### File interaction methods
-##### startUpload
+#### startUpload
 
 ```solidity
 function startUpload(string memory filePath, uint256 fileSize)
 ```
 Creates empty file on EVM with specific name and size. Owner of the file - message sender. 
-* Function is called by file owner.
+* Function is called by file owner
+* Maximum amount of directories and files in one directory is **8196**
+* Maximum filesize is **100,000,000** bytes
+* Owner should have enough free space
 
-##### uploadChunk
+#### uploadChunk
 
 ```solidity
 function uploadChunk(string memory filePath, uint position, bytes memory data)
@@ -30,7 +33,7 @@ function uploadChunk(string memory filePath, uint position, bytes memory data)
 Uploads 1MB chunk of data from specific position in specific file by file owner.
 * Function is called by file owner.
 
-##### finishUpload
+#### finishUpload
 
 ```solidity
 function finishUpload(string memory filePath)
@@ -38,7 +41,7 @@ function finishUpload(string memory filePath)
 Finishes uploading of the file. Checks whether all chunks are uploaded correctly.
 * Function is called by file owner.
 
-##### deleteFile
+#### deleteFile
 
 ```solidity
 function deleteFile(string memory filePath)
@@ -46,7 +49,7 @@ function deleteFile(string memory filePath)
 Deletes file from Filestorage.
 * Function is called by file owner.
 
-##### readChunk
+#### readChunk
 
 ```solidity
 function readChunk(string memory storagePath, uint position, uint length)
@@ -56,7 +59,7 @@ function readChunk(string memory storagePath, uint position, uint length)
 ```
 Reads chunk from file from specific position with specific length. Returns `bytes32` array of fixed size with requested data.
 
-##### getFileSize
+#### getFileSize
 
 ```solidity
 function getFileSize(string memory storagePath) 
@@ -66,7 +69,7 @@ function getFileSize(string memory storagePath)
 ```
 Gets size of the requested file in bytes.
 
-##### getFileStatus
+#### getFileStatus
 
 ```solidity
 function getFileStatus(string memory storagePath) 
@@ -80,6 +83,30 @@ Returns status of the requested file:
 * 2 - file is fully uploaded
 
 ### Directory interaction methods
-**createDir**
 
-**deleteDir**
+#### createDir
+
+```solidity
+function createDir(string memory directoryPath)
+```
+Creates directory in Filestorage. Owner of the directory - message sender. 
+* Function is called by directory owner
+* Maximum amount of directories and files in one directory is **8196**
+
+#### deleteDir
+
+```solidity
+function deleteDir(string memory directoryPath)
+```
+Deletes directory from Filestorage.
+* Function is called by directory owner
+
+#### listDir
+
+```solidity
+function listDir(string memory storagePath) 
+        public 
+        view 
+        returns (ContentInfo[])
+```
+List information about content of the directory
