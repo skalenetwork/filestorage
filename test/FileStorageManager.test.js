@@ -9,6 +9,7 @@ let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
 const FileStorageBase = artifacts.require("./FileStorage");
 const FileStorageManager = artifacts.require("./FileStorageManager");
+const sendTransaction = require('./utils/helper').sendTransaction;
 
 contract('FileStorageManager', accounts => {
     let filestorageProxy;
@@ -82,6 +83,14 @@ contract('FileStorageManager', accounts => {
             await filestorage.setStorageSpace(storageSpace);
             assert.equal(await filestorage.getContentCount(), contentCount, 'contentCount is incorrect');
             assert.equal(await filestorage.getStorageSpace(), storageSpace, 'storageSpace is incorrect');
+        });
+
+        it('should fail to update from foreign account', async function () {
+            let tx = filestorageProxy.contract.methods.setAddress('0x9eb4510ea0f286d061f76e725e5a3e3a8e3eee31');
+            await sendTransaction(tx, filestorageProxy.address, 20000000, process.env.SCHAIN_OWNER_PK)
+                .should
+                .eventually
+                .rejectedWith();
         });
     });
 });
