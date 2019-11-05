@@ -9,7 +9,8 @@ let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
 const FileStorageManager = artifacts.require("./FileStorageManager");
 
-contract('Filestorage', accounts => {
+contract('FileStorageManager', accounts => {
+    let filestorageProxy;
     let filestorage;
 
     function ensureStartsWith0x(str) {
@@ -28,11 +29,11 @@ contract('Filestorage', accounts => {
         let fileName;
         let fileSize;
 
-        beforeEach(async function () {
-            let filestorageMaster = await FileStorage.new({from: accounts[0]});
-            filestorage = await FileStorageManager.new({from: accounts[0]});
-            await filestorage.setAddress(filestorageMaster.address);
-            filestorage = await FileStorage.at(filestorage.address);
+        before(async function () {
+            let filestorageV1 = await FileStorage.new({from: accounts[0]});
+            filestorageProxy = await FileStorageManager.new({from: accounts[0]});
+            await filestorageProxy.setAddress(filestorageV1.address);
+            filestorage = await FileStorage.at(filestorageProxy.address);
             await filestorage.setStorageSpace(10**10);
             await filestorage.setContentCount(2**10);
             fileName = randomstring.generate();
@@ -41,6 +42,16 @@ contract('Filestorage', accounts => {
 
         it('should create file with 1 status', async function () {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            let storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
+            let status = await filestorage.getFileStatus(storagePath);
+            let size = await filestorage.getFileSize(storagePath);
+            assert.equal(status, 1, 'Status is incorrect');
+            assert.equal(size, fileSize, "Size is incorrect")
+        });
+
+        it('should save storage for new FS instance', async function () {
+            let filestorageV2 = await FileStorage.new({from: accounts[0]});
+            await filestorageProxy.setAddress(filestorageV2.address);
             let storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
