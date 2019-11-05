@@ -7,6 +7,7 @@ require('dotenv').config();
 let randomstring = require('randomstring');
 let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
+const FileStorageBase = artifacts.require("./FileStorage");
 const FileStorageManager = artifacts.require("./FileStorageManager");
 
 contract('FileStorageManager', accounts => {
@@ -57,6 +58,15 @@ contract('FileStorageManager', accounts => {
             let size = await filestorage.getFileSize(storagePath);
             assert.equal(status, 1, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect")
+        });
+
+        it('should fail to work with previous interface', async function () {
+            let filestorageV3 = await FileStorageBase.new({from: accounts[0]});
+            await filestorageProxy.setAddress(filestorageV3.address);
+            await filestorage.setStorageSpace(10 ** 9)
+                .should
+                .eventually
+                .rejectedWith();
         });
     });
 });
