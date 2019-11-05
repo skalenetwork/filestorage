@@ -47,7 +47,7 @@ contract('FileStorageManager', accounts => {
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
             assert.equal(status, 1, 'Status is incorrect');
-            assert.equal(size, fileSize, "Size is incorrect")
+            assert.equal(size, fileSize, "Size is incorrect");
         });
 
         it('should save storage for new FS instance', async function () {
@@ -57,16 +57,31 @@ contract('FileStorageManager', accounts => {
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
             assert.equal(status, 1, 'Status is incorrect');
-            assert.equal(size, fileSize, "Size is incorrect")
+            assert.equal(size, fileSize, "Size is incorrect");
         });
 
-        it('should fail to work with previous interface', async function () {
+        it('should remove old functions', async function () {
             let filestorageV3 = await FileStorageBase.new({from: accounts[0]});
             await filestorageProxy.setAddress(filestorageV3.address);
             await filestorage.setStorageSpace(10 ** 9)
                 .should
                 .eventually
                 .rejectedWith();
+            await filestorage.setContentCount(2 ** 9)
+                .should
+                .eventually
+                .rejectedWith();
+        });
+
+        it('should add new functions', async function () {
+            let filestorageV4 = await FileStorage.new({from: accounts[0]});
+            await filestorageProxy.setAddress(filestorageV4.address);
+            let contentCount = 2 ** 9;
+            let storageSpace = 10 ** 9;
+            await filestorage.setContentCount(contentCount);
+            await filestorage.setStorageSpace(storageSpace);
+            assert.equal(await filestorage.getContentCount(), contentCount, 'contentCount is incorrect');
+            assert.equal(await filestorage.getStorageSpace(), storageSpace, 'storageSpace is incorrect');
         });
     });
 });
