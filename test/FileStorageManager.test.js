@@ -33,8 +33,8 @@ contract('FileStorageManager', accounts => {
 
         before(async function () {
             let filestorageV1 = await FileStorage.new({from: accounts[0]});
-            filestorageProxy = await FileStorageManager.new({from: accounts[0]});
-            await filestorageProxy.setAddress(filestorageV1.address);
+            filestorageProxy = await FileStorageManager.new(accounts[0], {from: accounts[0]});
+            await filestorageProxy.setAddress(filestorageV1.address, {from: accounts[0]});
             filestorage = await FileStorage.at(filestorageProxy.address);
             await filestorage.setStorageSpace(10**10);
             await filestorage.setContentCount(2**10);
@@ -53,7 +53,7 @@ contract('FileStorageManager', accounts => {
 
         it('should save storage for new FS instance', async function () {
             let filestorageV2 = await FileStorage.new({from: accounts[0]});
-            await filestorageProxy.setAddress(filestorageV2.address);
+            await filestorageProxy.setAddress(filestorageV2.address, {from: accounts[0]});
             let storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
@@ -63,7 +63,7 @@ contract('FileStorageManager', accounts => {
 
         it('should remove old functions', async function () {
             let filestorageV3 = await FileStorageBase.new({from: accounts[0]});
-            await filestorageProxy.setAddress(filestorageV3.address);
+            await filestorageProxy.setAddress(filestorageV3.address, {from: accounts[0]});
             await filestorage.setStorageSpace(10 ** 9)
                 .should
                 .eventually
@@ -76,7 +76,7 @@ contract('FileStorageManager', accounts => {
 
         it('should add new functions', async function () {
             let filestorageV4 = await FileStorage.new({from: accounts[0]});
-            await filestorageProxy.setAddress(filestorageV4.address);
+            await filestorageProxy.setAddress(filestorageV4.address, {from: accounts[0]});
             let contentCount = 2 ** 9;
             let storageSpace = 10 ** 9;
             await filestorage.setContentCount(contentCount);
@@ -90,7 +90,7 @@ contract('FileStorageManager', accounts => {
             await sendTransaction(tx, filestorageProxy.address, 20000000, process.env.SCHAIN_OWNER_PK)
                 .should
                 .eventually
-                .rejectedWith();
+                .rejectedWith("Invalid sender");
         });
     });
 });
