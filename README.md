@@ -1,6 +1,6 @@
 # SKALE Filestorage
 
-[![Build Status](https://travis-ci.com/skalenetwork/filestorage.js.svg?branch=develop)](https://travis-ci.com/skalenetwork/filestorage.js)
+[![Build Status](https://travis-ci.com/skalenetwork/filestorage.svg?token=HYnwEPctUzUdXVcsecA6&branch=develop)](https://travis-ci.com/skalenetwork/filestorage)
 [![codecov](https://codecov.io/gh/skalenetwork/filestorage/branch/develop/graph/badge.svg?token=2wkF3kZTXh)](https://codecov.io/gh/skalenetwork/filestorage)
 [![Discord](https://img.shields.io/discord/534485763354787851.svg)](https://discord.gg/vvUtWJB)
 

@@ -1,21 +1,21 @@
 pragma solidity ^0.4.24;
 
 contract FileStorageManager {
-    address impl;
-    address owner;
+    address lastVersionAddress;
+    address managerOwner;
 
-    constructor(address _owner){
-        owner = _owner;
+    constructor(address _managerOwner){
+        managerOwner = _managerOwner;
     }
 
-    function setAddress(address _impl) public {
-        require(msg.sender == owner, "Invalid sender");
-        impl = _impl;
+    function setAddress(address _lastVersionAddress) public {
+        require(msg.sender == managerOwner, "Invalid sender");
+        lastVersionAddress = _lastVersionAddress;
     }
 
     function () public {
         require(msg.sig != 0x0);
-        address _impl = impl;
+        address _impl = lastVersionAddress;
         assembly {
             let ptr := mload(0x40)
             calldatacopy(ptr, 0, calldatasize)

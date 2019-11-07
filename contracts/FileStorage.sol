@@ -25,8 +25,8 @@ import "./strings.sol";
 
 // TODO: Add constraints
 contract FileStorage {
-    address impl;
-    address owner;
+    address lastVersionAddress;
+    address managerOwner;
 
     using strings for *;
 
