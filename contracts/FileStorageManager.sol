@@ -2,11 +2,6 @@ pragma solidity ^0.4.24;
 
 contract FileStorageManager {
     address lastVersionAddress;
-    address managerOwner;
-
-    constructor(address _managerOwner){
-        managerOwner = _managerOwner;
-    }
 
     function setAddress(address _lastVersionAddress) public {
         require(msg.sender == getOwnerAddress(), "Invalid sender");

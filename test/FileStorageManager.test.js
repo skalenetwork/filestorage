@@ -10,6 +10,7 @@ const FileStorage = artifacts.require("./FileStorageTest");
 const FileStorageBase = artifacts.require("./FileStorage");
 const FileStorageManager = artifacts.require("./FileStorageManager");
 const sendTransaction = require('./utils/helper').sendTransaction;
+const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
 
 contract('FileStorageManager', accounts => {
     let filestorageProxy;
@@ -27,7 +28,7 @@ contract('FileStorageManager', accounts => {
         return str.slice(2);
     }
 
-    describe('startUpload', function () {
+    describe('FileStorage proxy', function () {
         let fileName;
         let fileSize;
 
@@ -93,4 +94,18 @@ contract('FileStorageManager', accounts => {
                 .rejectedWith("Invalid sender");
         });
     });
+
+    describe('getOwnerAddress', async function () {
+        let filestorageProxy;
+
+        before(async function () {
+            filestorageProxy = await FileStorageManager.new(accounts[0], {from: accounts[0]});
+        });
+
+        it('should return schain owner', async function () {
+            let result = await filestorageProxy.getOwnerAddress();
+            let owner = privateKeyToAddress(process.env.SCHAIN_OWNER_PK);
+            assert.equal(result, owner);
+        });
+    })
 });
