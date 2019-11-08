@@ -45,6 +45,17 @@ async function sendTransaction(transactionData, to, gas, privateKey) {
     return await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
 
+async function initFilestorage(account, artifacts){
+    let filestorageMaster = await artifacts.require('./FileStorageTest').new({from: account});
+    let filestorageProxy = await artifacts.require('./FileStorageManager').new(account, {from: account});
+    await filestorageProxy.setAddress(filestorageMaster.address, {from: account});
+    let filestorage = await artifacts.require('./FileStorageTest').at(filestorageProxy.address);
+    await filestorage.setStorageSpace(10**10);
+    await filestorage.setContentCount(2**10);
+    return filestorage;
+}
+
 module.exports.getFunds = getFunds;
 module.exports.privateKeyToAddress = privateKeyToAddress;
 module.exports.sendTransaction = sendTransaction;
+module.exports.initFilestorage = initFilestorage;

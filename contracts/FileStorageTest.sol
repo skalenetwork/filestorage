@@ -16,4 +16,8 @@ contract FileStorageTest is FileStorage {
     function setStorageSpace(uint maxStorageSpace) public {
         MAX_STORAGE_SPACE = maxStorageSpace;
     }
+
+    function getContentCount() public view returns (uint){
+        return MAX_CONTENT_COUNT;
+    }
 }

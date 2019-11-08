@@ -6,7 +6,7 @@ require('dotenv').config();
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
-const FileStorage = artifacts.require("./FileStorageTest");
+const initFilestorage = require('./utils/helper').initFilestorage;
 const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
 const sendTransaction = require('./utils/helper').sendTransaction;
 
@@ -33,7 +33,7 @@ contract('Filestorage', accounts => {
         let foreignDir;
 
         beforeEach(async function () {
-            filestorage = await FileStorage.new({from: accounts[0]});
+            filestorage = await initFilestorage(accounts[0], artifacts);
             fileName = randomstring.generate();
             fileSize = Math.floor(Math.random() * 100);
             foreignDir = 'foreignDir';

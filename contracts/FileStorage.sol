@@ -25,6 +25,9 @@ import "./strings.sol";
 
 // TODO: Add constraints
 contract FileStorage {
+    address lastVersionAddress;
+    address managerOwner;
+
     using strings for *;
 
     uint constant MAX_CHUNK_SIZE = 2 ** 20;
