@@ -9,7 +9,7 @@ contract FileStorageManager {
     }
 
     function setAddress(address _lastVersionAddress) public {
-        require(msg.sender == managerOwner, "Invalid sender");
+        require(msg.sender == getOwnerAddress(), "Invalid sender");
         lastVersionAddress = _lastVersionAddress;
     }
 
@@ -23,8 +23,23 @@ contract FileStorageManager {
             let size := returndatasize
             returndatacopy(ptr, 0, size)
             switch result
-            case 0 { revert(ptr, size) }
-            default { return(ptr, size) }
+            case 0 {revert(ptr, size)}
+            default {return (ptr, size)}
+        }
+    }
+
+    function getOwnerAddress() public view returns (address answer){
+        address contextAddress = 0xD2001000000000000000000000000000000000D2;
+        bytes4 sig = bytes4(sha3("getSchainOwnerAddress()"));
+        assembly {
+            let ptr := mload(0x40)
+            mstore(ptr, sig)
+            let result := call(gas, contextAddress, 0, ptr, 0x20, ptr, 0x20)
+            if eq(result, 0) {
+                revert(0, 0)
+            }
+            answer := mload(ptr)
+            mstore(0x40, add(ptr, 0x20))
         }
     }
 }

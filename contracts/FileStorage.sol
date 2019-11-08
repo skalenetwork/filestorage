@@ -23,10 +23,8 @@ pragma experimental ABIEncoderV2;
 
 import "./strings.sol";
 
-// TODO: Add constraints
 contract FileStorage {
     address lastVersionAddress;
-    address managerOwner;
 
     using strings for *;
 
