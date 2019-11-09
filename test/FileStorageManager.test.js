@@ -9,6 +9,7 @@ let path = require('path').posix;
 const FileStorage = artifacts.require("./FileStorageTest");
 const FileStorageBase = artifacts.require("./FileStorage");
 const FileStorageManager = artifacts.require("./FileStorageManager");
+const getFunds = require('./utils/helper').getFunds;
 const sendTransaction = require('./utils/helper').sendTransaction;
 const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
 
@@ -33,6 +34,7 @@ contract('FileStorageManager', accounts => {
         let fileSize;
 
         before(async function () {
+            await getFunds(privateKeyToAddress(process.env.PRIVATEKEY));
             let filestorageV1 = await FileStorage.new({from: accounts[0]});
             filestorageProxy = await FileStorageManager.new(accounts[0], {from: accounts[0]});
             await filestorageProxy.setAddress(filestorageV1.address, {from: accounts[0]});
@@ -88,7 +90,7 @@ contract('FileStorageManager', accounts => {
 
         it('should fail to update from foreign account', async function () {
             let tx = filestorageProxy.contract.methods.setAddress('0x9eb4510ea0f286d061f76e725e5a3e3a8e3eee31');
-            await sendTransaction(tx, filestorageProxy.address, 20000000, process.env.SCHAIN_OWNER_PK)
+            let result = await sendTransaction(tx, filestorageProxy.address, 20000000, process.env.PRIVATEKEY)
                 .should
                 .eventually
                 .rejectedWith("Invalid sender");
@@ -107,5 +109,5 @@ contract('FileStorageManager', accounts => {
             let owner = privateKeyToAddress(process.env.SCHAIN_OWNER_PK);
             assert.equal(result, owner);
         });
-    })
+    });
 });

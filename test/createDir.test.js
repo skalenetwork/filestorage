@@ -6,8 +6,8 @@ chai.use(require('chai-as-promised'));
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
-const FileStorage = artifacts.require("./FileStorageTest");
-const FileStorageManager = artifacts.require("./FileStorageManager");
+const getFunds = require('./utils/helper').getFunds;
+const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
 const initFilestorage = require('./utils/helper').initFilestorage;
 const sendTransaction = require('./utils/helper').sendTransaction;
 const UPLOADING_GAS = 10 ** 8;
@@ -40,6 +40,10 @@ contract('Filestorage', accounts => {
         let filePath;
         let dirPath;
         let foreignDir;
+
+        before(async function () {
+            await getFunds(privateKeyToAddress(process.env.PRIVATEKEY));
+        });
 
         beforeEach(async function () {
             filestorage = await initFilestorage(accounts[0], artifacts);
@@ -193,7 +197,7 @@ contract('Filestorage', accounts => {
 
         it('should fail to create dir in foreign dir', async function () {
             let tx = filestorage.contract.methods.createDir(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
             try {
                 await filestorage.createDir(path.join(foreignDir, 'dir'), {from: accounts[0]});
                 assert.fail();
@@ -201,7 +205,7 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
             tx = filestorage.contract.methods.deleteDir(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
         });
     });
 });

@@ -7,6 +7,7 @@ require('dotenv').config();
 let randomstring = require('randomstring');
 let path = require('path').posix;
 const initFilestorage = require('./utils/helper').initFilestorage;
+const getFunds = require('./utils/helper').getFunds;
 const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
 const sendTransaction = require('./utils/helper').sendTransaction;
 
@@ -31,6 +32,10 @@ contract('Filestorage', accounts => {
         let fileName;
         let fileSize;
         let foreignDir;
+
+        before(async function () {
+            await getFunds(privateKeyToAddress(process.env.PRIVATEKEY));
+        });
 
         beforeEach(async function () {
             filestorage = await initFilestorage(accounts[0], artifacts);
@@ -118,7 +123,7 @@ contract('Filestorage', accounts => {
 
         it('should fail to create file in foreign dir', async function () {
             let tx = filestorage.contract.methods.createDir(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
             try {
                 await filestorage.startUpload(path.join(foreignDir, fileName), 0, {from: accounts[0]});
                 assert.fail();
@@ -126,7 +131,7 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
             tx = filestorage.contract.methods.deleteDir(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
         });
 
         it('should fail whether directory is full', async function () {
