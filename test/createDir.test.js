@@ -6,10 +6,7 @@ chai.use(require('chai-as-promised'));
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
-const getFunds = require('./utils/helper').getFunds;
-const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
-const initFilestorage = require('./utils/helper').initFilestorage;
-const sendTransaction = require('./utils/helper').sendTransaction;
+const helper = require('./utils/helper');
 const UPLOADING_GAS = 10 ** 8;
 const CHUNK_LENGTH = 2 ** 20;
 
@@ -42,11 +39,11 @@ contract('Filestorage', accounts => {
         let foreignDir;
 
         before(async function () {
-            await getFunds(privateKeyToAddress(process.env.PRIVATEKEY));
+            await helper.getFunds(helper.privateKeyToAddress(process.env.PRIVATEKEY));
         });
 
         beforeEach(async function () {
-            filestorage = await initFilestorage(accounts[0], artifacts);
+            filestorage = await helper.initFilestorage(accounts[0], artifacts);
             fileName = randomstring.generate();
             dirName = randomstring.generate();
             foreignDir = 'foreignDir';
@@ -197,7 +194,7 @@ contract('Filestorage', accounts => {
 
         it('should fail to create dir in foreign dir', async function () {
             let tx = filestorage.contract.methods.createDir(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
+            await helper.sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
             try {
                 await filestorage.createDir(path.join(foreignDir, 'dir'), {from: accounts[0]});
                 assert.fail();
@@ -205,7 +202,7 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
             tx = filestorage.contract.methods.deleteDir(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
+            await helper.sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY);
         });
     });
 });
