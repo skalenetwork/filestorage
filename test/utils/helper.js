@@ -5,10 +5,10 @@ const rootPrivateKey = process.env.SCHAIN_OWNER_PK;
 const web3 = new Web3(process.env.ENTRYPOINT);
 
 async function getFunds(account) {
-    let testBalanceWei = await web3.utils.toWei(testBalance, 'ether');
-    let accountBalance = await web3.eth.getBalance(account);
+    let testBalanceWei = parseInt(await web3.utils.toWei(testBalance, 'ether'));
+    let accountBalance = parseInt(await web3.eth.getBalance(account));
     let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
-    let rootBalance = await web3.eth.getBalance(rootAccount);
+    let rootBalance = parseInt(await web3.eth.getBalance(rootAccount));
     if (accountBalance < testBalanceWei) {
         let valueToSend = testBalanceWei - accountBalance;
         if (rootBalance < valueToSend) {
