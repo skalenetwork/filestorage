@@ -30,7 +30,7 @@ contract FileStorage {
 
     using strings for *;
 
-    uint constant MAX_CHUNK_SIZE = 2 ** 20;
+    uint internal MAX_CHUNK_SIZE = 2 ** 20;
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILENAME_LENGTH = 255;
     uint constant MAX_FILESIZE = 10 ** 8;
