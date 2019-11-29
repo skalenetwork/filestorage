@@ -6,6 +6,7 @@ before_install:
 - mkdir ~/schain_data
 - cd ~/schain_data && mkdir data_dir
 - wget https://raw.githubusercontent.com/skalenetwork/skale-node/develop/schain_base_config.json
+- docker login --username $USERNAME --password $PASSWORD
 - docker pull skalelabshub/schain:1.0.0-beta.2
 - docker run -d \
   -v ~/schain_data:/schain_data \
