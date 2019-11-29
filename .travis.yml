@@ -3,8 +3,8 @@ node_js: 10
 services:
   - docker
 before_install:
-- mkdir ~/schain_data/data_dir
-- cd ~/schain_data
+- mkdir ~/schain_data
+- cd ~/schain_data && mkdir data_dir
 - wget https://raw.githubusercontent.com/skalenetwork/skale-node/develop/schain_base_config.json
 - docker pull skalelabshub/schain:1.0.0-beta.2
 - docker run -d \
