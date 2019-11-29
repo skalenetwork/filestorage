@@ -8,7 +8,7 @@ let randomstring = require('randomstring');
 let path = require('path').posix;
 const initFilestorage = require('./utils/helper').initFilestorage;
 const UPLOADING_GAS = 10 ** 8;
-const CHUNK_LENGTH = 2 ** 20;
+const CHUNK_LENGTH = 2 ** 10;
 
 contract('Filestorage', accounts => {
     let filestorage;

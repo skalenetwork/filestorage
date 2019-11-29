@@ -11,7 +11,7 @@ const FileStorageManager = artifacts.require("./FileStorageManager");
 const initFilestorage = require('./utils/helper').initFilestorage;
 const sendTransaction = require('./utils/helper').sendTransaction;
 const UPLOADING_GAS = 10 ** 8;
-const CHUNK_LENGTH = 2 ** 20;
+const CHUNK_LENGTH = 2 ** 10;
 
 // TODO: add getFileStatus
 contract('Filestorage', accounts => {
@@ -106,7 +106,7 @@ contract('Filestorage', accounts => {
             await filestorage.uploadChunk(path.join(dirName, fileName),
                 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.finishUpload(path.join(dirName, fileName), {from: accounts[0]});
-            let receivedData = await filestorage.readChunk(path.join(dirPath, fileName),
+            let receivedData = await filestorage.readChunkTest(path.join(dirPath, fileName),
                 0, CHUNK_LENGTH, {gas: UPLOADING_GAS});
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
