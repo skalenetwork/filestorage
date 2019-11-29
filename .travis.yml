@@ -3,9 +3,8 @@ node_js: 10
 services:
   - docker
 before_install:
-- mkdir ~/schain_data
-- cd ~/schain_data && mkdir data_dir
-- wget https://raw.githubusercontent.com/skalenetwork/skale-node/develop/schain_base_config.json
+- mkdir -p ~/schain_data/data_dir
+- wget https://raw.githubusercontent.com/skalenetwork/skale-node/develop/schain_base_config.json > ~/schain_data/config.json
 - docker login --username $USERNAME --password $PASSWORD
 - docker pull skalelabshub/schain:1.0.0-beta.2
 - docker run -d
@@ -13,7 +12,7 @@ before_install:
   -p 2234:2234
   -e HTTP_RPC_PORT=2234
   -e DATA_DIR=/schain_data/data_dir
-  -e CONFIG_FILE=/schain_data/schain_base_config.json
+  -e CONFIG_FILE=/schain_data/config.json
   skalelabshub/schain:1.0.0-beta.2
 install:
 - npm install
