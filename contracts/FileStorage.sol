@@ -344,7 +344,7 @@ contract FileStorage {
         MAX_STORAGE_SPACE = configStorageSpace;
     }
 
-    function getContentInfo(address owner, string contentPath) private view returns (ContentInfo storage){
+    function getContentInfo(address owner, string contentPath) internal view returns (ContentInfo storage){
         string[] memory dirs = parseDirPath(contentPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
@@ -357,7 +357,7 @@ contract FileStorage {
         return result;
     }
 
-    function parseStoragePath(string memory storagePath) private pure returns (address owner, string memory filePath) {
+    function parseStoragePath(string memory storagePath) internal pure returns (address owner, string memory filePath) {
         uint addressLength = 40;
         require(bytes(storagePath).length > addressLength, "Invalid storagePath");
         bytes memory ownerAddress = new bytes(addressLength);
@@ -388,7 +388,7 @@ contract FileStorage {
         }
     }
 
-    function parseDirPath(string memory directoryPath) private pure returns (string[] memory decreasePart) {
+    function parseDirPath(string memory directoryPath) internal pure returns (string[] memory decreasePart) {
         strings.slice memory pathSlice = directoryPath.toSlice();
         strings.slice memory delimiter = "/".toSlice();
         string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
