@@ -213,6 +213,18 @@ contract FileStorage {
         }
         require(isFileUploaded, "File hasn't been uploaded correctly");
         file.status = STATUS_COMPLETED;
+        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
+        bool success;
+        assembly {
+            let p := mload(0x40)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
+            }
+            success := call(not(0), 0x11, 0, p, add(64, mul(blocks, 32)), p, 32)
+        }
+        require(success, "Hash hasn't been calculated");
     }
 
     function deleteFile(string memory filePath) public {
