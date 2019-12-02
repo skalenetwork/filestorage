@@ -47,6 +47,7 @@ contract('Filestorage', accounts => {
                 length: 2 * CHUNK_LENGTH,
                 charset: 'hex'
             }));
+            await filestorage.setChunkSize(CHUNK_LENGTH);
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.uploadChunk(fileName, CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});

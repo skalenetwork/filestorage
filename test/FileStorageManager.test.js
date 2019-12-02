@@ -38,6 +38,7 @@ contract('FileStorageManager', accounts => {
             filestorage = await FileStorage.at(filestorageProxy.address);
             await filestorage.setStorageSpace(10**10);
             await filestorage.setContentCount(2**10);
+            await filestorage.setChunkSize(2**20);
             fileName = randomstring.generate();
             fileSize = Math.floor(Math.random() * 100);
         });

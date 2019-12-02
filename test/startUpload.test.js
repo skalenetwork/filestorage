@@ -146,6 +146,7 @@ contract('Filestorage', accounts => {
             let fileSize;
             beforeEach(async function () {
                 await filestorage.setStorageSpace(MAX_FILESIZE);
+                await filestorage.setChunkSize(2 ** 20);
                 fileSize = MAX_FILESIZE - 1;
                 fileNames = [];
                 fileCount = 1;

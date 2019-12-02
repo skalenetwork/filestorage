@@ -18,7 +18,8 @@ async function getFunds(account) {
             from: rootAccount,
             gas: 21000,
             to: account,
-            value: valueToSend
+            value: valueToSend,
+            chainId: await web3.eth.getChainId()
         };
         let signedTx = await web3.eth.accounts.signTransaction(tx, rootPrivateKey);
         await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
@@ -39,17 +40,15 @@ async function sendTransaction(transactionData, to, gas, privateKey) {
         data: encoded,
         gas: gas,
         to: to,
-        nonce: nonce
+        nonce: nonce,
+        chainId: await web3.eth.getChainId()
     };
     let signedTx = await web3.eth.accounts.signTransaction(tx, privateKey);
     return await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
 
 async function initFilestorage(account, artifacts){
-    let filestorageMaster = await artifacts.require('./FileStorageTest').new({from: account});
-    let filestorageProxy = await artifacts.require('./FileStorageManager').new(account, {from: account});
-    await filestorageProxy.setAddress(filestorageMaster.address, {from: account});
-    let filestorage = await artifacts.require('./FileStorageTest').at(filestorageProxy.address);
+    let filestorage = await artifacts.require('./FileStorageTest').new({from: account});
     await filestorage.setStorageSpace(10**10);
     await filestorage.setContentCount(2**10);
     return filestorage;
