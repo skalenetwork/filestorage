@@ -20,13 +20,13 @@ install:
 
 jobs:
   include:
-#    - stage: test
-#      script:
-#      - truffle compile
-#      - truffle test --network skaled
-#      after_success:
-#      - npx solidity-coverage
-#      - cat coverage/lcov.info | npx codecov
+    - stage: test
+      script:
+      - truffle compile
+      - truffle test --network skaled
+      after_success:
+      - npx solidity-coverage
+      - cat coverage/lcov.info | npx codecov
     - stage: integration
       install:
       - git clone https://github.com/skalenetwork/filestorage.js.git

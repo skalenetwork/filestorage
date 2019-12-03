@@ -32,7 +32,7 @@ contract FileStorage {
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILENAME_LENGTH = 255;
-    uint constant MAX_FILESIZE = 10 ** 8;
+    uint constant MAX_FILESIZE = 100 * (2 ** 20);
 
     int constant STATUS_UNEXISTENT = 0;
     int constant STATUS_UPLOADING = 1;
