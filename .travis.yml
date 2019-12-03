@@ -17,9 +17,23 @@ before_install:
   skalelabshub/schain:$SCHAIN_VERSION
 install:
 - npm install
-script:
-- truffle compile
-- truffle test --network skaled || travis_terminate 1
-after_script:
-- npx solidity-coverage
-- cat coverage/lcov.info | npx codecov
+
+jobs:
+  include:
+#    - stage: test
+#      script:
+#      - truffle compile
+#      - truffle test --network skaled
+#      after_success:
+#      - npx solidity-coverage
+#      - cat coverage/lcov.info | npx codecov
+    - stage: integration
+      install:
+      - git clone https://github.com/skalenetwork/filestorage.js.git
+      - cd filestorage.js
+      - npm install
+      - npm link; npm link @skalenetwork/filestorage.js
+      before_script:
+      - npm run generate
+      script:
+      - npm run test
