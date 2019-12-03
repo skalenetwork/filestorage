@@ -9,6 +9,7 @@ contract FileStorageTest is FileStorage {
         MAX_STORAGE_SPACE = 10 ** 10;
         MAX_CONTENT_COUNT = 2 ** 13;
         MAX_CHUNK_SIZE = 2 ** 10;
+        isInitialized = true;
     }
 
     function setContentCount(uint maxContentCount) public {

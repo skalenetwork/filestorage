@@ -40,7 +40,7 @@ contract FileStorage {
 
     uint constant EMPTY_INDEX = 0;
 
-    bool isInitialized = false;
+    bool internal isInitialized = false;
     uint internal MAX_CONTENT_COUNT;
     uint internal MAX_CHUNK_SIZE;
     uint internal MAX_STORAGE_SPACE;
