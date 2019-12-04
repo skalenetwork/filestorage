@@ -6,8 +6,6 @@ chai.use(require('chai-as-promised'));
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
-const FileStorage = artifacts.require("./FileStorageTest");
-const FileStorageManager = artifacts.require("./FileStorageManager");
 const initFilestorage = require('./utils/helper').initFilestorage;
 const sendTransaction = require('./utils/helper').sendTransaction;
 const UPLOADING_GAS = 10 ** 8;

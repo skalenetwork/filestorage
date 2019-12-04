@@ -7,7 +7,6 @@ require('dotenv').config();
 let randomstring = require('randomstring');
 let path = require('path').posix;
 const initFilestorage = require('./utils/helper').initFilestorage;
-const privateKeyToAddress = require('./utils/helper').privateKeyToAddress;
 const sendTransaction = require('./utils/helper').sendTransaction;
 
 contract('Filestorage', accounts => {
