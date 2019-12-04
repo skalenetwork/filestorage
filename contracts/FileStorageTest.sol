@@ -1,4 +1,4 @@
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 import "./FileStorage.sol";
 
@@ -53,7 +53,7 @@ contract FileStorageTest is FileStorage {
             let p_position := add(ptr, mul(32, fileNameBlocks))
             mstore(p_position, position)
             mstore(add(32, p_position), length)
-            success := call(not(0), 0x0A, 0, p, mul(32, add(3, fileNameBlocks)), out, mul(32, returnedDataBlocks))
+            success := staticcall(not(0), 0x0A, p, mul(32, add(3, fileNameBlocks)), out, mul(32, returnedDataBlocks))
         }
         require(success, "Chunk wasn't read");
     }

@@ -18,7 +18,7 @@
 */
 
 
-pragma solidity ^0.4.24;
+pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
 import "./strings.sol";
@@ -32,7 +32,7 @@ contract FileStorage {
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILENAME_LENGTH = 255;
-    uint constant MAX_FILESIZE = 100 * (2 ** 20);
+    uint constant MAX_FILESIZE = 10 ** 8;
 
     int constant STATUS_UNEXISTENT = 0;
     int constant STATUS_UPLOADING = 1;
@@ -276,13 +276,13 @@ contract FileStorage {
             let p_position := add(ptr, mul(32, fileNameBlocks))
             mstore(p_position, position)
             mstore(add(32, p_position), length)
-            success := call(not(0), 0x0A, 0, p, mul(32, add(3, fileNameBlocks)), out, mul(32, returnedDataBlocks))
+            success := staticcall(not(0), 0x0A, p, mul(32, add(3, fileNameBlocks)), out, mul(32, returnedDataBlocks))
         }
         require(success, "Chunk wasn't read");
     }
 
     // TODO: handle root dir
-    function listDir(string memory storagePath) public view returns (ContentInfo[]){
+    function listDir(string memory storagePath) public view returns (ContentInfo[] memory){
         address owner;
         string memory path;
         (owner, path) = parseStoragePath(storagePath);
@@ -331,7 +331,7 @@ contract FileStorage {
             for {let i := 0} lt(i, blocks) {i := add(1, i)} {
                 mstore(add(ptr, mul(32, i)), mload(add(fileName, mul(32, i))))
             }
-            success := call(not(0), 0x0D, 0, p, add(32, mul(blocks, 32)), p, 32)
+            success := staticcall(not(0), 0x0D, p, add(32, mul(blocks, 32)), p, 32)
             fileSize := mload(p)
         }
         require(success);
@@ -350,7 +350,7 @@ contract FileStorage {
         MAX_STORAGE_SPACE = configStorageSpace;
     }
 
-    function getContentInfo(address owner, string contentPath) internal view returns (ContentInfo storage){
+    function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage){
         string[] memory dirs = parseDirPath(contentPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
@@ -371,8 +371,8 @@ contract FileStorage {
             ownerAddress[i] = bytes(storagePath)[i];
         }
         uint result = 0;
-        for (i = 0; i < addressLength; i++) {
-            uint c = uint(ownerAddress[i]);
+        for (uint i = 0; i < addressLength; i++) {
+            uint c = uint(uint8(ownerAddress[i]));
             require((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 102), "Invalid storagePath");
             if (c >= 48 && c <= 57) {
                 result = result * 16 + (c - 48);
@@ -388,7 +388,7 @@ contract FileStorage {
         require(bytes(storagePath)[addressLength] == '/', "Invalid storagePath");
         uint fileNameLength = bytes(storagePath).length - addressLength - 1;
         filePath = new string(fileNameLength);
-        for (i = 0; i < fileNameLength; i++) {
+        for (uint i = 0; i < fileNameLength; i++) {
             byte char = bytes(storagePath)[i + addressLength + 1];
             bytes(filePath)[i] = char;
         }
@@ -408,7 +408,7 @@ contract FileStorage {
         } else {
             decreasePart = new string[](parts.length);
         }
-        for (i = 0; i < decreasePart.length; i++) {
+        for (uint i = 0; i < decreasePart.length; i++) {
             decreasePart[i] = parts[i];
         }
     }
