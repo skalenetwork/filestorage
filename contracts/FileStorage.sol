@@ -23,10 +23,9 @@ pragma experimental ABIEncoderV2;
 import "./strings.sol";
 
 contract FileStorage {
-    address lastVersionAddress;
-    address managerOwner;
-
     using strings for *;
+
+    uint internal MAX_STORAGE_SPACE;
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILENAME_LENGTH = 255;
@@ -50,7 +49,6 @@ contract FileStorage {
     bool internal isInitialized = false;
     uint internal MAX_CONTENT_COUNT;
     uint internal MAX_CHUNK_SIZE;
-    uint internal MAX_STORAGE_SPACE;
 
     struct ContentInfo {
         string name;
@@ -68,6 +66,15 @@ contract FileStorage {
 
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
+
+    modifier initializing() {
+        if (!isInitialized) {
+            MAX_CONTENT_COUNT = 2 ** 13;
+            MAX_CHUNK_SIZE = 2 ** 20;
+            isInitialized = true;
+        }
+        _;
+    }
 
     function createDir(string memory directoryPath) public initializing {
         require(bytes(directoryPath).length > 0, "Invalid path");
@@ -433,18 +440,4 @@ contract FileStorage {
         return true;
     }
 
-    modifier initializing() {
-        if (!isInitialized) {
-            MAX_CONTENT_COUNT = 2 ** 13;
-            MAX_CHUNK_SIZE = 2 ** 20;
-            uint configStorageSpace;
-            uint MAX_STORAGE_SPACE_PTR = 0;
-            assembly {
-                configStorageSpace := sload(MAX_STORAGE_SPACE_PTR)
-            }
-            MAX_STORAGE_SPACE = configStorageSpace;
-            isInitialized = true;
-        }
-        _;
-    }
 }
