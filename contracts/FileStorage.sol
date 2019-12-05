@@ -22,8 +22,10 @@ pragma experimental ABIEncoderV2;
 
 import "./strings.sol";
 
-// TODO: Add constraints
 contract FileStorage {
+    address lastVersionAddress;
+    address managerOwner;
+
     using strings for *;
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
@@ -35,12 +37,6 @@ contract FileStorage {
     int constant STATUS_COMPLETED = 2;
 
     uint constant EMPTY_INDEX = 0;
-
-    bool internal isInitialized = false;
-    uint internal MAX_CONTENT_COUNT;
-    uint internal MAX_CHUNK_SIZE;
-    uint internal MAX_STORAGE_SPACE;
-
     uint constant FREE_MEM_PTR = 0x40;
     uint constant READ_CHUNK_ADDRESS = 0x0A;
     uint constant CREATE_FILE_ADDRESS = 0x0B;
@@ -50,6 +46,11 @@ contract FileStorage {
     uint constant CREATE_DIRECTORY_ADDRESS = 0x0F;
     uint constant DELETE_DIRECTORY_ADDRESS = 0x10;
     uint constant CALCULATE_FILE_HASH = 0x11;
+
+    bool internal isInitialized = false;
+    uint internal MAX_CONTENT_COUNT;
+    uint internal MAX_CHUNK_SIZE;
+    uint internal MAX_STORAGE_SPACE;
 
     struct ContentInfo {
         string name;
