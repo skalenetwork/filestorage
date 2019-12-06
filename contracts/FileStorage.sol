@@ -21,9 +21,11 @@ pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
 import "./utils.sol";
+import "./precompileds.sol";
 
 contract FileStorage {
     using utils for *;
+    using precompileds for *;
 
     uint internal MAX_STORAGE_SPACE;
 
@@ -88,17 +90,7 @@ contract FileStorage {
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
         require(utils.checkContentName(newDir), "Invalid directory name");
-        uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
-        bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
-            }
-            success := call(not(0), CREATE_DIRECTORY_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
-        }
+        bool success = precompileds.createDir(owner, directoryPath);
         require(success, "Directory not created");
         ContentInfo memory directoryInfo;
         directoryInfo.name = newDir;
@@ -119,17 +111,7 @@ contract FileStorage {
         string memory targetDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[targetDir] > EMPTY_INDEX, "Invalid path");
         require(currentDir.directories[targetDir].contents.length == 0, "Directory is not empty");
-        uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
-        bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
-            }
-            success := call(not(0), DELETE_DIRECTORY_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
-        }
+        bool success = precompileds.deleteDir(owner, directoryPath);
         require(success, "Directory is not deleted");
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
         currentDir.contents[currentDir.contentIndexes[targetDir] - 1] = lastContent;
@@ -153,18 +135,7 @@ contract FileStorage {
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDir.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
         require(utils.checkContentName(pureFileName), "Filename should be < 256");
-        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
-        bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-            }
-            mstore(add(ptr, mul(blocks, 32)), fileSize)
-            success := call(not(0), CREATE_FILE_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
-        }
+        bool success = precompileds.startUpload(owner, filePath, fileSize);
         require(success, "File not created");
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
         currentDir.contents.push(ContentInfo({
