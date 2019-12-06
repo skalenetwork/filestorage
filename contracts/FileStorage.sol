@@ -37,15 +37,6 @@ contract FileStorage {
     int constant STATUS_COMPLETED = 2;
 
     uint constant EMPTY_INDEX = 0;
-    uint constant FREE_MEM_PTR = 0x40;
-    uint constant READ_CHUNK_ADDRESS = 0x0A;
-    uint constant CREATE_FILE_ADDRESS = 0x0B;
-    uint constant UPLOAD_CHUNK_ADDRESS = 0x0C;
-    uint constant GET_FILE_SIZE_ADDRESS = 0x0D;
-    uint constant DELETE_FILE_ADDRESS = 0x0E;
-    uint constant CREATE_DIRECTORY_ADDRESS = 0x0F;
-    uint constant DELETE_DIRECTORY_ADDRESS = 0x10;
-    uint constant CALCULATE_FILE_HASH = 0x11;
 
     bool internal isInitialized = false;
     uint internal MAX_CONTENT_COUNT;
@@ -158,22 +149,7 @@ contract FileStorage {
                 data.length == file.size - position ||
                 data.length == MAX_CHUNK_SIZE, "Incorrect chunk length");
         require(file.isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
-        uint dataBlocks = (data.length + 31) / 32 + 1;
-        uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
-        bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-            }
-            mstore(add(ptr, mul(32, filePathBlocks)), position)
-            for {let i := 0} lt(i, dataBlocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, add(add(1, filePathBlocks), i))), mload(add(data, mul(32, i))))
-            }
-            success := call(not(0), UPLOAD_CHUNK_ADDRESS, 0, p, add(96, mul(32, add(dataBlocks, filePathBlocks))), p, 32)
-        }
+        bool success = precompileds.uploadChunk(owner, filePath, position, data);
         require(success, "Chunk wasn't uploaded");
         file.isChunkUploaded[position / MAX_CHUNK_SIZE] = true;
     }
@@ -191,17 +167,7 @@ contract FileStorage {
         }
         require(isFileUploaded, "File hasn't been uploaded correctly");
         file.status = STATUS_COMPLETED;
-        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
-        bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-            }
-            success := call(not(0), CALCULATE_FILE_HASH, 0, p, add(64, mul(blocks, 32)), p, 32)
-        }
+        bool success = precompileds.calculateFileHash(owner, filePath);
         require(success, "Hash hasn't been calculated");
     }
 
@@ -209,17 +175,7 @@ contract FileStorage {
         address owner = msg.sender;
         ContentInfo memory file = getContentInfo(owner, filePath);
         require(file.status != STATUS_UNEXISTENT, "File not exists");
-        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
-        bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-            }
-            success := call(not(0), DELETE_FILE_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
-        }
+        bool success = precompileds.deleteFile(owner, filePath);
         require(success, "File not deleted");
         string[] memory dirs = utils.parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
@@ -247,21 +203,8 @@ contract FileStorage {
         require(file.status == STATUS_COMPLETED, "File hasn't been uploaded");
         require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
-        uint fileNameBlocks = (bytes(fileName).length + 31) / 32 + 1;
-        uint returnedDataBlocks = (length + 31) / 32;
         bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, fileNameBlocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(fileName, mul(32, i))))
-            }
-            let p_position := add(ptr, mul(32, fileNameBlocks))
-            mstore(p_position, position)
-            mstore(add(32, p_position), length)
-            success := staticcall(not(0), READ_CHUNK_ADDRESS, p, mul(32, add(3, fileNameBlocks)), out, mul(32, returnedDataBlocks))
-        }
+        (success, out) = precompileds.readChunk(owner,fileName, position, length);
         require(success, "Chunk wasn't read");
     }
 
@@ -306,18 +249,8 @@ contract FileStorage {
         ContentInfo memory file = getContentInfo(owner, fileName);
         require(file.status == STATUS_UPLOADING ||
                 file.status == STATUS_COMPLETED, "File not found");
-        uint blocks = (bytes(fileName).length + 31) / 32 + 1;
         bool success;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(fileName, mul(32, i))))
-            }
-            success := staticcall(not(0), GET_FILE_SIZE_ADDRESS, p, add(32, mul(blocks, 32)), p, 32)
-            fileSize := mload(p)
-        }
+        (success, fileSize) = precompileds.getFileSize(owner, fileName);
         require(success);
     }
 
