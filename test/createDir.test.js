@@ -95,17 +95,19 @@ contract('Filestorage', accounts => {
         });
 
         it('should readChunk from file in dir', async function () {
+            let chunkLength = 2 ** 20;
             let data = addBytesSymbol(randomstring.generate({
-                length: 2 * CHUNK_LENGTH,
+                length: 2 * chunkLength,
                 charset: 'hex'
             }));
+            await filestorage.setChunkSize(chunkLength);
             await filestorage.createDir(dirName, {from: accounts[0]});
-            await filestorage.startUpload(path.join(dirName, fileName), CHUNK_LENGTH, {from: accounts[0]});
+            await filestorage.startUpload(path.join(dirName, fileName), chunkLength, {from: accounts[0]});
             await filestorage.uploadChunk(path.join(dirName, fileName),
                 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.finishUpload(path.join(dirName, fileName), {from: accounts[0]});
-            let receivedData = await filestorage.readChunkTest(path.join(dirPath, fileName),
-                0, CHUNK_LENGTH, {gas: UPLOADING_GAS});
+            let receivedData = await filestorage.readChunk(path.join(dirPath, fileName),
+                0, chunkLength, {gas: UPLOADING_GAS});
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
 

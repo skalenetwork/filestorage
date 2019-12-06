@@ -93,6 +93,24 @@ contract('Filestorage', accounts => {
             assert.isTrue(receivedChunk === chunk);
         });
 
+        it('should return chunk 1000 bytes length', async function () {
+            let chunkLength = 1000;
+            let receivedData = await filestorage.readChunk(
+                storagePath,
+                0,
+                chunkLength,
+                {gas: UPLOADING_GAS});
+            assert.isArray(receivedData);
+            assert.isNotEmpty(receivedData);
+            assert.equal(receivedData.length, MAX_BLOCK_COUNT);
+            assert.isTrue(ensureStartsWith0x(receivedData[0]));
+            let chunk = addBytesSymbol(data.concat(rmBytesSymbol(data))
+                .slice(0, 2 * chunkLength + 2));
+            let receivedChunk = addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')
+                .slice(0, 2 * chunkLength));
+            assert.isTrue(receivedChunk === chunk);
+        });
+
         it('should fail to read more than 1Mb', async function () {
             await filestorage.readChunk(storagePath, 0, CHUNK_LENGTH + 1, {gas: UPLOADING_GAS})
                 .should
