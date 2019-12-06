@@ -31,22 +31,19 @@ contract FileStorage {
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILESIZE = 10 ** 8;
-
-    int constant STATUS_UNEXISTENT = 0;
-    int constant STATUS_UPLOADING = 1;
-    int constant STATUS_COMPLETED = 2;
-
     uint constant EMPTY_INDEX = 0;
 
     bool internal isInitialized = false;
     uint internal MAX_CONTENT_COUNT;
     uint internal MAX_CHUNK_SIZE;
 
+    enum FileStatus { UNEXISTENT, UPLOADING, COMPLETED }
+
     struct ContentInfo {
         string name;
         bool isFile;
         uint size;
-        int status;
+        FileStatus status;
         bool[] isChunkUploaded;
     }
 
@@ -133,7 +130,7 @@ contract FileStorage {
             name : pureFileName,
             isFile : true,
             size : fileSize,
-            status : STATUS_UPLOADING,
+            status : FileStatus.UPLOADING,
             isChunkUploaded : isChunkUploaded
         }));
         currentDir.contentIndexes[pureFileName] = currentDir.contents.length;
@@ -143,7 +140,7 @@ contract FileStorage {
     function uploadChunk(string memory filePath, uint position, bytes memory data) public {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
-        require(file.status == STATUS_UPLOADING, "File not found");
+        require(file.status == FileStatus.UPLOADING, "File not found");
         require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
         require(file.size - position < MAX_CHUNK_SIZE &&
                 data.length == file.size - position ||
@@ -157,7 +154,7 @@ contract FileStorage {
     function finishUpload(string memory filePath) public {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
-        require(file.status == STATUS_UPLOADING, "File not found");
+        require(file.status == FileStatus.UPLOADING, "File not found");
         bool isFileUploaded = true;
         uint chunkCount = file.isChunkUploaded.length;
         for (uint i = 0; i < chunkCount; ++i) {
@@ -166,7 +163,7 @@ contract FileStorage {
             }
         }
         require(isFileUploaded, "File hasn't been uploaded correctly");
-        file.status = STATUS_COMPLETED;
+        file.status = FileStatus.COMPLETED;
         bool success = PrecompiledCaller.calculateFileHash(owner, filePath);
         require(success, "Hash hasn't been calculated");
     }
@@ -174,7 +171,7 @@ contract FileStorage {
     function deleteFile(string memory filePath) public {
         address owner = msg.sender;
         ContentInfo memory file = getContentInfo(owner, filePath);
-        require(file.status != STATUS_UNEXISTENT, "File not exists");
+        require(file.status != FileStatus.UNEXISTENT, "File not exists");
         bool success = PrecompiledCaller.deleteFile(owner, filePath);
         require(success, "File not deleted");
         string[] memory dirs = utils.parseDirPath(filePath);
@@ -200,7 +197,7 @@ contract FileStorage {
         string memory fileName;
         (owner, fileName) = utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, fileName);
-        require(file.status == STATUS_COMPLETED, "File hasn't been uploaded");
+        require(file.status == FileStatus.COMPLETED, "File hasn't been uploaded");
         require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
         bool success;
@@ -222,7 +219,7 @@ contract FileStorage {
         return currentDir.contents;
     }
 
-    function getFileStatus(string memory storagePath) public view returns (int) {
+    function getFileStatus(string memory storagePath) public view returns (FileStatus) {
         address owner;
         string memory fileName;
         (owner, fileName) = utils.parseStoragePath(storagePath);
@@ -230,13 +227,13 @@ contract FileStorage {
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             if (currentDir.contentIndexes[dirs[i - 1]] == EMPTY_INDEX) {
-                return STATUS_UNEXISTENT;
+                return FileStatus.UNEXISTENT;
             }
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : fileName;
         if (currentDir.contentIndexes[contentName] == EMPTY_INDEX) {
-            return STATUS_UNEXISTENT;
+            return FileStatus.UNEXISTENT;
         }
         ContentInfo memory file = currentDir.contents[currentDir.contentIndexes[contentName] - 1];
         return file.status;
@@ -247,8 +244,8 @@ contract FileStorage {
         string memory fileName;
         (owner, fileName) = utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, fileName);
-        require(file.status == STATUS_UPLOADING ||
-                file.status == STATUS_COMPLETED, "File not found");
+        require(file.status == FileStatus.UPLOADING ||
+                file.status == FileStatus.COMPLETED, "File not found");
         bool success;
         (success, fileSize) = PrecompiledCaller.getFileSize(owner, fileName);
         require(success);
