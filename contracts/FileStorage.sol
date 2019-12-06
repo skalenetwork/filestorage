@@ -20,15 +20,14 @@
 pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
-import "./strings.sol";
+import "./utils.sol";
 
 contract FileStorage {
-    using strings for *;
+    using utils for *;
 
     uint internal MAX_STORAGE_SPACE;
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
-    uint constant MAX_FILENAME_LENGTH = 255;
     uint constant MAX_FILESIZE = 10 ** 8;
 
     int constant STATUS_UNEXISTENT = 0;
@@ -79,7 +78,7 @@ contract FileStorage {
     function createDir(string memory directoryPath) public initializing {
         require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
-        string[] memory dirs = parseDirPath(directoryPath);
+        string[] memory dirs = utils.parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
@@ -88,7 +87,7 @@ contract FileStorage {
         require(currentDir.contents.length < MAX_CONTENT_COUNT, "Directory is full");
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
-        require(checkContentName(newDir), "Invalid directory name");
+        require(utils.checkContentName(newDir), "Invalid directory name");
         uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -111,7 +110,7 @@ contract FileStorage {
     // TODO: delete dir with all content in it
     function deleteDir(string memory directoryPath) public {
         address owner = msg.sender;
-        string[] memory dirs = parseDirPath(directoryPath);
+        string[] memory dirs = utils.parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
@@ -144,7 +143,7 @@ contract FileStorage {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
-        string[] memory dirs = parseDirPath(filePath);
+        string[] memory dirs = utils.parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
@@ -153,7 +152,7 @@ contract FileStorage {
         require(currentDir.contents.length < MAX_CONTENT_COUNT, "Directory is full");
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDir.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
-        require(checkContentName(pureFileName), "Filename should be < 256");
+        require(utils.checkContentName(pureFileName), "Filename should be < 256");
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         bool success;
         assembly {
@@ -251,7 +250,7 @@ contract FileStorage {
             success := call(not(0), DELETE_FILE_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
         require(success, "File not deleted");
-        string[] memory dirs = parseDirPath(filePath);
+        string[] memory dirs = utils.parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             currentDir = currentDir.directories[dirs[i - 1]];
@@ -272,7 +271,7 @@ contract FileStorage {
     {
         address owner;
         string memory fileName;
-        (owner, fileName) = parseStoragePath(storagePath);
+        (owner, fileName) = utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, fileName);
         require(file.status == STATUS_COMPLETED, "File hasn't been uploaded");
         require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
@@ -299,8 +298,8 @@ contract FileStorage {
     function listDir(string memory storagePath) public view returns (ContentInfo[] memory){
         address owner;
         string memory path;
-        (owner, path) = parseStoragePath(storagePath);
-        string[] memory dirs = parseDirPath(path);
+        (owner, path) = utils.parseStoragePath(storagePath);
+        string[] memory dirs = utils.parseDirPath(path);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
             require(currentDir.contentIndexes[dirs[i]] > EMPTY_INDEX, "Invalid path");
@@ -312,8 +311,8 @@ contract FileStorage {
     function getFileStatus(string memory storagePath) public view returns (int) {
         address owner;
         string memory fileName;
-        (owner, fileName) = parseStoragePath(storagePath);
-        string[] memory dirs = parseDirPath(fileName);
+        (owner, fileName) = utils.parseStoragePath(storagePath);
+        string[] memory dirs = utils.parseDirPath(fileName);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             if (currentDir.contentIndexes[dirs[i - 1]] == EMPTY_INDEX) {
@@ -332,7 +331,7 @@ contract FileStorage {
     function getFileSize(string memory storagePath) public view returns (uint fileSize) {
         address owner;
         string memory fileName;
-        (owner, fileName) = parseStoragePath(storagePath);
+        (owner, fileName) = utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, fileName);
         require(file.status == STATUS_UPLOADING ||
                 file.status == STATUS_COMPLETED, "File not found");
@@ -355,17 +354,8 @@ contract FileStorage {
         return MAX_STORAGE_SPACE;
     }
 
-    function setStorageSpace() private {
-        uint configStorageSpace;
-        uint MAX_STORAGE_SPACE_PTR = 0;
-        assembly {
-            configStorageSpace := sload(MAX_STORAGE_SPACE_PTR)
-        }
-        MAX_STORAGE_SPACE = configStorageSpace;
-    }
-
     function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage){
-        string[] memory dirs = parseDirPath(contentPath);
+        string[] memory dirs = utils.parseDirPath(contentPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
@@ -376,68 +366,4 @@ contract FileStorage {
         ContentInfo storage result = currentDir.contents[currentDir.contentIndexes[contentName] - 1];
         return result;
     }
-
-    function parseStoragePath(string memory storagePath) internal pure returns (address owner, string memory filePath) {
-        uint addressLength = 40;
-        require(bytes(storagePath).length > addressLength, "Invalid storagePath");
-        bytes memory ownerAddress = new bytes(addressLength);
-        for (uint i = 0; i < addressLength; i++) {
-            ownerAddress[i] = bytes(storagePath)[i];
-        }
-        uint result = 0;
-        for (uint i = 0; i < addressLength; i++) {
-            uint c = uint(uint8(ownerAddress[i]));
-            require((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 102), "Invalid storagePath");
-            if (c >= 48 && c <= 57) {
-                result = result * 16 + (c - 48);
-            }
-            if (c >= 65 && c <= 90) {
-                result = result * 16 + (c - 55);
-            }
-            if (c >= 97 && c <= 102) {
-                result = result * 16 + (c - 87);
-            }
-        }
-        owner = address(result);
-        require(bytes(storagePath)[addressLength] == '/', "Invalid storagePath");
-        uint fileNameLength = bytes(storagePath).length - addressLength - 1;
-        filePath = new string(fileNameLength);
-        for (uint i = 0; i < fileNameLength; i++) {
-            byte char = bytes(storagePath)[i + addressLength + 1];
-            bytes(filePath)[i] = char;
-        }
-    }
-
-    function parseDirPath(string memory directoryPath) internal pure returns (string[] memory decreasePart) {
-        strings.slice memory pathSlice = directoryPath.toSlice();
-        strings.slice memory delimiter = "/".toSlice();
-        string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
-        for (uint i = 0; i < parts.length; i++) {
-            parts[i] = pathSlice.split(delimiter).toString();
-        }
-        if (bytes(parts[parts.length - 1]).length == 0) {
-            delete parts[parts.length - 1];
-            decreasePart = new string[](parts.length - 1);
-
-        } else {
-            decreasePart = new string[](parts.length);
-        }
-        for (uint i = 0; i < decreasePart.length; i++) {
-            decreasePart[i] = parts[i];
-        }
-    }
-
-    function checkContentName(string memory contentName) private pure returns (bool) {
-        if (keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("..")) ||
-        keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked(".")) ||
-        bytes(contentName).length == 0) {
-            return false;
-        }
-        uint nameLength = bytes(contentName).length;
-        if (nameLength > MAX_FILENAME_LENGTH) {
-            return false;
-        }
-        return true;
-    }
-
 }
