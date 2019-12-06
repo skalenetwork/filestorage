@@ -1,6 +1,6 @@
 pragma solidity ^0.5.3;
 
-library precompileds {
+library PrecompiledCaller {
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant FREE_MEM_PTR = 0x40;
@@ -100,7 +100,7 @@ library precompileds {
     function readChunk(address owner, string memory filePath, uint position, uint length)
         internal
         view
-        returns (bool success, bytes32[MAX_BLOCK_COUNT] memory out)
+        returns (bool success, bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
         uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
@@ -114,7 +114,7 @@ library precompileds {
             let p_position := add(ptr, mul(32, filePathBlocks))
             mstore(p_position, position)
             mstore(add(32, p_position), length)
-            success := staticcall(not(0), READ_CHUNK_ADDRESS, p, mul(32, add(3, filePathBlocks)), out, mul(32, returnedDataBlocks))
+            success := staticcall(not(0), READ_CHUNK_ADDRESS, p, mul(32, add(3, filePathBlocks)), chunk, mul(32, returnedDataBlocks))
         }
     }
 

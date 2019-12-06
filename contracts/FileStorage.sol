@@ -21,11 +21,11 @@ pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
 import "./utils.sol";
-import "./precompileds.sol";
+import "./PrecompiledCaller.sol";
 
 contract FileStorage {
     using utils for *;
-    using precompileds for *;
+    using PrecompiledCaller for *;
 
     uint internal MAX_STORAGE_SPACE;
 
@@ -81,7 +81,7 @@ contract FileStorage {
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
         require(utils.checkContentName(newDir), "Invalid directory name");
-        bool success = precompileds.createDir(owner, directoryPath);
+        bool success = PrecompiledCaller.createDir(owner, directoryPath);
         require(success, "Directory not created");
         ContentInfo memory directoryInfo;
         directoryInfo.name = newDir;
@@ -102,7 +102,7 @@ contract FileStorage {
         string memory targetDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[targetDir] > EMPTY_INDEX, "Invalid path");
         require(currentDir.directories[targetDir].contents.length == 0, "Directory is not empty");
-        bool success = precompileds.deleteDir(owner, directoryPath);
+        bool success = PrecompiledCaller.deleteDir(owner, directoryPath);
         require(success, "Directory is not deleted");
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
         currentDir.contents[currentDir.contentIndexes[targetDir] - 1] = lastContent;
@@ -126,7 +126,7 @@ contract FileStorage {
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDir.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
         require(utils.checkContentName(pureFileName), "Filename should be < 256");
-        bool success = precompileds.startUpload(owner, filePath, fileSize);
+        bool success = PrecompiledCaller.startUpload(owner, filePath, fileSize);
         require(success, "File not created");
         bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
         currentDir.contents.push(ContentInfo({
@@ -149,7 +149,7 @@ contract FileStorage {
                 data.length == file.size - position ||
                 data.length == MAX_CHUNK_SIZE, "Incorrect chunk length");
         require(file.isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
-        bool success = precompileds.uploadChunk(owner, filePath, position, data);
+        bool success = PrecompiledCaller.uploadChunk(owner, filePath, position, data);
         require(success, "Chunk wasn't uploaded");
         file.isChunkUploaded[position / MAX_CHUNK_SIZE] = true;
     }
@@ -167,7 +167,7 @@ contract FileStorage {
         }
         require(isFileUploaded, "File hasn't been uploaded correctly");
         file.status = STATUS_COMPLETED;
-        bool success = precompileds.calculateFileHash(owner, filePath);
+        bool success = PrecompiledCaller.calculateFileHash(owner, filePath);
         require(success, "Hash hasn't been calculated");
     }
 
@@ -175,7 +175,7 @@ contract FileStorage {
         address owner = msg.sender;
         ContentInfo memory file = getContentInfo(owner, filePath);
         require(file.status != STATUS_UNEXISTENT, "File not exists");
-        bool success = precompileds.deleteFile(owner, filePath);
+        bool success = PrecompiledCaller.deleteFile(owner, filePath);
         require(success, "File not deleted");
         string[] memory dirs = utils.parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
@@ -194,7 +194,7 @@ contract FileStorage {
     function readChunk(string memory storagePath, uint position, uint length)
         public
         view
-        returns (bytes32[MAX_BLOCK_COUNT] memory out)
+        returns (bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
         address owner;
         string memory fileName;
@@ -204,12 +204,12 @@ contract FileStorage {
         require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
         bool success;
-        (success, out) = precompileds.readChunk(owner,fileName, position, length);
+        (success, chunk) = PrecompiledCaller.readChunk(owner,fileName, position, length);
         require(success, "Chunk wasn't read");
     }
 
     // TODO: handle root dir
-    function listDir(string memory storagePath) public view returns (ContentInfo[] memory){
+    function listDir(string memory storagePath) public view returns (ContentInfo[] memory) {
         address owner;
         string memory path;
         (owner, path) = utils.parseStoragePath(storagePath);
@@ -250,7 +250,7 @@ contract FileStorage {
         require(file.status == STATUS_UPLOADING ||
                 file.status == STATUS_COMPLETED, "File not found");
         bool success;
-        (success, fileSize) = precompileds.getFileSize(owner, fileName);
+        (success, fileSize) = PrecompiledCaller.getFileSize(owner, fileName);
         require(success);
     }
 
@@ -258,7 +258,7 @@ contract FileStorage {
         return MAX_STORAGE_SPACE;
     }
 
-    function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage){
+    function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage) {
         string[] memory dirs = utils.parseDirPath(contentPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
