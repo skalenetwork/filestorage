@@ -37,7 +37,7 @@ contract FileStorage {
     uint internal MAX_CONTENT_COUNT;
     uint internal MAX_CHUNK_SIZE;
 
-    enum FileStatus { UNEXISTENT, UPLOADING, COMPLETED }
+    enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
     struct ContentInfo {
         string name;
@@ -171,7 +171,7 @@ contract FileStorage {
     function deleteFile(string memory filePath) public {
         address owner = msg.sender;
         ContentInfo memory file = getContentInfo(owner, filePath);
-        require(file.status != FileStatus.UNEXISTENT, "File not exists");
+        require(file.status != FileStatus.NONEXISTENT, "File not exists");
         bool success = PrecompiledCaller.deleteFile(owner, filePath);
         require(success, "File not deleted");
         string[] memory dirs = utils.parseDirPath(filePath);
@@ -227,13 +227,13 @@ contract FileStorage {
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             if (currentDir.contentIndexes[dirs[i - 1]] == EMPTY_INDEX) {
-                return FileStatus.UNEXISTENT;
+                return FileStatus.NONEXISTENT;
             }
             currentDir = currentDir.directories[dirs[i - 1]];
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : fileName;
         if (currentDir.contentIndexes[contentName] == EMPTY_INDEX) {
-            return FileStatus.UNEXISTENT;
+            return FileStatus.NONEXISTENT;
         }
         ContentInfo memory file = currentDir.contents[currentDir.contentIndexes[contentName] - 1];
         return file.status;
