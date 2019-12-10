@@ -72,23 +72,23 @@ library PrecompiledCaller {
         }
     }
 
-    function uploadChunk(address owner, string memory filePath, uint position, bytes memory data) internal returns (bool success){
-        uint dataBlocks = (data.length + 31) / 32 + 1;
-        uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
-        assembly {
-            let p := mload(FREE_MEM_PTR)
-            mstore(p, owner)
-            let ptr := add(p, 32)
-            for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-            }
-            mstore(add(ptr, mul(32, filePathBlocks)), position)
-            for {let i := 0} lt(i, dataBlocks) {i := add(1, i)} {
-                mstore(add(ptr, mul(32, add(add(1, filePathBlocks), i))), mload(add(data, mul(32, i))))
-            }
-            success := call(not(0), UPLOAD_CHUNK_ADDRESS, 0, p, add(96, mul(32, add(dataBlocks, filePathBlocks))), p, 32)
-        }
-    }
+//    function uploadChunk(address owner, string memory filePath, uint position, bytes memory data) internal returns (bool success){
+//        uint dataBlocks = (data.length + 31) / 32 + 1;
+//        uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
+//        assembly {
+//            let p := mload(FREE_MEM_PTR)
+//            mstore(p, owner)
+//            let ptr := add(p, 32)
+//            for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
+//                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
+//            }
+//            mstore(add(ptr, mul(32, filePathBlocks)), position)
+//            for {let i := 0} lt(i, dataBlocks) {i := add(1, i)} {
+//                mstore(add(ptr, mul(32, add(add(1, filePathBlocks), i))), mload(add(data, mul(32, i))))
+//            }
+//            success := call(not(0), UPLOAD_CHUNK_ADDRESS, 0, p, add(96, mul(32, add(dataBlocks, filePathBlocks))), p, 32)
+//        }
+//    }
 
     function calculateFileHash(address owner, string memory filePath) internal returns (bool success){
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
@@ -149,6 +149,22 @@ library PrecompiledCaller {
             }
             success := staticcall(not(0), GET_FILE_SIZE_ADDRESS, p, add(32, mul(blocks, 32)), p, 32)
             fileSize := mload(p)
+        }
+    }
+
+    function uploadChunk(address owner, string memory filePath, uint position, bytes memory data) internal returns (bool success){
+        uint dataBlocks = (data.length + 31) / 32 + 1;
+        uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
+        assembly {
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
+            }
+            mstore(add(ptr, mul(32, filePathBlocks)), position)
+            calldatacopy(add(add(ptr, mul(32, filePathBlocks)),32), 164, mul(32, dataBlocks))
+            success := staticcall(not(0), UPLOAD_CHUNK_ADDRESS, p, add(64, mul(32, add(dataBlocks, filePathBlocks))), p, 32)
         }
     }
 }
