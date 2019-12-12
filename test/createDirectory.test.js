@@ -32,7 +32,7 @@ contract('Filestorage', accounts => {
         return str.slice(2);
     }
 
-    describe('createDir', function () {
+    describe('createDirectory', function () {
         let fileName;
         let dirName;
         let filePath;
@@ -49,18 +49,18 @@ contract('Filestorage', accounts => {
         });
 
         it('should create empty dir in root', async function () {
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            let dir = await filestorage.listDir(dirPath);
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            let dir = await filestorage.listDirectory(dirPath);
             assert.isArray(dir);
         });
 
         it('should create empty dir in nested dir', async function () {
             let nestedDirName = randomstring.generate();
             let nestedDirPath = path.join(rmBytesSymbol(accounts[0]), dirName, nestedDirName);
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            await filestorage.createDir(path.join(dirName, nestedDirName), {from: accounts[0]});
-            let dir = await filestorage.listDir(dirPath);
-            let nestedDir = await filestorage.listDir(nestedDirPath);
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(path.join(dirName, nestedDirName), {from: accounts[0]});
+            let dir = await filestorage.listDirectory(dirPath);
+            let nestedDir = await filestorage.listDirectory(nestedDirPath);
             assert.isArray(dir);
             assert.isNotEmpty(dir);
             assert.isArray(dir.find(obj => {
@@ -71,11 +71,11 @@ contract('Filestorage', accounts => {
 
         it('should create file in dir', async function () {
             let fileSize = 100;
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             await filestorage.startUpload(path.join(dirName, fileName), 100, {from: accounts[0]});
             let status = await filestorage.getFileStatus(path.join(dirPath, fileName));
             let size = await filestorage.getFileSize(path.join(dirPath, fileName));
-            let dir = await filestorage.listDir(dirPath);
+            let dir = await filestorage.listDirectory(dirPath);
             assert.equal(status, 1);
             assert.equal(size, fileSize);
             assert.isArray(dir.find(obj => {
@@ -84,12 +84,12 @@ contract('Filestorage', accounts => {
         });
 
         it('should delete file from dir', async function () {
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             await filestorage.startUpload(path.join(dirName, fileName), 0, {from: accounts[0]});
             await filestorage.finishUpload(path.join(dirName, fileName), {from: accounts[0]});
             await filestorage.deleteFile(path.join(dirName, fileName), {from: accounts[0]});
             let status = await filestorage.getFileStatus(path.join(dirPath, fileName));
-            let dir = await filestorage.listDir(dirPath);
+            let dir = await filestorage.listDirectory(dirPath);
             assert.equal(status, 0);
             assert.equal(dir.indexOf(fileName), -1);
         });
@@ -101,7 +101,7 @@ contract('Filestorage', accounts => {
                 charset: 'hex'
             }));
             await filestorage.setChunkSize(chunkLength);
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             await filestorage.startUpload(path.join(dirName, fileName), chunkLength, {from: accounts[0]});
             await filestorage.uploadChunk(path.join(dirName, fileName),
                 0, data, {from: accounts[0], gas: UPLOADING_GAS});
@@ -112,9 +112,9 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create dirs with the same name', async function () {
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             try {
-                await filestorage.createDir(dirName, {from: accounts[0]});
+                await filestorage.createDirectory(dirName, {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'File or directory exists');
@@ -122,7 +122,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create dir and file with the same name', async function () {
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             try {
                 await filestorage.startUpload(dirName, 0, {from: accounts[0]});
                 assert.fail();
@@ -134,7 +134,7 @@ contract('Filestorage', accounts => {
         it('should fail to create file and dir with the same name', async function () {
             await filestorage.startUpload(fileName, 0, {from: accounts[0]});
             try {
-                await filestorage.createDir(fileName, {from: accounts[0]});
+                await filestorage.createDirectory(fileName, {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'File or directory exists');
@@ -143,7 +143,7 @@ contract('Filestorage', accounts => {
 
         it('should fail to create directory with unexisted path', async function () {
             try {
-                await filestorage.createDir(path.join(fileName, dirName), {from: accounts[0]});
+                await filestorage.createDirectory(path.join(fileName, dirName), {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
@@ -161,19 +161,19 @@ contract('Filestorage', accounts => {
 
         it('should fail to create dir with \'..\' or \'.\' or \'\' name', async function () {
             try {
-                await filestorage.createDir('..', {from: accounts[0]});
+                await filestorage.createDirectory('..', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid directory name');
             }
             try {
-                await filestorage.createDir('.', {from: accounts[0]});
+                await filestorage.createDirectory('.', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid directory name');
             }
             try {
-                await filestorage.createDir('', {from: accounts[0]});
+                await filestorage.createDirectory('', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
@@ -184,7 +184,7 @@ contract('Filestorage', accounts => {
             await filestorage.setContentCount(1);
             await filestorage.startUpload(fileName, 0, {from: accounts[0]});
             try {
-                await filestorage.createDir('testDir', {from: accounts[0]});
+                await filestorage.createDirectory('testDir', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Directory is full');
@@ -192,15 +192,15 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create dir in foreign dir', async function () {
-            let tx = filestorage.contract.methods.createDir(foreignDir);
+            let tx = filestorage.contract.methods.createDirectory(foreignDir);
             await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
             try {
-                await filestorage.createDir(path.join(foreignDir, 'dir'), {from: accounts[0]});
+                await filestorage.createDirectory(path.join(foreignDir, 'dir'), {from: accounts[0]});
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
-            tx = filestorage.contract.methods.deleteDir(foreignDir);
+            tx = filestorage.contract.methods.deleteDirectory(foreignDir);
             await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
         });
     });

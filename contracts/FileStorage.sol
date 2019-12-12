@@ -65,7 +65,7 @@ contract FileStorage {
         _;
     }
 
-    function createDir(string memory directoryPath) public initializing {
+    function createDirectory(string memory directoryPath) public initializing {
         require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
         string[] memory dirs = utils.parseDirPath(directoryPath);
@@ -88,7 +88,7 @@ contract FileStorage {
     }
 
     // TODO: delete dir with all content in it
-    function deleteDir(string memory directoryPath) public {
+    function deleteDirectory(string memory directoryPath) public {
         address owner = msg.sender;
         string[] memory dirs = utils.parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
@@ -206,7 +206,7 @@ contract FileStorage {
     }
 
     // TODO: handle root dir
-    function listDir(string memory storagePath) public view returns (ContentInfo[] memory) {
+    function listDirectory(string memory storagePath) public view returns (ContentInfo[] memory) {
         address owner;
         string memory path;
         (owner, path) = utils.parseStoragePath(storagePath);
