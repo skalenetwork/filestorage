@@ -112,7 +112,7 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
-            await filestorage.deleteDir('dir', {from: accounts[0]});
+            await filestorage.deleteDirectory('dir', {from: accounts[0]});
         });
 
         it('should fail to create file in foreign dir', async function () {
@@ -124,7 +124,7 @@ contract('Filestorage', accounts => {
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
-            tx = filestorage.contract.methods.deleteDir(foreignDir);
+            tx = filestorage.contract.methods.deleteDirectory(foreignDir);
             await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
         });
 
