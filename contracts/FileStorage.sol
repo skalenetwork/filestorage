@@ -78,7 +78,7 @@ contract FileStorage {
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
         require(utils.checkContentName(newDir), "Invalid directory name");
-        bool success = PrecompiledCaller.createDir(owner, directoryPath);
+        bool success = PrecompiledCaller.createDirectory(owner, directoryPath);
         require(success, "Directory not created");
         ContentInfo memory directoryInfo;
         directoryInfo.name = newDir;
@@ -99,7 +99,7 @@ contract FileStorage {
         string memory targetDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[targetDir] > EMPTY_INDEX, "Invalid path");
         require(currentDir.directories[targetDir].contents.length == 0, "Directory is not empty");
-        bool success = PrecompiledCaller.deleteDir(owner, directoryPath);
+        bool success = PrecompiledCaller.deleteDirectory(owner, directoryPath);
         require(success, "Directory is not deleted");
         ContentInfo memory lastContent = currentDir.contents[currentDir.contents.length - 1];
         currentDir.contents[currentDir.contentIndexes[targetDir] - 1] = lastContent;

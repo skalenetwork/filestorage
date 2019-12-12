@@ -32,49 +32,43 @@ library PrecompiledCaller {
     uint constant DELETE_DIRECTORY_ADDRESS = 0x10;
     uint constant CALCULATE_FILE_HASH = 0x11;
 
-    function createDir(address owner, string memory directoryPath) internal returns (bool success){
+    function createDirectory(address owner, string memory directoryPath) internal returns (bool success){
         uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         assembly {
-            if gt(extcodesize(CREATE_DIRECTORY_ADDRESS), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
-                }
-                success := call(not(0), CREATE_DIRECTORY_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
             }
+            success := call(not(0), CREATE_DIRECTORY_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
     }
 
-    function deleteDir(address owner, string memory directoryPath) internal returns (bool success){
+    function deleteDirectory(address owner, string memory directoryPath) internal returns (bool success){
         uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         assembly {
-            if gt(extcodesize(DELETE_DIRECTORY_ADDRESS), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
-                }
-                success := call(not(0), DELETE_DIRECTORY_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(directoryPath, mul(32, i))))
             }
+            success := call(not(0), DELETE_DIRECTORY_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
     }
 
     function startUpload(address owner, string memory filePath, uint256 fileSize) internal returns (bool success){
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
-            if gt(extcodesize(CREATE_FILE_ADDRESS), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-                }
-                mstore(add(ptr, mul(blocks, 32)), fileSize)
-                success := call(not(0), CREATE_FILE_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
+            mstore(add(ptr, mul(blocks, 32)), fileSize)
+            success := call(not(0), CREATE_FILE_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
     }
 
@@ -82,49 +76,43 @@ library PrecompiledCaller {
         uint dataBlocks = (data.length + 31) / 32 + 1;
         uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
-            if gt(extcodesize(UPLOAD_CHUNK_ADDRESS), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-                }
-                mstore(add(ptr, mul(32, filePathBlocks)), position)
-                for {let i := 0} lt(i, dataBlocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, add(add(1, filePathBlocks), i))), mload(add(data, mul(32, i))))
-                }
-                success := call(not(0), UPLOAD_CHUNK_ADDRESS, 0, p, add(96, mul(32, add(dataBlocks, filePathBlocks))), p, 32)
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
+            mstore(add(ptr, mul(32, filePathBlocks)), position)
+            for {let i := 0} lt(i, dataBlocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, add(add(1, filePathBlocks), i))), mload(add(data, mul(32, i))))
+            }
+            success := call(not(0), UPLOAD_CHUNK_ADDRESS, 0, p, add(96, mul(32, add(dataBlocks, filePathBlocks))), p, 32)
         }
     }
 
     function calculateFileHash(address owner, string memory filePath) internal returns (bool success){
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
-            if gt(extcodesize(CALCULATE_FILE_HASH), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-                }
-                success := call(not(0), CALCULATE_FILE_HASH, 0, p, add(64, mul(blocks, 32)), p, 32)
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
+            success := call(not(0), CALCULATE_FILE_HASH, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
     }
 
     function deleteFile(address owner, string memory filePath) internal returns (bool success){
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
-            if gt(extcodesize(DELETE_FILE_ADDRESS), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-                }
-                success := call(not(0), DELETE_FILE_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
+            success := call(not(0), DELETE_FILE_ADDRESS, 0, p, add(64, mul(blocks, 32)), p, 32)
         }
     }
 
@@ -136,18 +124,16 @@ library PrecompiledCaller {
         uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
         assembly {
-            if gt(extcodesize(READ_CHUNK_ADDRESS), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-                }
-                let p_position := add(ptr, mul(32, filePathBlocks))
-                mstore(p_position, position)
-                mstore(add(32, p_position), length)
-                success := staticcall(not(0), READ_CHUNK_ADDRESS, p, mul(32, add(3, filePathBlocks)), chunk, mul(32, returnedDataBlocks))
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, filePathBlocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
+            let p_position := add(ptr, mul(32, filePathBlocks))
+            mstore(p_position, position)
+            mstore(add(32, p_position), length)
+            success := staticcall(not(0), READ_CHUNK_ADDRESS, p, mul(32, add(3, filePathBlocks)), chunk, mul(32, returnedDataBlocks))
         }
     }
 
@@ -155,16 +141,14 @@ library PrecompiledCaller {
     {
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
-            if gt(extcodesize(GET_FILE_SIZE_ADDRESS), 0) {
-                let p := mload(FREE_MEM_PTR)
-                mstore(p, owner)
-                let ptr := add(p, 32)
-                for {let i := 0} lt(i, blocks) {i := add(1, i)} {
-                    mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
-                }
-                success := staticcall(not(0), GET_FILE_SIZE_ADDRESS, p, add(32, mul(blocks, 32)), p, 32)
-                fileSize := mload(p)
+            let p := mload(FREE_MEM_PTR)
+            mstore(p, owner)
+            let ptr := add(p, 32)
+            for {let i := 0} lt(i, blocks) {i := add(1, i)} {
+                mstore(add(ptr, mul(32, i)), mload(add(filePath, mul(32, i))))
             }
+            success := staticcall(not(0), GET_FILE_SIZE_ADDRESS, p, add(32, mul(blocks, 32)), p, 32)
+            fileSize := mload(p)
         }
     }
 }
