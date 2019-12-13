@@ -20,11 +20,12 @@
 pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 
-import "./utils.sol";
+import "./Utils.sol";
 import "./PrecompiledCaller.sol";
 
+
 contract FileStorage {
-    using utils for *;
+    using Utils for *;
     using PrecompiledCaller for *;
 
     uint internal MAX_STORAGE_SPACE;
@@ -142,11 +143,18 @@ contract FileStorage {
         ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
         require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
-        require(file.size - position < MAX_CHUNK_SIZE &&
-                data.length == file.size - position ||
-                data.length == MAX_CHUNK_SIZE, "Incorrect chunk length");
+        require(
+            file.size - position < MAX_CHUNK_SIZE &&
+            data.length == file.size - position ||
+            data.length == MAX_CHUNK_SIZE, "Incorrect chunk length"
+        );
         require(file.isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
-        bool success = PrecompiledCaller.uploadChunk(owner, filePath, position, data);
+        bool success = PrecompiledCaller.uploadChunk(
+            owner,
+            filePath,
+            position,
+            data
+        );
         require(success, "Chunk wasn't uploaded");
         file.isChunkUploaded[position / MAX_CHUNK_SIZE] = true;
     }
@@ -201,7 +209,12 @@ contract FileStorage {
         require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
         bool success;
-        (success, chunk) = PrecompiledCaller.readChunk(owner,fileName, position, length);
+        (success, chunk) = PrecompiledCaller.readChunk(
+            owner,
+            fileName,
+            position,
+            length
+        );
         require(success, "Chunk wasn't read");
     }
 
@@ -244,11 +257,13 @@ contract FileStorage {
         string memory fileName;
         (owner, fileName) = utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, fileName);
-        require(file.status == FileStatus.UPLOADING ||
-                file.status == FileStatus.COMPLETED, "File not found");
+        require(
+            file.status == FileStatus.UPLOADING ||
+            file.status == FileStatus.COMPLETED, "File not found"
+        );
         bool success;
         (success, fileSize) = PrecompiledCaller.getFileSize(owner, fileName);
-        require(success);
+        require(success, "EVM error in getFileSize");
     }
 
     function getStorageSpace() public view returns (uint) {

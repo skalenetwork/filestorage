@@ -2,6 +2,7 @@ pragma solidity ^0.5.3;
 pragma experimental ABIEncoderV2;
 import "./FileStorage.sol";
 
+
 contract FileStorageTest is FileStorage {
     uint constant TEST_BLOCK_COUNT = 2 ** 5;
 
@@ -24,7 +25,7 @@ contract FileStorageTest is FileStorage {
         MAX_CHUNK_SIZE = chunkSize;
     }
 
-    function getContentCount() public view returns (uint){
+    function getContentCount() public view returns (uint) {
         return MAX_CONTENT_COUNT;
     }
 }

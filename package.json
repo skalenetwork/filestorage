@@ -11,6 +11,10 @@
     "url": "git+https://github.com/skalenetwork/filestorage.git"
   },
   "author": "SKALE Labs and contributors",
+  "scripts": {
+    "lint": "npx ethlint -d contracts --fix",
+    "slither": "slither . --filter-path strings --filter-path Migrations"
+  },
   "dependencies": {
     "@truffle/hdwallet-provider": "^1.0.18"
   },

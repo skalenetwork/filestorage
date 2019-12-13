@@ -19,6 +19,7 @@
 
 pragma solidity ^0.5.3;
 
+
 library PrecompiledCaller {
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
@@ -32,7 +33,7 @@ library PrecompiledCaller {
     uint constant DELETE_DIRECTORY_ADDRESS = 0x10;
     uint constant CALCULATE_FILE_HASH = 0x11;
 
-    function createDirectory(address owner, string memory directoryPath) internal returns (bool success){
+    function createDirectory(address owner, string memory directoryPath) internal returns (bool success) {
         uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
@@ -45,7 +46,7 @@ library PrecompiledCaller {
         }
     }
 
-    function deleteDirectory(address owner, string memory directoryPath) internal returns (bool success){
+    function deleteDirectory(address owner, string memory directoryPath) internal returns (bool success) {
         uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
@@ -58,7 +59,7 @@ library PrecompiledCaller {
         }
     }
 
-    function startUpload(address owner, string memory filePath, uint256 fileSize) internal returns (bool success){
+    function startUpload(address owner, string memory filePath, uint256 fileSize) internal returns (bool success) {
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
@@ -72,7 +73,12 @@ library PrecompiledCaller {
         }
     }
 
-    function uploadChunk(address owner, string memory filePath, uint position, bytes memory data) internal returns (bool success){
+    function uploadChunk(
+        address owner,
+        string memory filePath,
+        uint position,
+        bytes memory data) internal returns (bool success)
+    {
         uint dataBlocks = (data.length + 31) / 32 + 1;
         uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
@@ -90,7 +96,7 @@ library PrecompiledCaller {
         }
     }
 
-    function calculateFileHash(address owner, string memory filePath) internal returns (bool success){
+    function calculateFileHash(address owner, string memory filePath) internal returns (bool success) {
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
@@ -103,7 +109,7 @@ library PrecompiledCaller {
         }
     }
 
-    function deleteFile(address owner, string memory filePath) internal returns (bool success){
+    function deleteFile(address owner, string memory filePath) internal returns (bool success) {
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
@@ -116,10 +122,11 @@ library PrecompiledCaller {
         }
     }
 
-    function readChunk(address owner, string memory filePath, uint position, uint length)
-        internal
-        view
-        returns (bool success, bytes32[MAX_BLOCK_COUNT] memory chunk)
+    function readChunk(
+        address owner,
+        string memory filePath,
+        uint position,
+        uint length) internal view returns (bool success, bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
         uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
@@ -137,8 +144,7 @@ library PrecompiledCaller {
         }
     }
 
-    function getFileSize(address owner, string memory filePath) internal view returns (bool success, uint fileSize)
-    {
+    function getFileSize(address owner, string memory filePath) internal view returns (bool success, uint fileSize) {
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)

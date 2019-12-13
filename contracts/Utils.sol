@@ -1,5 +1,5 @@
 /*
-    utils.sol - SKALE FileStorage
+    Utils.sol - SKALE FileStorage
     Copyright (C) 2018-Present SKALE Labs
     @author Dmytro Nazarenko
 
@@ -21,7 +21,8 @@ pragma solidity ^0.5.3;
 
 import "./strings.sol";
 
-library utils {
+
+library Utils {
     using strings for *;
     uint constant MAX_FILENAME_LENGTH = 255;
 
@@ -79,7 +80,7 @@ library utils {
             }
         }
         owner = address(result);
-        require(bytes(storagePath)[addressLength] == '/', "Invalid storagePath");
+        require(bytes(storagePath)[addressLength] == "/", "Invalid storagePath");
         uint fileNameLength = bytes(storagePath).length - addressLength - 1;
         filePath = new string(fileNameLength);
         for (uint i = 0; i < fileNameLength; i++) {
