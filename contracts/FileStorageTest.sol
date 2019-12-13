@@ -4,8 +4,6 @@ import "./FileStorage.sol";
 
 
 contract FileStorageTest is FileStorage {
-    uint constant TEST_BLOCK_COUNT = 2 ** 5;
-
     constructor() public {
         maxStorageSpace = 10 ** 10;
         maxContentCount = 2 ** 13;

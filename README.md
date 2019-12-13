@@ -10,7 +10,7 @@ Filestorage - smart contract, that controls decentralized file storage on SKALE 
 
 Filestorage is a cost-effective storage layer within Ethereum capable of handling files up to 100MB. Filestorage uses UNIX-based filesystem of SKALE chains. Filestorage smart contract is a set of functions to interact with files on EVM. This contract may be predeployed on SKALE chains. It contains functions to work with Filestorage precompiled smart contracts. 
 
-Smart contract language - Solidity 0.4.24
+Smart contract language - Solidity 0.5.3
 
 ## API Reference
 
@@ -20,8 +20,7 @@ To begin the uploading process, the file should be broken into chunks of 1MB (&l
 The pipeline of the uploading file is:
 
 1.  creating empty file of fixed size on EVM by calling `startUpload`,
-2.  uploading data chunk by chunk with
-    `uploadChunk`, and
+2.  uploading data chunk by chunk with `uploadChunk`,
 3.  checking the file validity and finishing process with `finishUpload`.
 
 #### startUpload
@@ -175,10 +174,10 @@ Returns status of the requested file:
 
 Filestorage is represented with UNIX-based filesystem that consisted of files and directories. Directories are stored in `Directory` structure that contains information about its content in `ContentInfo` structure. Maximum amount of content in separate directory is **8196**.
 
-#### createDir
+#### createDirectory
 
 ```solidity
-function createDir(string memory directoryPath)
+function createDirectory(string memory directoryPath)
 ```
 
 Creates directory in Filestorage. Owner of the directory - message sender. 
@@ -192,10 +191,10 @@ Creates directory in Filestorage. Owner of the directory - message sender.
 | ---------------------- | ----------------------------------------------- |
 | `string` directoryPath | Path to the directory in account root directory |
 
-#### deleteDir
+#### deleteDirectory
 
 ```solidity
-function deleteDir(string memory directoryPath)
+function deleteDirectory(string memory directoryPath)
 ```
 
 Deletes directory from Filestorage.
@@ -208,10 +207,10 @@ Deletes directory from Filestorage.
 | ---------------------- | ----------------------------------------------- |
 | `string` directoryPath | Path to the directory in account root directory |
 
-#### listDir
+#### listDirectory
 
 ```solidity
-function listDir(string memory storagePath) 
+function listDirectory(string memory storagePath) 
         public 
         view 
         returns (ContentInfo[])
@@ -247,13 +246,13 @@ Create an .env file with following data:
 
 ```bash
 ENTRYPOINT='SKALE endpoint'
-PRIVATEKEY='Private key from test account'
+PRIVATEKEY='Private key for test account'
 ```
 
 Compile `FileStorage.sol`:
 
 ```bash
-truffle compile --network skaled
+truffle compile
 ```
 
 ## Test
@@ -263,7 +262,7 @@ Tests run only on SKALE chains. Create an .env file with following data:
 ```bash
 ENTRYPOINT='SKALE endpoint'
 SCHAIN_OWNER_PK='Private key of SKALE endpoint owner (or account with money)'
-PRIVATEKEY='Private key from test account'
+PRIVATEKEY='Private key for test account'
 ```
 
 Run tests:
