@@ -12,6 +12,7 @@
   },
   "author": "SKALE Labs and contributors",
   "scripts": {
+    "build": "rm -r ./build && truffle build",
     "lint": "npx ethlint -d contracts --fix",
     "slither": "slither . --filter-path strings --filter-path Migrations"
   },

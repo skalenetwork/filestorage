@@ -28,15 +28,15 @@ contract FileStorage {
     using Utils for *;
     using PrecompiledCaller for *;
 
-    uint internal MAX_STORAGE_SPACE;
+    uint internal maxStorageSpace;
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILESIZE = 10 ** 8;
     uint constant EMPTY_INDEX = 0;
 
-    bool internal isInitialized = false;
-    uint internal MAX_CONTENT_COUNT;
-    uint internal MAX_CHUNK_SIZE;
+    bool internal isInitialized;
+    uint internal maxContentCount;
+    uint internal maxChunkSize;
 
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
@@ -59,8 +59,8 @@ contract FileStorage {
 
     modifier initializing() {
         if (!isInitialized) {
-            MAX_CONTENT_COUNT = 2 ** 13;
-            MAX_CHUNK_SIZE = 2 ** 20;
+            maxContentCount = 2 ** 13;
+            maxChunkSize = 2 ** 20;
             isInitialized = true;
         }
         _;
@@ -75,7 +75,7 @@ contract FileStorage {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        require(currentDir.contents.length < MAX_CONTENT_COUNT, "Directory is full");
+        require(currentDir.contents.length < maxContentCount, "Directory is full");
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDir.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
         require(Utils.checkContentName(newDir), "Invalid directory name");
@@ -113,20 +113,20 @@ contract FileStorage {
     function startUpload(string memory filePath, uint256 fileSize) public initializing {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
-        require(fileSize + occupiedStorageSpace[owner] <= MAX_STORAGE_SPACE, "Not enough free space in the Filestorage");
+        require(fileSize + occupiedStorageSpace[owner] <= maxStorageSpace, "Not enough free space in the Filestorage");
         string[] memory dirs = Utils.parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDir.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        require(currentDir.contents.length < MAX_CONTENT_COUNT, "Directory is full");
+        require(currentDir.contents.length < maxContentCount, "Directory is full");
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDir.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
         require(Utils.checkContentName(pureFileName), "Filename should be < 256");
         bool success = PrecompiledCaller.startUpload(owner, filePath, fileSize);
         require(success, "File not created");
-        bool[] memory isChunkUploaded = new bool[]((fileSize + MAX_CHUNK_SIZE - 1) / MAX_CHUNK_SIZE);
+        bool[] memory isChunkUploaded = new bool[]((fileSize + maxChunkSize - 1) / maxChunkSize);
         currentDir.contents.push(ContentInfo({
             name : pureFileName,
             isFile : true,
@@ -142,13 +142,13 @@ contract FileStorage {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
-        require(position % MAX_CHUNK_SIZE == 0 && position < file.size, "Incorrect chunk position");
+        require(position % maxChunkSize == 0 && position < file.size, "Incorrect chunk position");
         require(
-            file.size - position < MAX_CHUNK_SIZE &&
+            file.size - position < maxChunkSize &&
             data.length == file.size - position ||
-            data.length == MAX_CHUNK_SIZE, "Incorrect chunk length"
+            data.length == maxChunkSize, "Incorrect chunk length"
         );
-        require(file.isChunkUploaded[position / MAX_CHUNK_SIZE] == false, "Chunk is already uploaded");
+        require(file.isChunkUploaded[position / maxChunkSize] == false, "Chunk is already uploaded");
         bool success = PrecompiledCaller.uploadChunk(
             owner,
             filePath,
@@ -156,7 +156,7 @@ contract FileStorage {
             data
         );
         require(success, "Chunk wasn't uploaded");
-        file.isChunkUploaded[position / MAX_CHUNK_SIZE] = true;
+        file.isChunkUploaded[position / maxChunkSize] = true;
     }
 
     function finishUpload(string memory filePath) public {
@@ -206,7 +206,7 @@ contract FileStorage {
         (owner, fileName) = Utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, fileName);
         require(file.status == FileStatus.COMPLETED, "File hasn't been uploaded");
-        require(length <= MAX_CHUNK_SIZE && length > 0, "Incorrect chunk length");
+        require(length <= maxChunkSize && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
         bool success;
         (success, chunk) = PrecompiledCaller.readChunk(
@@ -267,7 +267,7 @@ contract FileStorage {
     }
 
     function getStorageSpace() public view returns (uint) {
-        return MAX_STORAGE_SPACE;
+        return maxStorageSpace;
     }
 
     function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage) {
