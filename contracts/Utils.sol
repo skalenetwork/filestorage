@@ -39,7 +39,7 @@ library Utils {
         return true;
     }
 
-    function parseDirPath(string memory directoryPath) internal pure returns (string[] memory decreasePart) {
+    function parseDirectoryPath(string memory directoryPath) internal pure returns (string[] memory decreasePart) {
         strings.slice memory pathSlice = directoryPath.toSlice();
         strings.slice memory delimiter = "/".toSlice();
         string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
