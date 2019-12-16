@@ -77,7 +77,10 @@ library PrecompiledCaller {
         address owner,
         string memory filePath,
         uint position,
-        bytes memory data) internal returns (bool success)
+        bytes memory data
+    )
+        internal
+        returns (bool success)
     {
         uint dataBlocks = (data.length + 31) / 32 + 1;
         uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
@@ -126,7 +129,11 @@ library PrecompiledCaller {
         address owner,
         string memory filePath,
         uint position,
-        uint length) internal view returns (bool success, bytes32[MAX_BLOCK_COUNT] memory chunk)
+        uint length
+    )
+        internal
+        view
+        returns (bool success, bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
         uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
         uint returnedDataBlocks = (length + 31) / 32;
@@ -144,7 +151,11 @@ library PrecompiledCaller {
         }
     }
 
-    function getFileSize(address owner, string memory filePath) internal view returns (bool success, uint fileSize) {
+    function getFileSize(address owner, string memory filePath)
+        internal
+        view
+        returns (bool success, uint fileSize)
+    {
         uint blocks = (bytes(filePath).length + 31) / 32 + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)

@@ -201,17 +201,15 @@ contract FileStorage {
         view
         returns (bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
-        address owner;
-        string memory fileName;
-        (owner, fileName) = Utils.parseStoragePath(storagePath);
-        ContentInfo memory file = getContentInfo(owner, fileName);
+        (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
+        ContentInfo memory file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.COMPLETED, "File hasn't been uploaded");
         require(length <= maxChunkSize && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
         bool success;
         (success, chunk) = PrecompiledCaller.readChunk(
             owner,
-            fileName,
+            filePath,
             position,
             length
         );
@@ -220,10 +218,8 @@ contract FileStorage {
 
     // TODO: handle root dir
     function listDirectory(string memory storagePath) public view returns (ContentInfo[] memory) {
-        address owner;
-        string memory path;
-        (owner, path) = Utils.parseStoragePath(storagePath);
-        string[] memory dirs = Utils.parseDirPath(path);
+        (address owner, string memory directoryPath) = Utils.parseStoragePath(storagePath);
+        string[] memory dirs = Utils.parseDirPath(directoryPath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
             require(currentDir.contentIndexes[dirs[i]] > EMPTY_INDEX, "Invalid path");
@@ -233,10 +229,8 @@ contract FileStorage {
     }
 
     function getFileStatus(string memory storagePath) public view returns (FileStatus) {
-        address owner;
-        string memory fileName;
-        (owner, fileName) = Utils.parseStoragePath(storagePath);
-        string[] memory dirs = Utils.parseDirPath(fileName);
+        (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
+        string[] memory dirs = Utils.parseDirPath(filePath);
         Directory storage currentDir = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             if (currentDir.contentIndexes[dirs[i - 1]] == EMPTY_INDEX) {
@@ -244,7 +238,7 @@ contract FileStorage {
             }
             currentDir = currentDir.directories[dirs[i - 1]];
         }
-        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : fileName;
+        string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : filePath;
         if (currentDir.contentIndexes[contentName] == EMPTY_INDEX) {
             return FileStatus.NONEXISTENT;
         }
@@ -253,16 +247,14 @@ contract FileStorage {
     }
 
     function getFileSize(string memory storagePath) public view returns (uint fileSize) {
-        address owner;
-        string memory fileName;
-        (owner, fileName) = Utils.parseStoragePath(storagePath);
-        ContentInfo memory file = getContentInfo(owner, fileName);
+        (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
+        ContentInfo memory file = getContentInfo(owner, filePath);
         require(
             file.status == FileStatus.UPLOADING ||
             file.status == FileStatus.COMPLETED, "File not found"
         );
         bool success;
-        (success, fileSize) = PrecompiledCaller.getFileSize(owner, fileName);
+        (success, fileSize) = PrecompiledCaller.getFileSize(owner, filePath);
         require(success, "EVM error in getFileSize");
     }
 
