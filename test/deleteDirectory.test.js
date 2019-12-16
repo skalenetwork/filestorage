@@ -24,7 +24,7 @@ contract('Filestorage', accounts => {
     }
 
     // TODO: delete file first, dir - remain and vice versa
-    describe('deleteDir', function () {
+    describe('deleteDirectory', function () {
         let dirName;
         let dirPath;
 
@@ -35,27 +35,27 @@ contract('Filestorage', accounts => {
         });
 
         it('should delete dir from root dir', async function () {
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            await filestorage.deleteDir(dirName, {from: accounts[0]});
-            let root = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            await filestorage.deleteDirectory(dirName, {from: accounts[0]});
+            let root = await filestorage.listDirectory(rmBytesSymbol(accounts[0]) + '/');
             assert.isTrue(root.indexOf(dirName) === -1);
         });
 
         it('should delete dir from nested dir', async function () {
             let nestedDirName = randomstring.generate();
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            await filestorage.createDir(path.join(dirName, nestedDirName), {from: accounts[0]});
-            await filestorage.deleteDir(path.join(dirName, nestedDirName), {from: accounts[0]});
-            let root = await filestorage.listDir(path.join(rmBytesSymbol(accounts[0]), dirName));
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(path.join(dirName, nestedDirName), {from: accounts[0]});
+            await filestorage.deleteDirectory(path.join(dirName, nestedDirName), {from: accounts[0]});
+            let root = await filestorage.listDirectory(path.join(rmBytesSymbol(accounts[0]), dirName));
             assert.isTrue(root.indexOf(nestedDirName) === -1);
         });
 
         it('should fail deleting non-empty dir', async function () {
             let nestedDirName = randomstring.generate();
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            await filestorage.createDir(path.join(dirName, nestedDirName), {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(path.join(dirName, nestedDirName), {from: accounts[0]});
             try {
-                await filestorage.deleteDir(dirName, {from: accounts[0]});
+                await filestorage.deleteDirectory(dirName, {from: accounts[0]});
                 assert.fail('Directory was unexpectfully deleted');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Directory is not empty');
@@ -64,7 +64,7 @@ contract('Filestorage', accounts => {
 
         it('should fail deleting unexisted dir', async function () {
             try {
-                await filestorage.deleteDir(dirName, {from: accounts[0]});
+                await filestorage.deleteDirectory(dirName, {from: accounts[0]});
                 assert.fail('Directory was unexpectfully deleted');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');

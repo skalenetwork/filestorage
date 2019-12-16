@@ -6,8 +6,6 @@ chai.use(require('chai-as-promised'));
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
-const FileStorage = artifacts.require("./FileStorageTest");
-const FileStorageManager = artifacts.require("./FileStorageManager");
 const initFilestorage = require('./utils/helper').initFilestorage;
 const UPLOADING_GAS = 10 ** 8;
 const CHUNK_LENGTH = 2 ** 10;
@@ -32,23 +30,23 @@ contract('Filestorage', accounts => {
         return str.slice(2);
     }
 
-    describe('listDir', function () {
+    describe('listDirectory', function () {
         let dirName;
         let dirPath;
 
         beforeEach(async function () {
-            filestorage = await FileStorage.new({from: accounts[0]});
+            filestorage = await initFilestorage(accounts[0], artifacts);
             dirName = randomstring.generate();
             dirPath = path.join(rmBytesSymbol(accounts[0]), dirName);
         });
 
         it('should list dirs and files in directory', async function () {
             let fileName = randomstring.generate();
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            await filestorage.createDir(path.join(dirName, dirName), {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(path.join(dirName, dirName), {from: accounts[0]});
             await filestorage.startUpload(path.join(dirName, fileName), 0, {from: accounts[0]});
             await filestorage.finishUpload(path.join(dirName, fileName), {from: accounts[0]});
-            let content = await filestorage.listDir(dirPath);
+            let content = await filestorage.listDirectory(dirPath);
             let dirInfo = content.find(obj => {
                 return obj.name === dirName;
             });
@@ -67,12 +65,12 @@ contract('Filestorage', accounts => {
                 charset: 'hex'
             }));
             let filePath = path.join(dirName, fileName);
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             await filestorage.startUpload(filePath, 2*CHUNK_LENGTH, {from: accounts[0]});
             await filestorage.uploadChunk(filePath, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.uploadChunk(filePath, CHUNK_LENGTH, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.finishUpload(filePath, {from: accounts[0]});
-            let content = await filestorage.listDir(dirPath);
+            let content = await filestorage.listDirectory(dirPath);
             assert.isArray(content);
             assert.isArray(content.find(obj => {
                 return obj.name === fileName;
@@ -88,12 +86,12 @@ contract('Filestorage', accounts => {
             }));
             let filePath = path.join(dirName, fileName);
             let unfinishedFilePath = path.join(dirName, unfinishedFileName);
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             await filestorage.startUpload(unfinishedFilePath, CHUNK_LENGTH, {from: accounts[0]});
             await filestorage.startUpload(filePath, CHUNK_LENGTH, {from: accounts[0]});
             await filestorage.uploadChunk(filePath, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             await filestorage.finishUpload(filePath, {from: accounts[0]});
-            let content = await filestorage.listDir(dirPath);
+            let content = await filestorage.listDirectory(dirPath);
             let unfinishedInfo = content.find(obj => {
                 return obj.name === unfinishedFileName;
             });
@@ -115,8 +113,8 @@ contract('Filestorage', accounts => {
         });
 
         it('should list dirs in correct format', async function () {
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            let content = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            let content = await filestorage.listDirectory(rmBytesSymbol(accounts[0]) + '/');
             let dirInfo = content.find(obj => {
                 return obj.name === dirName;
             });
@@ -127,10 +125,10 @@ contract('Filestorage', accounts => {
 
         it('should list dirs and files in root directory', async function () {
             let fileName = randomstring.generate();
-            await filestorage.createDir(dirName, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
             await filestorage.startUpload(fileName, 0, {from: accounts[0]});
             await filestorage.finishUpload(fileName, {from: accounts[0]});
-            let content = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
+            let content = await filestorage.listDirectory(rmBytesSymbol(accounts[0]) + '/');
             assert.isArray(content);
             assert.isArray(content.find(obj => {
                 return obj.name === dirName;
@@ -141,19 +139,19 @@ contract('Filestorage', accounts => {
         });
 
         it('should return empty list from root directory', async function () {
-            let content = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
+            let content = await filestorage.listDirectory(rmBytesSymbol(accounts[0]) + '/');
             assert.isArray(content);
             assert.isEmpty(content);
         });
 
         // TODO: Update test for root dir
         it('should list dirs with different path format', async function () {
-            // let content1 = await filestorage.listDir(rmBytesSymbol(accounts[0]));
-            let content2 = await filestorage.listDir(rmBytesSymbol(accounts[0]) + '/');
-            // let content3 = await filestorage.listDir('/' + rmBytesSymbol(accounts[0]));
-            await filestorage.createDir(dirName, {from: accounts[0]});
-            // let content4 = await filestorage.listDir(dirPath);
-            let content5 = await filestorage.listDir(dirPath + '/');
+            // let content1 = await filestorage.listDirectory(rmBytesSymbol(accounts[0]));
+            let content2 = await filestorage.listDirectory(rmBytesSymbol(accounts[0]) + '/');
+            // let content3 = await filestorage.listDirectory('/' + rmBytesSymbol(accounts[0]));
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            // let content4 = await filestorage.listDirectory(dirPath);
+            let content5 = await filestorage.listDirectory(dirPath + '/');
             // assert.isArray(content1);
             assert.isArray(content2);
             // assert.isArray(content3);
@@ -162,7 +160,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to list unexisted dir', async function () {
-            await filestorage.listDir(dirPath).should.eventually.rejectedWith('Invalid path');
+            await filestorage.listDirectory(dirPath).should.eventually.rejectedWith('Invalid path');
         });
     });
 });
