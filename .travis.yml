@@ -6,7 +6,7 @@ before_install:
 - mkdir -p ~/schain_data/data_dir
 - mv test/utils/config.json ~/schain_data/
 - docker login --username $USERNAME --password $PASSWORD
-- docker pull skalelabshub/schain:$SCHAIN_VERSION
+- docker pull skalenetwork/schain:$SCHAIN_VERSION
 - docker run -d
   -v ~/schain_data:/schain_data
   -p 2234:2234
