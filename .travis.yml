@@ -14,7 +14,7 @@ before_install:
   -e HTTP_RPC_PORT=2234
   -e DATA_DIR=/schain_data/data_dir
   -e CONFIG_FILE=/schain_data/config.json
-  skalelabshub/schain:$SCHAIN_VERSION
+  skalenetwork/schain:$SCHAIN_VERSION
 install:
 - npm install
 
