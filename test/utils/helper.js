@@ -6,11 +6,14 @@ const web3 = new Web3(process.env.ENTRYPOINT);
 
 async function getFunds(account) {
     let testBalanceWei = await web3.utils.toWei(testBalance, 'ether');
+    testBalanceWei = Number(testBalanceWei);
     let accountBalance = await web3.eth.getBalance(account);
-    let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
-    let rootBalance = await web3.eth.getBalance(rootAccount);
+    accountBalance = Number(accountBalance);
     if (accountBalance < testBalanceWei) {
+        let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
         let valueToSend = testBalanceWei - accountBalance;
+        let rootBalance = await web3.eth.getBalance(rootAccount);
+        rootBalance = Number(rootBalance);
         if (rootBalance < valueToSend) {
             throw new Error('Insufficient funds for testing');
         }

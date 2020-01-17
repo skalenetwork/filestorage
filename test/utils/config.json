@@ -1398,7 +1398,7 @@
 		"sChain": {
 			"schainID": 1,
 			"schainName": "test-chain",
-			"schainOwner": "0x902aa30A6994d3e5C90216c542D41218C3824D92",
+			"schainOwner": "0xd2c5b39B4e735C17612Bb5a08FD024ccc5dBCb23",
 			"nodes": [
 				{
 					"nodeID": 1,
