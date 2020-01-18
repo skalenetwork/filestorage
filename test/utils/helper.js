@@ -10,7 +10,7 @@ async function getFunds(account) {
     let accountBalance = await web3.eth.getBalance(account);
     accountBalance = Number(accountBalance);
     if (accountBalance < testBalanceWei) {
-        let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
+        let rootAccount = await web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
         let valueToSend = testBalanceWei - accountBalance;
         let rootBalance = await web3.eth.getBalance(rootAccount);
         rootBalance = Number(rootBalance);
@@ -36,7 +36,7 @@ function privateKeyToAddress(privateKey) {
 
 async function sendTransaction(transactionData, to, gas, privateKey) {
     let encoded = transactionData.encodeABI();
-    let account = web3.eth.accounts.privateKeyToAccount(privateKey).address;
+    let account = await web3.eth.accounts.privateKeyToAccount(privateKey).address;
     let nonce = await web3.eth.getTransactionCount(account);
     let tx = {
         from: account,
