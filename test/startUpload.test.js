@@ -8,6 +8,7 @@ let randomstring = require('randomstring');
 let path = require('path').posix;
 const initFilestorage = require('./utils/helper').initFilestorage;
 const sendTransaction = require('./utils/helper').sendTransaction;
+const getFunds = require('./utils/helper').getFunds;
 
 contract('Filestorage', accounts => {
     let filestorage;
@@ -116,16 +117,14 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create file in foreign dir', async function () {
-            let tx = filestorage.contract.methods.createDirectory(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
-            try {
-                await filestorage.startUpload(path.join(foreignDir, fileName), 0, {from: accounts[0]});
-                assert.fail();
-            } catch (error) {
-                assert.equal(error.receipt.revertReason, 'Invalid path');
-            }
-            tx = filestorage.contract.methods.deleteDirectory(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            await getFunds(process.env.ADDRESS);
+            await filestorage.createDirectory(foreignDir, {from: accounts[0]});
+            let tx = filestorage.contract.methods.startUpload(path.join(foreignDir, fileName), 0);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY)
+                .should
+                .eventually
+                .rejectedWith('Invalid path');
+            await filestorage.deleteDirectory(foreignDir, {from: accounts[0]});
         });
 
         it('should fail whether directory is full', async function () {
