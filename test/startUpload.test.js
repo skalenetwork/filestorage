@@ -117,7 +117,6 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create file in foreign dir', async function () {
-            await getFunds(process.env.ADDRESS);
             await filestorage.createDirectory(foreignDir, {from: accounts[0]});
             let tx = filestorage.contract.methods.startUpload(path.join(foreignDir, fileName), 0);
             await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY)
