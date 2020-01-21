@@ -38,7 +38,6 @@ async function sendTransaction(transactionData, to, gas, privateKey) {
     let encoded = transactionData.encodeABI();
     let account = await web3.eth.accounts.privateKeyToAccount(privateKey).address;
     let nonce = await web3.eth.getTransactionCount(account);
-    console.log('sT: ',account,' ',nonce);
     let tx = {
         from: account,
         data: encoded,
