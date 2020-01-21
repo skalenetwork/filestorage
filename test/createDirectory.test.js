@@ -192,14 +192,14 @@ contract('Filestorage', accounts => {
             }
         });
 
-        // it('should fail to create dir in foreign dir', async function () {
-        //     await filestorage.createDirectory(foreignDir, {from: accounts[0]});
-        //     let tx = filestorage.contract.methods.createDirectory(path.join(foreignDir, 'dir'));
-        //     await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY)
-        //         .should
-        //         .eventually
-        //         .rejectedWith('Invalid path');
-        //     await filestorage.deleteDirectory(foreignDir, {from: accounts[0]});
-        // });
+        it('should fail to create dir in foreign dir', async function () {
+            await filestorage.createDirectory(foreignDir, {from: accounts[0]});
+            let tx = filestorage.contract.methods.createDirectory(path.join(foreignDir, 'dir'));
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY)
+                .should
+                .eventually
+                .rejectedWith('Invalid path');
+            await filestorage.deleteDirectory(foreignDir, {from: accounts[0]});
+        });
     });
 });
