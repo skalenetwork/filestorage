@@ -126,7 +126,7 @@ contract FileStorage {
     function startUpload(string memory filePath, uint256 fileSize) public initializing {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
-        require(fileSize + occupiedStorageSpace[owner] <= maxStorageSpace, "Not enough free space in the Filestorage");
+        require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough free space in the Filestorage");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
