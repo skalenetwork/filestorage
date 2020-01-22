@@ -54,9 +54,10 @@ contract FileStorage {
         mapping(string => Directory) directories;
     }
 
-    mapping(address => uint) quotas;
+    mapping(address => uint) reservedStorageSpace;
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
+    uint totalReservedSpace = 0;
 
     modifier initializing() {
         if (!isInitialized) {
@@ -67,9 +68,15 @@ contract FileStorage {
         _;
     }
 
-    function addQuota(address quotaOwner, uint quota) {
-        require(quotas[quotaOwner] <= quota, "Could not decrease quota");
-        quotas[quotaOwner] = quota;
+    function reserveSpace(address userAddress, uint reservedSpace) public {
+        require(
+            tx.origin == Utils.getSchainOwner() ||
+            tx.origin != msg.sender, "Ivalid sender"
+        );
+        require(reservedStorageSpace[userAddress] <= reservedSpace, "Could not decrease quota");
+        require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory");
+        reservedStorageSpace[userAddress] = reservedSpace;
+        totalReservedSpace += reservedSpace;
     }
 
     function createDirectory(string memory directoryPath) public initializing {

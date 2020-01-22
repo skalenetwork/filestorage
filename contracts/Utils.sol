@@ -21,10 +21,20 @@ pragma solidity ^0.5.3;
 
 import "./strings.sol";
 
+interface Context
+{
+    function getSchainOwnerAddress() external view returns (address);
+}
+
 
 library Utils {
     using strings for *;
     uint constant MAX_FILENAME_LENGTH = 255;
+    address constant CONTEXT_ADDRESS = 0xD2001000000000000000000000000000000000D2;
+
+    function getSchainOwner() internal view returns (address) {
+        return Context(CONTEXT_ADDRESS).getSchainOwnerAddress();
+    }
 
     function checkContentName(string memory contentName) internal pure returns (bool) {
         if (keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("..")) ||
