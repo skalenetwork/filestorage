@@ -54,6 +54,7 @@ contract FileStorage {
         mapping(string => Directory) directories;
     }
 
+    mapping(address => uint) quotas;
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
 
@@ -64,6 +65,11 @@ contract FileStorage {
             isInitialized = true;
         }
         _;
+    }
+
+    function addQuota(address quotaOwner, uint quota) {
+        require(quotas[quotaOwner] <= quota, "Could not decrease quota");
+        quotas[quotaOwner] = quota;
     }
 
     function createDirectory(string memory directoryPath) public initializing {
