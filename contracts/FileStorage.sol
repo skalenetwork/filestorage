@@ -73,8 +73,8 @@ contract FileStorage {
             tx.origin == Utils.getSchainOwner() ||
             tx.origin != msg.sender, "Ivalid sender"
         );
-        require(reservedStorageSpace[userAddress] <= reservedSpace, "Could not decrease quota");
-        require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory");
+        require(reservedStorageSpace[userAddress] <= reservedSpace, "Could not decrease reserved space");
+        require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory in the Filestorage");
         totalReservedSpace -= reservedStorageSpace[userAddress];
         reservedStorageSpace[userAddress] = reservedSpace;
         totalReservedSpace += reservedSpace;
@@ -127,7 +127,7 @@ contract FileStorage {
     function startUpload(string memory filePath, uint256 fileSize) public initializing {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
-        require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough free space in the Filestorage");
+        require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {

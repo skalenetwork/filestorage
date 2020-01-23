@@ -5,6 +5,7 @@ chai.should();
 chai.use(require('chai-as-promised'));
 
 let filestorageTest = artifacts.require('./FileStorageTest');
+let sendTransaction = require('./utils/helper').sendTransaction;
 
 contract('Filestorage', accounts => {
     let filestorage;
@@ -38,15 +39,31 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to reserve not from owner', async function () {
-
+            let tx = filestorage.contract.methods.reserveSpace(userAddress, 1000);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY)
+                .should
+                .eventually
+                .rejectedWith('Ivalid sender');
         });
 
         it('should fail to decrease space', async function () {
-
+            await filestorage.reserveSpace(userAddress, 2000);
+            try {
+                await filestorage.reserveSpace(userAddress, 1000);
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Could not decrease reserved space');
+            }
         });
 
         it('should fail to reserve more than max space', async function () {
-
+            await filestorage.setStorageSpace(100);
+            try {
+                await filestorage.reserveSpace(userAddress, 1000);
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Not enough memory in the Filestorage');
+            }
         });
     });
 });
