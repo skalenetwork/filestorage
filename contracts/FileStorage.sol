@@ -75,6 +75,7 @@ contract FileStorage {
         );
         require(reservedStorageSpace[userAddress] <= reservedSpace, "Could not decrease quota");
         require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory");
+        totalReservedSpace -= reservedStorageSpace[userAddress];
         reservedStorageSpace[userAddress] = reservedSpace;
         totalReservedSpace += reservedSpace;
     }
