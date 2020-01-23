@@ -71,9 +71,9 @@ contract FileStorage {
     function reserveSpace(address userAddress, uint reservedSpace) public {
         require(
             tx.origin == Utils.getSchainOwner() ||
-            tx.origin != msg.sender, "Ivalid sender"
+            tx.origin != msg.sender, "Invalid sender"
         );
-        require(reservedStorageSpace[userAddress] <= reservedSpace, "Could not decrease reserved space");
+        require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
         require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory in the Filestorage");
         totalReservedSpace -= reservedStorageSpace[userAddress];
         reservedStorageSpace[userAddress] = reservedSpace;
