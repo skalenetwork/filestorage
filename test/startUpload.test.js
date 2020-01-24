@@ -141,8 +141,12 @@ contract('Filestorage', accounts => {
             let fileNames;
             let fileCount;
             let fileSize;
+            let filestorage;
+
             beforeEach(async function () {
+                filestorage = await artifacts.require('./FileStorageTest').new({from: accounts[0]});
                 await filestorage.setStorageSpace(MAX_FILESIZE);
+                await filestorage.reserveSpace(accounts[0], MAX_FILESIZE);
                 await filestorage.setChunkSize(2 ** 20);
                 fileSize = MAX_FILESIZE - 1;
                 fileNames = [];
@@ -163,7 +167,7 @@ contract('Filestorage', accounts => {
                     fileNames.push(fileName);
                     assert.fail('File was unexpectfully uploaded');
                 } catch (error) {
-                    assert.equal(error.receipt.revertReason, "Not enough free space in the Filestorage");
+                    assert.equal(error.receipt.revertReason, "Not enough reserved space");
                 }
             });
 

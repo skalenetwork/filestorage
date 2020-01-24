@@ -33,7 +33,7 @@ contract('Filestorage', accounts => {
         let fileName;
 
         beforeEach(async function () {
-            filestorage = filestorage = await initFilestorage(accounts[0], artifacts);
+            filestorage = await initFilestorage(accounts[0], artifacts);
             fileName = randomstring.generate();
         });
 

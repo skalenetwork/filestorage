@@ -54,8 +54,10 @@ contract FileStorage {
         mapping(string => Directory) directories;
     }
 
+    mapping(address => uint) reservedStorageSpace;
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
+    uint totalReservedSpace = 0;
 
     modifier initializing() {
         if (!isInitialized) {
@@ -64,6 +66,18 @@ contract FileStorage {
             isInitialized = true;
         }
         _;
+    }
+
+    function reserveSpace(address userAddress, uint reservedSpace) public {
+        require(
+            tx.origin == Utils.getSchainOwner() ||
+            tx.origin != msg.sender, "Invalid sender"
+        );
+        require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
+        require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory in the Filestorage");
+        totalReservedSpace -= reservedStorageSpace[userAddress];
+        reservedStorageSpace[userAddress] = reservedSpace;
+        totalReservedSpace += reservedSpace;
     }
 
     function createDirectory(string memory directoryPath) public initializing {
@@ -113,7 +127,7 @@ contract FileStorage {
     function startUpload(string memory filePath, uint256 fileSize) public initializing {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
-        require(fileSize + occupiedStorageSpace[owner] <= maxStorageSpace, "Not enough free space in the Filestorage");
+        require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
