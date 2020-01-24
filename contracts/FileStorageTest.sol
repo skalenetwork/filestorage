@@ -11,6 +11,10 @@ contract FileStorageTest is FileStorage {
         isInitialized = true;
     }
 
+    function reserveSpaceStub(address userAddress, uint reservedSpace) public {
+        reservedStorageSpace[userAddress] = reservedSpace;
+    }
+
     function setContentCount(uint contentCount) public {
         maxContentCount = contentCount;
     }
