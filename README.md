@@ -116,9 +116,9 @@ Reads chunk from file from specific position with specific length. Returns `byte
 
 **Returns:**
 
-| Parameter       | Description                                      |
-| --------------- | ------------------------------------------------ |
-| `bytes32[]` out | Requested chunk data splitted on `bytes32` array |
+| Parameter       | Description                                       |
+| --------------- | ------------------------------------------------- |
+| `bytes32[]` out | Requested chunk data split across `bytes32` array |
 
 #### getFileSize
 

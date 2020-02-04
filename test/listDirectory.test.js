@@ -159,7 +159,7 @@ contract('Filestorage', accounts => {
             assert.isArray(content5);
         });
 
-        it('should fail to list unexisted dir', async function () {
+        it('should fail to list nonexistent dir', async function () {
             await filestorage.listDirectory(dirPath).should.eventually.rejectedWith('Invalid path');
         });
     });

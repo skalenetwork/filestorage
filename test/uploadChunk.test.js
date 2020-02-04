@@ -221,7 +221,7 @@ contract('Filestorage', accounts => {
             assert.equal(fileInfo['isChunkUploaded'][0], false, 'First chunk loaded incorrectly');
         });
 
-        it('should fail to reupload chunk', async function () {
+        it('should fail to re-upload chunk', async function () {
             let fileSize = 1000;
             let data = addBytesSymbol(randomstring.generate({
                 length: 2 * fileSize,

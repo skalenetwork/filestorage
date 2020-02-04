@@ -10,6 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/skalenetwork/filestorage.git"
   },
+  "license": "AGPL-3.0",
   "author": "SKALE Labs and contributors",
   "scripts": {
     "build": "rm -r ./build && truffle build",
