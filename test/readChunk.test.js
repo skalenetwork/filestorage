@@ -118,9 +118,9 @@ contract('Filestorage', accounts => {
                 .rejectedWith('Incorrect chunk length');
         });
 
-        it('should fail to read from unexisted file', async function () {
-            let unexistedPath = path.join(rmBytesSymbol(accounts[0]), 'test.txt');
-            await filestorage.readChunk(unexistedPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
+        it('should fail to read from nonexistent file', async function () {
+            let nonexistentPath = path.join(rmBytesSymbol(accounts[0]), 'test.txt');
+            await filestorage.readChunk(nonexistentPath, 0, CHUNK_LENGTH, {gas: UPLOADING_GAS})
                 .should
                 .eventually
                 .rejectedWith('Invalid path');

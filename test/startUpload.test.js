@@ -52,7 +52,7 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'File or directory exists');
             }
@@ -62,7 +62,7 @@ contract('Filestorage', accounts => {
             fileSize = MAX_FILESIZE + 1;
             try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "File should be less than 100 MB");
             }
@@ -72,7 +72,7 @@ contract('Filestorage', accounts => {
             fileName = randomstring.generate(MAX_FILENAME_LENGTH + 1);
             try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
@@ -81,19 +81,19 @@ contract('Filestorage', accounts => {
         it('should fail while creating file with invalid name', async function () {
             try {
                 await filestorage.startUpload('', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
             try {
                 await filestorage.startUpload('.', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
             try {
                 await filestorage.startUpload('..', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
@@ -103,13 +103,13 @@ contract('Filestorage', accounts => {
             await filestorage.createDirectory('dir', {from: accounts[0]});
             try {
                 await filestorage.startUpload('dir/.', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
             try {
                 await filestorage.startUpload('dir/..', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
@@ -165,7 +165,7 @@ contract('Filestorage', accounts => {
                     fileName = randomstring.generate();
                     await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                     fileNames.push(fileName);
-                    assert.fail('File was unexpectfully uploaded');
+                    assert.fail('File was unexpectedly uploaded');
                 } catch (error) {
                     assert.equal(error.receipt.revertReason, "Not enough reserved space");
                 }

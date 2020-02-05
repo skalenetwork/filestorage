@@ -71,16 +71,16 @@ contract('Filestorage', accounts => {
             await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0], gas: UPLOADING_GAS});
             try {
                 await filestorage.finishUpload(fileName, {from: accounts[0]});
-                assert.fail('File was unexpectfully finished');
+                assert.fail('File was unexpectedly finished');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "File hasn't been uploaded correctly");
             }
         });
 
-        it('should fail finishing unexisted file', async function () {
+        it('should fail finishing nonexistent file', async function () {
             try {
                 await filestorage.finishUpload(fileName, {from: accounts[0]});
-                assert.fail('File was unexpectfully finished');
+                assert.fail('File was unexpectedly finished');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
@@ -92,7 +92,7 @@ contract('Filestorage', accounts => {
             await filestorage.finishUpload(fileName, {from: accounts[0]});
             try {
                 await filestorage.finishUpload(fileName, {from: accounts[0]});
-                assert.fail('File was unexpectfully finished');
+                assert.fail('File was unexpectedly finished');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "File not found");
             }

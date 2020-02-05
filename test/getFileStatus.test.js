@@ -33,7 +33,7 @@ contract('Filestorage', accounts => {
             storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
         });
 
-        it('should return 0 for unexisted file', async function () {
+        it('should return 0 for nonexistent file', async function () {
             let status = await filestorage.getFileStatus(storagePath);
             assert.equal(status, 0);
         });

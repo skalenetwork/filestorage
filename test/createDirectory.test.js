@@ -142,7 +142,7 @@ contract('Filestorage', accounts => {
             }
         });
 
-        it('should fail to create directory with unexisted path', async function () {
+        it('should fail to create directory with nonexistent path', async function () {
             try {
                 await filestorage.createDirectory(path.join(fileName, dirName), {from: accounts[0]});
                 assert.fail();
@@ -151,7 +151,7 @@ contract('Filestorage', accounts => {
             }
         });
 
-        it('should fail to create file in unexisted dir', async function () {
+        it('should fail to create file in nonexistent dir', async function () {
             try {
                 await filestorage.startUpload(path.join(dirName, fileName), 0, {from: accounts[0]});
                 assert.fail();

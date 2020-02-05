@@ -65,7 +65,7 @@ contract('Filestorage', accounts => {
             assert.equal(returnedSize, fileSize);
         });
 
-        it('should fail to return size of unexisted file', async function () {
+        it('should fail to return size of nonexistent file', async function () {
             await filestorage.getFileSize(storagePath)
                 .should
                 .eventually
