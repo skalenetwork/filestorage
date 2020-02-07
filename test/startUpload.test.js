@@ -8,6 +8,7 @@ let randomstring = require('randomstring');
 let path = require('path').posix;
 const initFilestorage = require('./utils/helper').initFilestorage;
 const sendTransaction = require('./utils/helper').sendTransaction;
+const getFunds = require('./utils/helper').getFunds;
 
 contract('Filestorage', accounts => {
     let filestorage;
@@ -51,7 +52,7 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'File or directory exists');
             }
@@ -61,7 +62,7 @@ contract('Filestorage', accounts => {
             fileSize = MAX_FILESIZE + 1;
             try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "File should be less than 100 MB");
             }
@@ -71,7 +72,7 @@ contract('Filestorage', accounts => {
             fileName = randomstring.generate(MAX_FILENAME_LENGTH + 1);
             try {
                 await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
@@ -80,19 +81,19 @@ contract('Filestorage', accounts => {
         it('should fail while creating file with invalid name', async function () {
             try {
                 await filestorage.startUpload('', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
             try {
                 await filestorage.startUpload('.', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
             try {
                 await filestorage.startUpload('..', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
@@ -102,13 +103,13 @@ contract('Filestorage', accounts => {
             await filestorage.createDirectory('dir', {from: accounts[0]});
             try {
                 await filestorage.startUpload('dir/.', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
             try {
                 await filestorage.startUpload('dir/..', fileSize, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly uploaded');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, "Filename should be < 256");
             }
@@ -116,16 +117,13 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create file in foreign dir', async function () {
-            let tx = filestorage.contract.methods.createDirectory(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
-            try {
-                await filestorage.startUpload(path.join(foreignDir, fileName), 0, {from: accounts[0]});
-                assert.fail();
-            } catch (error) {
-                assert.equal(error.receipt.revertReason, 'Invalid path');
-            }
-            tx = filestorage.contract.methods.deleteDirectory(foreignDir);
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.SCHAIN_OWNER_PK);
+            await filestorage.createDirectory(foreignDir, {from: accounts[0]});
+            let tx = filestorage.contract.methods.startUpload(path.join(foreignDir, fileName), 0);
+            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY)
+                .should
+                .eventually
+                .rejectedWith('Invalid path');
+            await filestorage.deleteDirectory(foreignDir, {from: accounts[0]});
         });
 
         it('should fail whether directory is full', async function () {
@@ -143,8 +141,12 @@ contract('Filestorage', accounts => {
             let fileNames;
             let fileCount;
             let fileSize;
+            let filestorage;
+
             beforeEach(async function () {
+                filestorage = await artifacts.require('./FileStorageTest').new({from: accounts[0]});
                 await filestorage.setStorageSpace(MAX_FILESIZE);
+                await filestorage.reserveSpace(accounts[0], MAX_FILESIZE);
                 await filestorage.setChunkSize(2 ** 20);
                 fileSize = MAX_FILESIZE - 1;
                 fileNames = [];
@@ -163,9 +165,9 @@ contract('Filestorage', accounts => {
                     fileName = randomstring.generate();
                     await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
                     fileNames.push(fileName);
-                    assert.fail('File was unexpectfully uploaded');
+                    assert.fail('File was unexpectedly uploaded');
                 } catch (error) {
-                    assert.equal(error.receipt.revertReason, "Not enough free space in the Filestorage");
+                    assert.equal(error.receipt.revertReason, "Not enough reserved space");
                 }
             });
 

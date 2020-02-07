@@ -52,11 +52,11 @@ contract('Filestorage', accounts => {
             assert.equal(status, 0);
         });
 
-        it('should fail deleting unexisted file', async function () {
+        it('should fail deleting nonexistent file', async function () {
             fileName = randomstring.generate();
             try {
                 await filestorage.deleteFile(fileName, {from: accounts[0]});
-                assert.fail('File was unexpectfully uploaded');
+                assert.fail('File was unexpectedly deleted');
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
