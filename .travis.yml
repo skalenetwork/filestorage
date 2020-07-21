@@ -30,14 +30,14 @@ jobs:
       install:
       - git clone https://github.com/skalenetwork/filestorage.js.git
       - cd filestorage.js
-      - npm install
-      - npm link; npm link @skalenetwork/filestorage.js
+#      - npm install
+#      - npm link; npm link @skalenetwork/filestorage.js
 #      before_script:
 #      - npm run generate
 #      script:
 #      - npm run test
     - stage: deploy
-      if: branch IN (develop, beta, stable, master, $TRAVIS_BRANCH)
+      if: branch IN (develop, beta, stable, master, enhancement/SKALE-2949-artifact-generation)
       script:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
@@ -75,4 +75,4 @@ jobs:
               - master
               - develop
               - beta
-              - $TRAVIS_BRANCH
+              - enhancement/SKALE-2949-artifact-generation
