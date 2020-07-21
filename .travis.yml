@@ -5,7 +5,6 @@ services:
 before_install:
 - mkdir -p ~/schain_data/data_dir
 - mv test/utils/config.json ~/schain_data/
-- docker login --username $USERNAME --password $PASSWORD
 - docker pull skalenetwork/schain:$SCHAIN_VERSION
 - docker run -d
   -v ~/schain_data:/schain_data
@@ -37,3 +36,43 @@ jobs:
       - npm run generate
       script:
       - npm run test
+    - stage: deploy
+      if: branch IN (develop, beta, stable, master, $TRAVIS_BRANCH)
+      script:
+        - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
+        - echo "Version $VERSION"
+        - node scripts/deploy.js
+      before_deploy:
+        # Set up git user name and tag this commit
+        - (
+          test ! $TRAVIS_TAG &&
+          git config --local user.name "skale-travis" &&
+          git config --local user.email "$GITHUB_EMAIL" &&
+          export TRAVIS_TAG=$VERSION &&
+          git tag "$TRAVIS_TAG" &&
+          git push https://$GITHUB_OAUTH_TOKEN@github.com/$TRAVIS_REPO_SLUG.git $TRAVIS_TAG
+          ) || true
+      deploy:
+        - provider: releases
+          api_key: "$GITHUB_OAUTH_TOKEN"
+          skip_cleanup: true
+          name: $VERSION @ $(date +'%d.%m.%Y %R')
+          file:
+            - artifacts.json
+          on:
+            repo: $TRAVIS_REPO_SLUG
+            branch: stable
+        - provider: releases
+          api_key: "$GITHUB_OAUTH_TOKEN"
+          skip_cleanup: true
+          prerelease: true
+          name: $VERSION @ $(date +'%d.%m.%Y %R')
+          file:
+            - artifacts.json
+          on:
+            repo: $TRAVIS_REPO_SLUG
+            branch:
+              - master
+              - develop
+              - beta
+              - $TRAVIS_BRANCH
