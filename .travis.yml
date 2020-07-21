@@ -2,31 +2,31 @@ language: node_js
 node_js: 10
 services:
   - docker
-before_install:
-- mkdir -p ~/schain_data/data_dir
-- mv test/utils/config.json ~/schain_data/
-- docker pull skalenetwork/schain:$SCHAIN_VERSION
-- docker run -d
-  -v ~/schain_data:/schain_data
-  -p 2234:2234
-  -e SSL_CERT_PATH=None
-  -e HTTP_RPC_PORT=2234
-  -e DATA_DIR=/schain_data/data_dir
-  -e CONFIG_FILE=/schain_data/config.json
-  skalenetwork/schain:$SCHAIN_VERSION
 install:
 - npm install
+- truffle compile
 
 jobs:
   include:
     - stage: test
       script:
-      - truffle compile
       - truffle test --network skaled
       after_success:
       - npx solidity-coverage
       - cat coverage/lcov.info | npx codecov
     - stage: integration
+      before_install:
+        - mkdir -p ~/schain_data/data_dir
+        - mv test/utils/config.json ~/schain_data/
+        - docker pull skalenetwork/schain:$SCHAIN_VERSION
+        - docker run -d
+        -v ~/schain_data:/schain_data
+        -p 2234:2234
+        -e SSL_CERT_PATH=None
+        -e HTTP_RPC_PORT=2234
+        -e DATA_DIR=/schain_data/data_dir
+        -e CONFIG_FILE=/schain_data/config.json
+        skalenetwork/schain:$SCHAIN_VERSION
       install:
       - git clone https://github.com/skalenetwork/filestorage.js.git
       - cd filestorage.js
@@ -37,7 +37,7 @@ jobs:
       script:
       - npm run test
     - stage: deploy
-      if: branch IN (develop, beta, stable, master, enhancement/SKALE-2949-artifact-generation)
+      if: branch IN (develop, beta, stable, master)
       script:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
@@ -76,4 +76,3 @@ jobs:
               - master
               - develop
               - beta
-              - enhancement/SKALE-2949-artifact-generation
