@@ -14,6 +14,7 @@
   "license": "AGPL-3.0",
   "author": "SKALE Labs and contributors",
   "scripts": {
+    "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
     "build": "rm -r ./build; truffle build",
     "lint": "npx ethlint -d contracts",
     "lint-fix": "npm run lint -- --fix",

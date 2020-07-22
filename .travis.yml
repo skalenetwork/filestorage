@@ -2,7 +2,10 @@ language: node_js
 node_js: 10
 services:
   - docker
-before_install:
+install:
+- npm install
+- truffle compile
+- npm run generate-config
 - mkdir -p ~/schain_data/data_dir
 - mv test/utils/config.json ~/schain_data/
 - docker pull skalenetwork/schain:$SCHAIN_VERSION
@@ -14,9 +17,6 @@ before_install:
   -e DATA_DIR=/schain_data/data_dir
   -e CONFIG_FILE=/schain_data/config.json
   skalenetwork/schain:$SCHAIN_VERSION
-install:
-- npm install
-- truffle compile
 
 jobs:
   include:
