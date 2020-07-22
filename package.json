@@ -15,7 +15,8 @@
   "author": "SKALE Labs and contributors",
   "scripts": {
     "build": "rm -r ./build; truffle build",
-    "lint": "npx ethlint -d contracts --fix",
+    "lint": "npx ethlint -d contracts",
+    "lint-fix": "npm run lint -- --fix",
     "slither": "slither . --filter-path strings --filter-path Migrations",
     "version": "node -e \"console.log(require('./package.json').version);\""
   },
