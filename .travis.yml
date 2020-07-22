@@ -2,7 +2,7 @@ language: node_js
 node_js: 10
 services:
   - docker
-install:
+before_install:
 - npm install
 - truffle compile
 - npm run generate-config
@@ -20,16 +20,17 @@ install:
 
 jobs:
   include:
-    - stage: test
+    - stage: Tests
+      name: "Unit tests"
       before_script:
       - npm run lint
       script:
       - truffle test --network skaled
-    - stage: test coverage
+    - name: "Test coverage"
       script:
         - npx solidity-coverage || true
         - cat coverage/lcov.info | npx codecov
-    - stage: integration
+    - name: "Integration testing"
       install:
       - git clone https://github.com/skalenetwork/filestorage.js.git
       - cd filestorage.js
