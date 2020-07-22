@@ -1,4 +1,5 @@
 require('dotenv').config();
+const fs = require('fs');
 const Web3 = require('web3');
 const testBalance = '2';
 const rootPrivateKey = process.env.SCHAIN_OWNER_PK;
@@ -50,7 +51,7 @@ async function sendTransaction(transactionData, to, gas, privateKey) {
     return await web3.eth.sendSignedTransaction(signedTx.rawTransaction);
 }
 
-async function initFilestorage(account, artifacts){
+async function initFilestorage(account, artifacts) {
     let filestorage = await artifacts.require('./FileStorageTest').new({from: account});
     await filestorage.setStorageSpace(10**10);
     await filestorage.setContentCount(2**10);
@@ -58,7 +59,24 @@ async function initFilestorage(account, artifacts){
     return filestorage;
 }
 
+function generateTestConfig() {
+    let atrifactsPath = path.join(path.resolve(__dirname), '../../build/contracts/FileStorage.json');
+    let skaledConfigPath = path.join(path.resolve(__dirname), 'config.json');
+    let filestorageBytecode = require(atrifactsPath).deployedBytecode;
+    let skaledConfig = require(skaledConfigPath);
+    skaledConfig.accounts['0x69362535ec535F0643cBf62D16aDeDCAf32Ee6F7'] = {
+        "code": filestorageBytecode,
+        "balance": "0",
+        "nonce": "0",
+        "storage": {
+            "0x00": "0xffffffffff"
+        }
+    };
+    fs.writeFileSync(skaledConfigPath, JSON.stringify(skaledConfig, null, '\t'));
+}
+
 module.exports.getFunds = getFunds;
 module.exports.privateKeyToAddress = privateKeyToAddress;
 module.exports.sendTransaction = sendTransaction;
 module.exports.initFilestorage = initFilestorage;
+module.exports.generateTestConfig = generateTestConfig;

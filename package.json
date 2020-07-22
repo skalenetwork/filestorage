@@ -1,5 +1,6 @@
 {
   "name": "@skalenetwork/filestorage",
+  "version": "0.4.0",
   "private": true,
   "keywords": [
     "SKALE",
@@ -13,13 +14,14 @@
   "license": "AGPL-3.0",
   "author": "SKALE Labs and contributors",
   "scripts": {
-    "build": "rm -r ./build && truffle build",
-    "lint": "npx ethlint -d contracts --fix",
-    "slither": "slither . --filter-path strings --filter-path Migrations"
+    "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
+    "build": "rm -r ./build; truffle build",
+    "lint": "npx ethlint -d contracts",
+    "lint-fix": "npm run lint -- --fix",
+    "slither": "slither . --filter-path strings --filter-path Migrations",
+    "version": "node -e \"console.log(require('./package.json').version);\""
   },
-  "dependencies": {
-    "@truffle/hdwallet-provider": "^1.0.18"
-  },
+  "dependencies": {},
   "devDependencies": {
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
@@ -28,7 +30,7 @@
     "randomstring": "^1.1.5",
     "solidity-coverage": "^0.6.7",
     "truffle": "^5.0.27",
-    "truffle-privatekey-provider": "^1.3.0",
+    "@truffle/hdwallet-provider": "^1.0.18",
     "web3": "^1.2.1"
   }
 }
