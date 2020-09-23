@@ -1,0 +1,8 @@
+### Ignore sources ###
+*
+
+### Files for npm ###
+!.npmignore
+!LICENSE
+!README.md
+!artifacts.json
