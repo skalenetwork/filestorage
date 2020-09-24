@@ -40,8 +40,35 @@ jobs:
       - npm run generate
       script:
       - npm run test
-    - stage: deploy
-      if: branch IN (develop, beta, stable, master)
+    - stage: npm-deploy
+      if: branch IN (develop, beta, stable)
+      script:
+        - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
+        - echo "Version $VERSION"
+        - truffle compile
+        - node scripts/deploy.js
+      before_deploy:
+        - npm version $VERSION
+      deploy:
+        - provider: npm
+          email: $NPM_EMAIL
+          api_token: $NPM_TOKEN
+          skip_cleanup: true
+          tag: $TRAVIS_BRANCH
+          on:
+            repo: $TRAVIS_REPO_SLUG
+            branch:
+              - develop
+              - beta
+        - provider: npm
+          email: $NPM_EMAIL
+          api_token: $NPM_TOKEN
+          skip_cleanup: true
+          on:
+            repo: $TRAVIS_REPO_SLUG
+            branch: stable
+    - stage: github-deploy
+      if: branch IN (develop, beta, stable)
       script:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
@@ -61,15 +88,6 @@ jobs:
         - provider: releases
           api_key: "$GITHUB_OAUTH_TOKEN"
           skip_cleanup: true
-          name: $VERSION @ $(date +'%d.%m.%Y %R')
-          file:
-            - artifacts.json
-          on:
-            repo: $TRAVIS_REPO_SLUG
-            branch: stable
-        - provider: releases
-          api_key: "$GITHUB_OAUTH_TOKEN"
-          skip_cleanup: true
           prerelease: true
           name: $VERSION @ $(date +'%d.%m.%Y %R')
           file:
@@ -77,6 +95,14 @@ jobs:
           on:
             repo: $TRAVIS_REPO_SLUG
             branch:
-              - master
               - develop
               - beta
+        - provider: releases
+          api_key: "$GITHUB_OAUTH_TOKEN"
+          skip_cleanup: true
+          name: $VERSION @ $(date +'%d.%m.%Y %R')
+          file:
+            - artifacts.json
+          on:
+            repo: $TRAVIS_REPO_SLUG
+            branch: stable
