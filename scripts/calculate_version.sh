@@ -19,6 +19,11 @@ if [[ $BRANCH == 'master' ]]; then
     exit 1
 fi
 
+if [[ $BRANCH == 'stable' ]]; then
+    echo $VERSION
+    exit 0
+fi
+
 git fetch --tags > /dev/null
 
 for (( NUMBER=0; ; NUMBER++ ))
