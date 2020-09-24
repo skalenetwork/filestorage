@@ -1,17 +1,20 @@
 {
   "name": "@skalenetwork/filestorage",
   "version": "0.4.0",
+  "description": "SKALE Filestorage contracts",
   "keywords": [
     "SKALE",
     "blockchain",
     "ethereum"
   ],
+  "homepage": "https://github.com/skalenetwork/filestorage#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/skalenetwork/filestorage.git"
   },
   "license": "AGPL-3.0",
   "author": "SKALE Labs and contributors",
+  "main": "artifacts.json",
   "scripts": {
     "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
     "build": "rm -r ./build; truffle build",
