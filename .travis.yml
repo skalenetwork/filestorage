@@ -30,16 +30,6 @@ jobs:
       script:
         - npx solidity-coverage || true
         - cat coverage/lcov.info | npx codecov
-    - name: "Integration testing"
-      install:
-      - git clone https://github.com/skalenetwork/filestorage.js.git
-      - cd filestorage.js
-      - npm install
-      - npm link; npm link @skalenetwork/filestorage.js
-      before_script:
-      - npm run generate
-      script:
-      - npm run test
     - stage: npm-deploy
       if: branch IN (develop, beta, stable)
       script:
