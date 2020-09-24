@@ -46,7 +46,7 @@ jobs:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
         - truffle compile
-        - node scripts/deploy.js
+        - node scripts/deploy.js --npm
       before_deploy:
         - npm version $VERSION
       deploy:
