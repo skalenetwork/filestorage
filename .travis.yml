@@ -10,7 +10,7 @@ jobs:
   include:
     - stage: Tests
       name: "Unit tests"
-      before_install:
+      before_script:
       - npm run generate-config
       - mkdir -p ~/schain_data/data_dir
       - mv test/utils/config.json ~/schain_data/
@@ -23,7 +23,6 @@ jobs:
         -e DATA_DIR=/schain_data/data_dir
         -e CONFIG_FILE=/schain_data/config.json
         skalenetwork/schain:$SCHAIN_VERSION
-      before_script:
       - npm run lint
       script:
       - truffle test --network skaled
@@ -36,7 +35,6 @@ jobs:
       script:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
-        - truffle compile
         - node scripts/deploy.js --npm
       before_deploy:
         - npm version $VERSION
@@ -63,7 +61,6 @@ jobs:
       script:
         - VERSION=$(BRANCH=$TRAVIS_BRANCH bash ./scripts/calculate_version.sh)
         - echo "Version $VERSION"
-        - truffle compile
         - node scripts/deploy.js
       before_deploy:
         # Set up git user name and tag this commit
