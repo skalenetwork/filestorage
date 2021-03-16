@@ -25,6 +25,9 @@ import "./PrecompiledCaller.sol";
 
 
 contract FileStorage {
+    address lastVersionAddress;
+    address managerOwner;
+
     using Utils for *;
     using PrecompiledCaller for *;
 
