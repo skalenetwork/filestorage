@@ -32,7 +32,7 @@ contract('Filestorage', accounts => {
         return str.slice(2);
     }
 
-    describe('Download performance test', function () {
+    describe('Download performance test', async function () {
         let fileName;
         let storagePath;
         let fileSize;
@@ -40,29 +40,33 @@ contract('Filestorage', accounts => {
         before(async function () {
             filestorage = await initFilestorage(accounts[0], artifacts);
             fileName = randomstring.generate();
+            storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
             filePath = path.resolve(__dirname, "./image.jpg")
             imgBuffer = fs.readFileSync(filePath);
             imgHex = imgBuffer.toString('hex');
-            console.log(imgHex.length / 2);
             var stats = fs.statSync(filePath)
-            var fileSizeInBytes = stats.size;
-            console.log(fileSizeInBytes)
+            fileSize = stats.size;
             let ptr = 0;
             await filestorage.setChunkSize(CHUNK_LENGTH);
-            await filestorage.startUpload(fileName, fileSizeInBytes, {from: accounts[0], gas: UPLOADING_GAS});
-            while(ptr < 2 * fileSizeInBytes) {
-                finish = Math.min(ptr + 2 * CHUNK_LENGTH, 2 * fileSizeInBytes + 1);
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0], gas: UPLOADING_GAS});
+            while(ptr < 2 * fileSize) {
+                finish = Math.min(ptr + 2 * CHUNK_LENGTH, 2 * fileSize + 1);
                 data = addBytesSymbol(imgHex.substring(ptr, finish))
-                console.log('Uploading chunk')
                 await filestorage.uploadChunk(fileName, ptr / 2, data, {from: accounts[0], gas: UPLOADING_GAS});
-                console.log('Chunk uploaded')
                 ptr = finish;
             }
             await filestorage.finishUpload(fileName, {from: accounts[0]});
         });
 
-        it('Attempt 1 to read file', function () {
-            console.log();
-        });
+        for (let i = 1; i <= iterationsCount; i++) {
+            it(`Attempt ${i} to read file`, async function () {
+                var i = 0;
+                while (i < fileSize) {
+                    let chunkLength = Math.min(CHUNK_LENGTH, fileSize - i);
+                    await filestorage.readChunk(storagePath, i, chunkLength, {gas: UPLOADING_GAS});
+                    i += chunkLength;
+                }
+            });
+        }
     });
 });
