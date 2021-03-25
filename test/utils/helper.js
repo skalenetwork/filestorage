@@ -35,6 +35,10 @@ function privateKeyToAddress(privateKey) {
     return web3.eth.accounts.privateKeyToAccount(privateKey).address;
 }
 
+async function generateAccount() {
+    return web3.eth.accounts.create();
+}
+
 async function sendTransaction(transactionData, to, gas, privateKey) {
     let encoded = transactionData.encodeABI();
     let account = await web3.eth.accounts.privateKeyToAccount(privateKey).address;
@@ -82,3 +86,4 @@ module.exports.privateKeyToAddress = privateKeyToAddress;
 module.exports.sendTransaction = sendTransaction;
 module.exports.initFilestorage = initFilestorage;
 module.exports.generateTestConfig = generateTestConfig;
+module.exports.generateAccount = generateAccount;

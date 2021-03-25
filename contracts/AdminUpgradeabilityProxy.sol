@@ -19,7 +19,6 @@
 
 pragma solidity ^0.6.2;
 
-
 import '@openzeppelin/contracts/proxy/UpgradeableProxy.sol';
 
 
@@ -73,10 +72,6 @@ contract AdminUpgradeabilityProxy is UpgradeableProxy {
         }
     }
 
-    /**
-     * @dev Sets the address of the proxy admin.
-     * @param newAdmin Address of the new proxy admin.
-     */
     function _setAdmin(address newAdmin) internal {
         bytes32 slot = ADMIN_SLOT;
 
