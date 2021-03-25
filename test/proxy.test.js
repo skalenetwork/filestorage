@@ -11,8 +11,9 @@ const FileStorageBase = artifacts.require("./FileStorage");
 const FileStorageManager = artifacts.require("./AdminUpgradeabilityProxy");
 const sendTransaction = require('./utils/helper').sendTransaction;
 const generateAccount = require('./utils/helper').generateAccount;
+const getFunds = require('./utils/helper').getFunds;
 
-contract('FileStorageManager', accounts => {
+contract('Proxy', accounts => {
     let filestorageProxy;
     let filestorage;
 
@@ -88,6 +89,7 @@ contract('FileStorageManager', accounts => {
 
         it('should fail to update from foreign account', async function () {
             let account = await generateAccount();
+            await getFunds(account.address);
             let tx = filestorageProxy.contract.methods.upgradeTo(account.address);
             await sendTransaction(tx, filestorageProxy.address, 20000000, account.privateKey)
                 .should

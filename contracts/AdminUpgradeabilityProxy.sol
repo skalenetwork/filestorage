@@ -34,11 +34,8 @@ contract AdminUpgradeabilityProxy is UpgradeableProxy {
     bytes32 internal constant ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
 
     modifier ifAdmin() {
-        if (msg.sender == _admin()) {
-            _;
-        } else {
-            _fallback();
-        }
+        require(msg.sender == _admin(), "Invalid sender");
+        _;
     }
 
     function admin() external ifAdmin returns (address) {
