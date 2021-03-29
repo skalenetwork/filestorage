@@ -24,7 +24,7 @@
     "version": "node -e \"console.log(require('./package.json').version);\""
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^3.4.1"
+    "@openzeppelin/upgrades-core": "^1.5.1"
   },
   "devDependencies": {
     "chai": "^4.2.0",

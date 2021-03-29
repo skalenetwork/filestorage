@@ -17,7 +17,7 @@
     along with FileStorage.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity ^0.6.2;
+pragma solidity ^0.5.3;
 
 
 library PrecompiledCaller {
