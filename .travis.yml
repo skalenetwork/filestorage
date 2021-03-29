@@ -25,7 +25,7 @@ jobs:
         skalenetwork/schain:$SCHAIN_VERSION
       - npm run lint
       script:
-      - truffle test --network skaled
+      - npm test
     - name: "Test coverage"
       script:
         - npx solidity-coverage || true
