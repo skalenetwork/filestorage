@@ -9,6 +9,8 @@ let path = require('path').posix;
 const initFilestorage = require('../utils/helper').initFilestorage;
 const sendTransaction = require('../utils/helper').sendTransaction;
 const getFunds = require('../utils/helper').getFunds;
+const generateAccount = require('../utils/helper').generateAccount;
+const getNonce = require('../utils/helper').getNonce;
 const UPLOADING_GAS = 10 ** 8;
 const CHUNK_LENGTH = 2 ** 10;
 
@@ -193,9 +195,13 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create dir in foreign dir', async function () {
-            await filestorage.createDirectory(foreignDir, {from: accounts[0]});
+            let account;
+            account = await generateAccount();
+            await getFunds(account.address);
+            let nonce = await getNonce(accounts[0]);
+            await filestorage.createDirectory(foreignDir, {from: accounts[0], nonce: nonce});
             let tx = filestorage.contract.methods.createDirectory(path.join(foreignDir, 'dir'));
-            await sendTransaction(tx, filestorage.address, 20000000, process.env.PRIVATEKEY)
+            await sendTransaction(tx, filestorage.address, 20000000, account.privateKey)
                 .should
                 .eventually
                 .rejectedWith('Invalid path');
