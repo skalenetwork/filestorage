@@ -31,8 +31,16 @@ async function getFunds(account) {
     return true;
 }
 
+async function getNonce(address) {
+    return web3.eth.getTransactionCount(address);
+}
+
 function privateKeyToAddress(privateKey) {
     return web3.eth.accounts.privateKeyToAccount(privateKey).address;
+}
+
+async function generateAccount() {
+    return web3.eth.accounts.create();
 }
 
 async function sendTransaction(transactionData, to, gas, privateKey) {
@@ -80,3 +88,5 @@ module.exports.privateKeyToAddress = privateKeyToAddress;
 module.exports.sendTransaction = sendTransaction;
 module.exports.initFilestorage = initFilestorage;
 module.exports.generateTestConfig = generateTestConfig;
+module.exports.generateAccount = generateAccount;
+module.exports.getNonce = getNonce;
