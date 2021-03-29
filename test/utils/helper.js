@@ -56,9 +56,7 @@ async function sendTransaction(transactionData, to, gas, privateKey) {
 }
 
 async function initFilestorage(account, artifacts) {
-    let filestorageMaster = await artifacts.require('./FileStorageTest').new({from: account});
-    let proxy = await artifacts.require('./AdminUpgradeabilityProxy').new(filestorageMaster.address, account, "0x", {from: account});
-    let filestorage = await artifacts.require('./FileStorageTest').at(proxy.address);
+    let filestorage = await artifacts.require('./FileStorageTest').new({from: account});
     await filestorage.setStorageSpace(10**10);
     await filestorage.setContentCount(2**10);
     await filestorage.reserveSpaceStub(account, 10**9);
