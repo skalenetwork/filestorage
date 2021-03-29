@@ -1,6 +1,6 @@
 {
   "name": "@skalenetwork/filestorage",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "description": "SKALE Filestorage contracts",
   "keywords": [
     "SKALE",
@@ -18,6 +18,7 @@
   "scripts": {
     "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
     "build": "rm -r ./build; truffle build",
+    "test": "truffle test test/unit/* --network skaled",
     "lint": "npx ethlint -d contracts",
     "lint-fix": "npm run lint -- --fix",
     "slither": "slither . --filter-path strings --filter-path Migrations",
@@ -33,8 +34,8 @@
     "dotenv": "^8.2.0",
     "randomstring": "^1.1.5",
     "solidity-coverage": "^0.6.7",
-    "truffle": "5.0.27",
-    "@truffle/hdwallet-provider": "1.0.18",
+    "truffle": "^5.0.27",
+    "@truffle/hdwallet-provider": "^1.0.18",
     "web3": "^1.2.1"
   },
   "publishConfig": {

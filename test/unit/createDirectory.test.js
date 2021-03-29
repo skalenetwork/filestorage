@@ -6,9 +6,9 @@ chai.use(require('chai-as-promised'));
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
-const initFilestorage = require('./utils/helper').initFilestorage;
-const sendTransaction = require('./utils/helper').sendTransaction;
-const getFunds = require('./utils/helper').getFunds;
+const initFilestorage = require('../utils/helper').initFilestorage;
+const sendTransaction = require('../utils/helper').sendTransaction;
+const getFunds = require('../utils/helper').getFunds;
 const UPLOADING_GAS = 10 ** 8;
 const CHUNK_LENGTH = 2 ** 10;
 

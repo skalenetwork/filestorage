@@ -6,7 +6,7 @@ chai.use(require('chai-as-promised'));
 
 let randomstring = require('randomstring');
 let path = require('path').posix;
-const initFilestorage = require('./utils/helper').initFilestorage;
+const initFilestorage = require('../utils/helper').initFilestorage;
 
 contract('Filestorage', accounts => {
     let filestorage;

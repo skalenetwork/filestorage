@@ -5,7 +5,7 @@ chai.should();
 chai.use(require('chai-as-promised'));
 
 let filestorageTest = artifacts.require('./FileStorageTest');
-let sendTransaction = require('./utils/helper').sendTransaction;
+let sendTransaction = require('../utils/helper').sendTransaction;
 
 contract('Filestorage', accounts => {
     let filestorage;
