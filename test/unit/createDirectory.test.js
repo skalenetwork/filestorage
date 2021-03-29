@@ -195,8 +195,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to create dir in foreign dir', async function () {
-            let account;
-            account = await generateAccount();
+            let account = await generateAccount();
             await getFunds(account.address);
             let nonce = await getNonce(accounts[0]);
             await filestorage.createDirectory(foreignDir, {from: accounts[0], nonce: nonce});
