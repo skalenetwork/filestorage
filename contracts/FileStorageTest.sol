@@ -30,12 +30,4 @@ contract FileStorageTest is FileStorage {
     function getContentCount() public view returns (uint) {
         return maxContentCount;
     }
-
-    function getReservedSpace(address _address) public view returns (uint) {
-        return reservedStorageSpace[_address];
-    }
-
-    function getTotalReservedSpace() public view returns (uint) {
-        return totalReservedSpace;
-    }
 }
