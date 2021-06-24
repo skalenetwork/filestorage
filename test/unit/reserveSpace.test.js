@@ -36,10 +36,12 @@ contract('Filestorage', accounts => {
             let newSpace = 2000;
             await filestorage.reserveSpace(userAddress, space);
             await filestorage.reserveSpace(userAddress, newSpace);
-            let result = await filestorage.getReservedSpace(userAddress);
+            let result = await filestorage.getReservedStorageSpace(userAddress);
             let total = await filestorage.getTotalReservedSpace();
+            let occupiedSpace = await filestorage.getOccupiedStorageSpace(userAddress);
             assert.equal(result, newSpace);
             assert.equal(total, newSpace);
+            assert.equal(occupiedSpace, 0);
         });
 
         it('should reserve more than used space', async function () {
@@ -47,7 +49,7 @@ contract('Filestorage', accounts => {
             let newSpace = 500;
             await filestorage.reserveSpace(userAddress, space);
             await filestorage.reserveSpace(userAddress, newSpace);
-            let result = await filestorage.getReservedSpace(userAddress);
+            let result = await filestorage.getReservedStorageSpace(userAddress);
             let total = await filestorage.getTotalReservedSpace();
             assert.equal(result, newSpace);
             assert.equal(total, newSpace);
