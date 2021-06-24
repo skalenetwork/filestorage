@@ -276,6 +276,18 @@ contract FileStorage {
         return maxStorageSpace;
     }
 
+    function getTotalReservedSpace() public view returns (uint) {
+        return totalReservedSpace;
+    }
+
+    function getReservedStorageSpace(address owner) public view returns (uint) {
+        return reservedStorageSpace[owner];
+    }
+
+    function getOccupiedStorageSpace(address owner) public view returns (uint) {
+        return occupiedStorageSpace[owner];
+    }
+
     function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage) {
         string[] memory dirs = Utils.parseDirectoryPath(contentPath);
         Directory storage currentDirectory = rootDirectories[owner];
