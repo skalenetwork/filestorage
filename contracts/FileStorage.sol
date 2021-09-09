@@ -272,7 +272,7 @@ contract FileStorage {
         require(success, "EVM error in getFileSize");
     }
 
-    function getStorageSpace() public view returns (uint) {
+    function getTotalStorageSpace() public view returns (uint) {
         return maxStorageSpace;
     }
 
@@ -280,11 +280,11 @@ contract FileStorage {
         return totalReservedSpace;
     }
 
-    function getReservedStorageSpace(address owner) public view returns (uint) {
+    function getReservedSpace(address owner) public view returns (uint) {
         return reservedStorageSpace[owner];
     }
 
-    function getOccupiedStorageSpace(address owner) public view returns (uint) {
+    function getOccupiedSpace(address owner) public view returns (uint) {
         return occupiedStorageSpace[owner];
     }
 
