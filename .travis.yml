@@ -1,5 +1,5 @@
 language: node_js
-node_js: 10
+node_js: 12
 services:
   - docker
 before_install:
@@ -40,10 +40,10 @@ jobs:
         - npm version $VERSION
       deploy:
         - provider: npm
+          tag: $TRAVIS_BRANCH
           email: $NPM_EMAIL
           api_token: $NPM_TOKEN
           skip_cleanup: true
-          tag: $TRAVIS_BRANCH
           on:
             repo: $TRAVIS_REPO_SLUG
             branch:

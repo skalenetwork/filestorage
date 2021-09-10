@@ -42,10 +42,13 @@ contract('Filestorage', accounts => {
         });
 
         it('should create file with 1 status', async function () {
+            let initOccupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            let occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]) - initOccupiedSpace;
             let storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
+            assert.equal(occupiedSpace, fileSize, 'Incorrect occupied space');
             assert.equal(status, 1, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect")
         });
