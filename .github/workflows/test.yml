@@ -15,6 +15,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
+          npm i truffle -g
           truffle compile
       - name: Run lint
         run: |
