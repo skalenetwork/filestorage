@@ -1,0 +1,40 @@
+name: Test
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          npm i
+      - name: Compile with truffle
+        run: |
+          truffle compile
+      - name: Run lint
+        run: |
+          npm run lint
+      - name: Generating sChain config
+        run: |
+          npm run generate-config
+          mkdir -p ~/schain_data/data_dir
+          mv test/utils/config.json ~/schain_data/
+      - name: Runnig sChain container
+        run: |
+          docker pull skalenetwork/schain:$SCHAIN_VERSION
+          docker run -d \
+            -v ~/schain_data:/schain_data \
+            -p 2234:2234 \
+            -e SSL_CERT_PATH=None \
+            -e HTTP_RPC_PORT=2234 \
+            -e DATA_DIR=/schain_data/data_dir \
+            -e CONFIG_FILE=/schain_data/config.json \
+            skalenetwork/schain:$SCHAIN_VERSION
+      - name: Run tests
+        run: |
+          npm test
