@@ -17,11 +17,11 @@
     along with FileStorage.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.8.0;
 
 import "./strings.sol";
 
-interface Context
+interface SChainContext
 {
     function getSchainOwnerAddress() external view returns (address);
 }
@@ -33,7 +33,7 @@ library Utils {
     address constant CONTEXT_ADDRESS = 0xD2001000000000000000000000000000000000D2;
 
     function getSchainOwner() internal view returns (address) {
-        return Context(CONTEXT_ADDRESS).getSchainOwnerAddress();
+        return SChainContext(CONTEXT_ADDRESS).getSchainOwnerAddress();
     }
 
     function checkContentName(string memory contentName) internal pure returns (bool) {
@@ -75,18 +75,18 @@ library Utils {
         for (uint i = 0; i < addressLength; i++) {
             ownerAddress[i] = bytes(storagePath)[i];
         }
-        uint result = 0;
+        uint160 result = 0;
         for (uint i = 0; i < addressLength; i++) {
-            uint c = uint(uint8(ownerAddress[i]));
+            uint c = uint160(uint8(ownerAddress[i]));
             require((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 102), "Invalid storagePath");
             if (c >= 48 && c <= 57) {
-                result = result * 16 + (c - 48);
+                result = result * 16 + uint160(c - 48);
             }
             if (c >= 65 && c <= 90) {
-                result = result * 16 + (c - 55);
+                result = result * 16 + uint160(c - 55);
             }
             if (c >= 97 && c <= 102) {
-                result = result * 16 + (c - 87);
+                result = result * 16 + uint160(c - 87);
             }
         }
         owner = address(result);
@@ -94,7 +94,7 @@ library Utils {
         uint fileNameLength = bytes(storagePath).length - addressLength - 1;
         filePath = new string(fileNameLength);
         for (uint i = 0; i < fileNameLength; i++) {
-            byte char = bytes(storagePath)[i + addressLength + 1];
+            bytes1 char = bytes(storagePath)[i + addressLength + 1];
             bytes(filePath)[i] = char;
         }
     }

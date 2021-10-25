@@ -35,7 +35,7 @@
     "dotenv": "^8.2.0",
     "randomstring": "^1.1.5",
     "solidity-coverage": "^0.6.7",
-    "truffle": "^5.0.27",
+    "truffle": "^5.1.4",
     "@truffle/hdwallet-provider": "^1.0.18",
     "web3": "^1.2.1"
   },

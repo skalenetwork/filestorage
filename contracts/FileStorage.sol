@@ -17,7 +17,7 @@
     along with FileStorage.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.8.0;
 pragma experimental ABIEncoderV2;
 
 import "./Utils.sol";
@@ -120,7 +120,7 @@ contract FileStorage {
         currentDirectory.contents[currentDirectory.contentIndexes[targetDirectory] - 1] = lastContent;
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[targetDirectory];
         currentDirectory.contentIndexes[targetDirectory] = EMPTY_INDEX;
-        currentDirectory.contents.length--;
+        currentDirectory.contents.pop();
         delete currentDirectory.directories[targetDirectory];
     }
 
@@ -204,7 +204,7 @@ contract FileStorage {
         uint idx = currentDirectory.contentIndexes[file.name] - 1;
         ContentInfo memory lastContent = currentDirectory.contents[currentDirectory.contents.length - 1];
         currentDirectory.contents[idx] = lastContent;
-        currentDirectory.contents.length--;
+        currentDirectory.contents.pop();
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[file.name];
         currentDirectory.contentIndexes[file.name] = EMPTY_INDEX;
         occupiedStorageSpace[owner] -= file.size;
