@@ -4,6 +4,9 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-18.04
+    env:
+      SCHAIN_OWNER_PK: ${{ secrets.SCHAIN_OWNER_PK }}
+      ENTRYPOINT: "http://127.0.0.1:2234"
     steps:
       - uses: actions/checkout@v2
       - name: Set up Node 12
@@ -25,7 +28,7 @@ jobs:
           npm run generate-config
           mkdir -p ~/schain_data/data_dir
           mv test/utils/config.json ~/schain_data/
-      - name: Runnig sChain container
+      - name: Run sChain container
         run: |
           docker pull skalenetwork/schain:${{ secrets.SCHAIN_VERSION }}
           docker run -d \
