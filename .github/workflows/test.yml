@@ -43,3 +43,24 @@ jobs:
       - name: Run tests
         run: |
           npm test
+  coverage:
+    runs-on: ubuntu-18.04
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          npm i
+      - name: Compile with truffle
+        run: |
+          npm i truffle -g
+          truffle compile
+      - name: Coverage
+        run: |
+          npx solidity-coverage || true
+          cat coverage/lcov.info | npx codecov
