@@ -5,7 +5,7 @@ jobs:
   test:
     runs-on: ubuntu-18.04
     env:
-      SCHAIN_VERSION: 3.7.5-stable.0
+      SCHAIN_VERSION: 1.39-develop.6
       SCHAIN_OWNER_PK: ${{ secrets.SCHAIN_OWNER_PK }}
       ENTRYPOINT: "http://127.0.0.1:2234"
     steps:
@@ -38,8 +38,8 @@ jobs:
             -e SSL_CERT_PATH=None \
             -e HTTP_RPC_PORT=2234 \
             -e DATA_DIR=/schain_data/data_dir \
-            skalenetwork/schain:${{ env.SCHAIN_VERSION }} \
-            --config /schain_data/config.json
+            -e CONFIG_FILE=/schain_data/config.json \
+            skalenetwork/schain:${{ env.SCHAIN_VERSION }}
       - name: Run tests
         run: |
           npm test
