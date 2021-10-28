@@ -1,0 +1,67 @@
+name: Test
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    env:
+      SCHAIN_VERSION: 3.7.5-stable.0
+      SCHAIN_OWNER_PK: ${{ secrets.SCHAIN_OWNER_PK }}
+      ENTRYPOINT: "http://127.0.0.1:2234"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          npm i
+      - name: Compile with truffle
+        run: |
+          npm i truffle@5.1.0 -g
+          truffle compile
+      - name: Run lint
+        run: |
+          npm run lint
+      - name: Generating sChain config
+        run: |
+          npm run generate-config
+          mkdir -p ~/schain_data/data_dir
+          mv test/utils/config.json ~/schain_data/
+      - name: Run sChain container
+        run: |
+          docker pull skalenetwork/schain:${{ env.SCHAIN_VERSION }}
+          docker run -d \
+            -v ~/schain_data:/schain_data \
+            -p 2234:2234 \
+            -e SSL_CERT_PATH=None \
+            -e HTTP_RPC_PORT=2234 \
+            -e DATA_DIR=/schain_data/data_dir \
+            skalenetwork/schain:${{ env.SCHAIN_VERSION }} \
+            --config /schain_data/config.json
+          sleep 30
+      - name: Run tests
+        run: |
+          npm test
+  coverage:
+    runs-on: ubuntu-18.04
+    env:
+      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node 12
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install dependencies
+        run: |
+          npm i
+      - name: Compile with truffle
+        run: |
+          npm i truffle@5.1.0 -g
+          truffle compile
+      - name: Coverage
+        run: |
+          npm run coverage || true
+          cat coverage/lcov.info | npx codecov
