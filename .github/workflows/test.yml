@@ -16,9 +16,10 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: |
-          npm i -g
+          npm i
       - name: Compile with truffle
         run: |
+          npm i truffle@5.1.0 -g
           truffle compile
       - name: Run lint
         run: |
@@ -42,7 +43,7 @@ jobs:
           sleep 30
       - name: Run tests
         run: |
-          truffle test test/unit/* --network skaled
+          npm test
   coverage:
     runs-on: ubuntu-18.04
     env:
