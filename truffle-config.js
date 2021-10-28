@@ -23,6 +23,8 @@ module.exports = {
       enableTimeouts: false
   },
 
+  plugins: ["solidity-coverage"],
+
   build: function (options, callback) {
       let configPath = path.join(options.destination_directory, 'contracts', 'FileStorage.json');
       let skaledConfigPath = path.join(options.working_directory, 'test', 'utils', 'config.json');

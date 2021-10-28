@@ -59,9 +59,9 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npm i truffle -g
+          npm i truffle@5.1.0 -g
           truffle compile
       - name: Coverage
         run: |
-          npx solidity-coverage || true
+          npm run coverage || true
           cat coverage/lcov.info | npx codecov
