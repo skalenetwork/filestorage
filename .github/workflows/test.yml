@@ -16,10 +16,9 @@ jobs:
           node-version: 12
       - name: Install dependencies
         run: |
-          npm i
+          npm i -g
       - name: Compile with truffle
         run: |
-          npm i truffle -g
           truffle compile
       - name: Run lint
         run: |
