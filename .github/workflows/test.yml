@@ -43,7 +43,7 @@ jobs:
           sleep 30
       - name: Run tests
         run: |
-          npm test
+          truffle test test/unit/* --network skaled
   coverage:
     runs-on: ubuntu-18.04
     env:
