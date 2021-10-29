@@ -8,6 +8,7 @@ module.exports = {
       skaled: {
           gasPrice: 0,
           network_id: "*",
+          gas: 100000000,
           provider: () => new PrivateKeyProvider(process.env.SCHAIN_OWNER_PK, process.env.ENTRYPOINT)
       },
   },
@@ -21,6 +22,8 @@ module.exports = {
   mocha: {
       enableTimeouts: false
   },
+
+  plugins: ["solidity-coverage"],
 
   build: function (options, callback) {
       let configPath = path.join(options.destination_directory, 'contracts', 'FileStorage.json');

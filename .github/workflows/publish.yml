@@ -1,0 +1,73 @@
+name: Publish
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - stable
+      - develop
+      - beta
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      ACTIONS_ALLOW_UNSECURE_COMMANDS: true
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '12.x'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: |
+          npm i
+      - name: Compile with truffle
+        run: |
+          npm i truffle@5.1.0 -g
+          truffle compile
+      - name: Set version and branch
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          export VERSION=$(bash ./scripts/calculate_version.sh)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "Version $VERSION"
+      - name: Generate artifacts.json NPM
+        run: |
+          node scripts/deploy.js --npm
+      - name: Publish on npm
+        if: github.ref != 'refs/heads/stable'
+        run: |
+          npm version --no-git-tag-version ${{ env.VERSION }}
+          npm publish --access public --tag ${{ env.BRANCH }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Publish on npm (stable)
+        if: github.ref == 'refs/heads/stable'
+        run: |
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Generate artifacts.json
+        run: |
+          node scripts/deploy.js
+      - name: Create Release
+        if: github.ref != 'refs/heads/stable'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: ${{ env.VERSION }}
+          draft: false
+          prerelease: true
+      - name: Create Release (stable)
+        if: github.ref == 'refs/heads/stable'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.VERSION }}
+          release_name: ${{ env.VERSION }}
+          draft: false
