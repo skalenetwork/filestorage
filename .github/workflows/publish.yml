@@ -1,3 +1,4 @@
+name: Publish
 on:
   pull_request:
     types: [closed]
@@ -21,6 +22,10 @@ jobs:
       - name: Install dependencies
         run: |
           npm i
+      - name: Compile with truffle
+        run: |
+          npm i truffle@5.1.0 -g
+          truffle compile
       - name: Set version and branch
         run: |
           export BRANCH=${GITHUB_REF##*/}
