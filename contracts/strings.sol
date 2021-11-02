@@ -53,7 +53,7 @@ library strings {
         }
 
         // Copy remaining bytes
-        uint mask = 256 ** (32 - dataLength) - 1;
+        uint mask = dataLength == 0 ? type(uint256).max : 256 ** (32 - dataLength) - 1;
         assembly {
             let srcpart := and(mload(src), not(mask))
             let destpart := and(mload(dest), mask)
