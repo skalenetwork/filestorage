@@ -18,7 +18,6 @@
 */
 
 pragma solidity ^0.8.0;
-pragma experimental ABIEncoderV2;
 
 import "./Utils.sol";
 import "./PrecompiledCaller.sol";
@@ -71,9 +70,7 @@ contract FileStorage is AccessControl {
     }
 
     function reserveSpace(address userAddress, uint reservedSpace) public {
-        require(
-             hasRole(ALLOCATOR_ROLE, msg.sender), "Invalid sender"
-        );
+        require(hasRole(ALLOCATOR_ROLE, msg.sender), "Caller is not allowed to reserve space");
         require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
         require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory in the Filestorage");
         totalReservedSpace -= reservedStorageSpace[userAddress];
