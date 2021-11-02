@@ -24,7 +24,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npm i truffle -g
+          npm i truffle@5.1.30 -g
           truffle compile
       - name: Set version and branch
         run: |
