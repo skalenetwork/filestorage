@@ -25,7 +25,7 @@ import "./PrecompiledCaller.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 
 
-contract FileStorage is  {
+contract FileStorage is AccessControl {
     using Utils for *;
     using PrecompiledCaller for *;
 
