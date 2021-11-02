@@ -22,9 +22,10 @@ pragma experimental ABIEncoderV2;
 
 import "./Utils.sol";
 import "./PrecompiledCaller.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
 
-contract FileStorage {
+contract FileStorage is  {
     using Utils for *;
     using PrecompiledCaller for *;
 
@@ -33,6 +34,7 @@ contract FileStorage {
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILESIZE = 10 ** 8;
     uint constant EMPTY_INDEX = 0;
+    bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
 
     bool internal isInitialized;
     uint internal maxContentCount;
@@ -70,8 +72,7 @@ contract FileStorage {
 
     function reserveSpace(address userAddress, uint reservedSpace) public {
         require(
-            tx.origin == Utils.getSchainOwner() ||
-            tx.origin != msg.sender, "Invalid sender"
+             hasRole(ALLOCATOR_ROLE, msg.sender), "Invalid sender"
         );
         require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
         require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory in the Filestorage");

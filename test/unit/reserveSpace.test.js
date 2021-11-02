@@ -19,6 +19,12 @@ contract('Filestorage', accounts => {
         beforeEach(async function () {
             let nonce = await getNonce(accounts[0]);
             filestorage = await filestorageTest.new({from: accounts[0], nonce: nonce});
+            let allocatorRole = await filestorage.ALLOCATOR_ROLE();
+            try {
+                await filestorage.grantRole(allocatorRole, accounts[0]);
+            } catch (e) {
+                console.log(e)
+            }
             userAddress = "0x77333da3492c4DDb9CCf3aD6Bb73d6302F86cdA8";
         });
 

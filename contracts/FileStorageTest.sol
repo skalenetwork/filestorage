@@ -9,6 +9,7 @@ contract FileStorageTest is FileStorage {
         maxContentCount = 2 ** 13;
         maxChunkSize = 2 ** 10;
         isInitialized = true;
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
     function reserveSpaceStub(address userAddress, uint reservedSpace) public {
