@@ -66,7 +66,7 @@ contract('Filestorage', accounts => {
             await sendTransaction(tx, filestorage.address, 20000000, account.privateKey)
                 .should
                 .eventually
-                .rejectedWith('Invalid sender');
+                .rejectedWith('Caller is not allowed to reserve space');
         });
 
         it('should fail to decrease space', async function () {
