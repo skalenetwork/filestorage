@@ -59,13 +59,13 @@ function generatePredeployedData(ownerAddress, allocatedStorage) {
             contract.storage[BASE_SLOT] = ownerAddress;
         }
         if (name === 'filestorageProxy') {
-            contract.storage[BASE_SLOT] = allocatedStorage;
+            contract.storage[BASE_SLOT] = allocatedStorage.toString();
         }
         config[contract.address] = {
             'code': contract.bytecode,
             'storage': contract.storage,
-            'balance': 0,
-            'nonce': 0,
+            'balance': '0',
+            'nonce': '0',
         }
     }
     return config;

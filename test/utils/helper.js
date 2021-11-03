@@ -5,6 +5,7 @@ const Web3 = require('web3');
 const generatePredeployedData = require('../../scripts/generate').generatePredeployedData;
 
 const testBalance = '2';
+const testSpace = 1000000;
 const rootPrivateKey = process.env.SCHAIN_OWNER_PK;
 const web3 = new Web3(process.env.ENTRYPOINT);
 
@@ -14,7 +15,7 @@ async function getFunds(account) {
     let accountBalance = await web3.eth.getBalance(account);
     accountBalance = Number(accountBalance);
     if (accountBalance < testBalanceWei) {
-        let rootAccount = await web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
+        let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
         let valueToSend = testBalanceWei - accountBalance;
         let rootBalance = await web3.eth.getBalance(rootAccount);
         rootBalance = Number(rootBalance);
@@ -48,7 +49,7 @@ async function generateAccount() {
 
 async function sendTransaction(transactionData, to, gas, privateKey) {
     let encoded = transactionData.encodeABI();
-    let account = await web3.eth.accounts.privateKeyToAccount(privateKey).address;
+    let account = web3.eth.accounts.privateKeyToAccount(privateKey).address;
     let nonce = await web3.eth.getTransactionCount(account);
     let tx = {
         from: account,
@@ -74,7 +75,7 @@ function generateTestConfig() {
     let skaledConfigPath = path.join(path.resolve(__dirname), 'config.json');
     let skaledConfig = require(skaledConfigPath);
     let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
-    let predeployedData = generatePredeployedData(rootAccount, '0xffffffff');
+    let predeployedData = generatePredeployedData(rootAccount, testSpace);
     for (let address in predeployedData) {
         skaledConfig.accounts[address] = predeployedData[address];
     }
@@ -88,3 +89,4 @@ module.exports.initFilestorage = initFilestorage;
 module.exports.generateTestConfig = generateTestConfig;
 module.exports.generateAccount = generateAccount;
 module.exports.getNonce = getNonce;
+module.exports.testSpace = testSpace;
