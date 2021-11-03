@@ -1,6 +1,9 @@
 require('dotenv').config();
 const fs = require('fs');
+const path = require('path');
 const Web3 = require('web3');
+const generatePredeployedData = require('../../scripts/generate').generatePredeployedData;
+
 const testBalance = '2';
 const rootPrivateKey = process.env.SCHAIN_OWNER_PK;
 const web3 = new Web3(process.env.ENTRYPOINT);
@@ -68,18 +71,13 @@ async function initFilestorage(account, artifacts) {
 }
 
 function generateTestConfig() {
-    let atrifactsPath = path.join(path.resolve(__dirname), '../../build/contracts/FileStorage.json');
     let skaledConfigPath = path.join(path.resolve(__dirname), 'config.json');
-    let filestorageBytecode = require(atrifactsPath).deployedBytecode;
     let skaledConfig = require(skaledConfigPath);
-    skaledConfig.accounts['0x69362535ec535F0643cBf62D16aDeDCAf32Ee6F7'] = {
-        "code": filestorageBytecode,
-        "balance": "0",
-        "nonce": "0",
-        "storage": {
-            "0x00": "0xffffffffff"
-        }
-    };
+    let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
+    let predeployedData = generatePredeployedData(rootAccount, '0xffffffff');
+    for (let address in predeployedData) {
+        skaledConfig.accounts[address] = predeployedData[address];
+    }
     fs.writeFileSync(skaledConfigPath, JSON.stringify(skaledConfig, null, '\t'));
 }
 
