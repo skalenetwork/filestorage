@@ -24,6 +24,11 @@ contract('Filestorage', accounts => {
         return str.slice(2);
     }
 
+    function addBytesSymbol(str) {
+        if (ensureStartsWith0x(str)) return str;
+        return '0x' + str;
+    }
+
     describe('Predeployed test', async function () {
         let fileName;
         let fileSize;
