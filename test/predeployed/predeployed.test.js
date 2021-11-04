@@ -8,6 +8,7 @@ let randomstring = require('randomstring');
 let path = require('path').posix;
 let filestorageContract = artifacts.require('./FileStorage');
 const testTotalSpace = require('../utils/helper').testSpace;
+const FILESTORAGE_PROXY_ADDRESS = require('../../scripts/generate').FILESTORAGE_PROXY_ADDRESS;
 
 contract('Filestorage', accounts => {
     let filestorage;
@@ -35,12 +36,12 @@ contract('Filestorage', accounts => {
         let foreignDir;
 
         before(async function () {
-            filestorage = await filestorageContract.at('0xD3002000000000000000000000000000000000D3');
+            filestorage = await filestorageContract.at(FILESTORAGE_PROXY_ADDRESS);
             let allocatorRole = await filestorage.ALLOCATOR_ROLE();
             await filestorage.grantRole(allocatorRole, accounts[0]);
 
             fileName = randomstring.generate();
-            fileSize = Math.floor(Math.random() * 100);
+            fileSize = Math.floor(Math.random() * 30);
             foreignDir = 'foreignDir';
         });
 
@@ -51,19 +52,20 @@ contract('Filestorage', accounts => {
             assert.equal(reservedSpace, 0);
         });
 
-        it('test uploading', async function () {
+        it('full pipeline test', async function () {
             let data = addBytesSymbol(randomstring.generate({
                 length: 2 * fileSize,
                 charset: 'hex'
             }));
             await filestorage.reserveSpace(accounts[0], fileSize, {from: accounts[0]});
-            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
-            await filestorage.uploadChunk(fileName, 0, data, {from: accounts[0]});
-            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            await filestorage.createDirectory('test', {from: accounts[0]});
+            await filestorage.startUpload('test/'+fileName, fileSize, {from: accounts[0]});
+            await filestorage.uploadChunk('test/'+fileName, 0, data, {from: accounts[0]});
+            await filestorage.finishUpload('test/'+fileName, {from: accounts[0]});
 
             let reservedSpace = await filestorage.getReservedSpace(accounts[0]);
             let occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
-            let storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
+            let storagePath = path.join(rmBytesSymbol(accounts[0]), 'test', fileName);
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
             assert.equal(status, 2, 'Status is incorrect');
@@ -71,9 +73,22 @@ contract('Filestorage', accounts => {
             assert.equal(reservedSpace, fileSize, "reservedSpace is incorrect");
             assert.equal(occupiedSpace, fileSize, "occupiedSpace is incorrect");
 
-            console.log(await filestorage.listDirectory(rmBytesSymbol(accounts[0])));
+            let content = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/test');
+            content.find(obj => {
+                return obj.name === fileName;
+            });
+            let receivedData = await filestorage.readChunk(
+                rmBytesSymbol(accounts[0]) + '/test/' + fileName,
+                0,
+                fileSize,
+                {gas: 10 ** 8}
+            )
+            let chunk = addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')
+                .slice(0, 2 * fileSize));
+            assert.isTrue(chunk === data);
 
-            await filestorage.deleteFile(fileName, {from: accounts[0]});
+            await filestorage.deleteFile('test/'+fileName, {from: accounts[0]});
+            await filestorage.deleteDirectory('test', {from: accounts[0]});
             await filestorage.reserveSpace(accounts[0], 0, {from: accounts[0]});
         });
 

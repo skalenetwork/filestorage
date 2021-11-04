@@ -22,6 +22,7 @@ pragma solidity ^0.8.0;
 import "./Utils.sol";
 import "./PrecompiledCaller.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts/utils/StorageSlot.sol";
 
 
 contract FileStorage is AccessControl {
@@ -34,6 +35,7 @@ contract FileStorage is AccessControl {
     uint constant MAX_FILESIZE = 10 ** 8;
     uint constant EMPTY_INDEX = 0;
     bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
+    bytes32 public constant STORAGE_SLOT = keccak256("STORAGE_SLOT");
 
     bool internal isInitialized;
     uint internal maxContentCount;
@@ -72,7 +74,7 @@ contract FileStorage is AccessControl {
     function reserveSpace(address userAddress, uint reservedSpace) public {
         require(hasRole(ALLOCATOR_ROLE, msg.sender), "Caller is not allowed to reserve space");
         require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
-        require(reservedSpace + totalReservedSpace <= maxStorageSpace, "Not enough memory in the Filestorage");
+        require(reservedSpace + totalReservedSpace <= getTotalStorageSpace(), "Not enough memory in the Filestorage");
         totalReservedSpace -= reservedStorageSpace[userAddress];
         reservedStorageSpace[userAddress] = reservedSpace;
         totalReservedSpace += reservedSpace;
@@ -271,7 +273,7 @@ contract FileStorage is AccessControl {
     }
 
     function getTotalStorageSpace() public view returns (uint) {
-        return maxStorageSpace;
+        return StorageSlot.getUint256Slot(STORAGE_SLOT).value;
     }
 
     function getTotalReservedSpace() public view returns (uint) {
