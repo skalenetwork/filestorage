@@ -22,6 +22,7 @@
     "test": "truffle test test/unit/* --network skaled",
     "lint": "npx ethlint -d contracts",
     "lint-fix": "npm run lint -- --fix",
+    "predeployed-test": "truffle test test/predeployed/* --network skaled",
     "slither": "slither . --filter-path strings --filter-path Migrations",
     "version": "node -e \"console.log(require('./package.json').version);\""
   },
