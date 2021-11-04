@@ -21,6 +21,7 @@ contract('Filestorage', accounts => {
             filestorage = await filestorageTest.new({from: accounts[0], nonce: nonce});
             let allocatorRole = await filestorage.ALLOCATOR_ROLE();
             await filestorage.grantRole(allocatorRole, accounts[0]);
+            await filestorage.setStorageSpace(100000);
             userAddress = "0x77333da3492c4DDb9CCf3aD6Bb73d6302F86cdA8";
         });
 

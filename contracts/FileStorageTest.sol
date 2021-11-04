@@ -4,7 +4,6 @@ import "./FileStorage.sol";
 
 contract FileStorageTest is FileStorage {
     constructor() public {
-        maxStorageSpace = 10 ** 10;
         maxContentCount = 2 ** 13;
         maxChunkSize = 2 ** 10;
         isInitialized = true;
@@ -15,12 +14,12 @@ contract FileStorageTest is FileStorage {
         reservedStorageSpace[userAddress] = reservedSpace;
     }
 
-    function setContentCount(uint contentCount) public {
-        maxContentCount = contentCount;
+    function setStorageSpace(uint storageSpace) public {
+        StorageSlot.getUint256Slot(STORAGE_SLOT).value = storageSpace;
     }
 
-    function setStorageSpace(uint storageSpace) public {
-        maxStorageSpace = storageSpace;
+    function setContentCount(uint contentCount) public {
+        maxContentCount = contentCount;
     }
 
     function setChunkSize(uint chunkSize) public {

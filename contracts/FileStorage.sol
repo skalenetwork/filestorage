@@ -29,13 +29,12 @@ contract FileStorage is AccessControl {
     using Utils for *;
     using PrecompiledCaller for *;
 
-    uint internal maxStorageSpace;
+    bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
+    bytes32 public constant STORAGE_SLOT = keccak256("STORAGE_SLOT");
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILESIZE = 10 ** 8;
     uint constant EMPTY_INDEX = 0;
-    bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
-    bytes32 public constant STORAGE_SLOT = keccak256("STORAGE_SLOT");
 
     bool internal isInitialized;
     uint internal maxContentCount;

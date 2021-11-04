@@ -65,7 +65,6 @@ async function sendTransaction(transactionData, to, gas, privateKey) {
 
 async function initFilestorage(account, artifacts) {
     let filestorage = await artifacts.require('./FileStorageTest').new({from: account});
-    await filestorage.setStorageSpace(10**10);
     await filestorage.setContentCount(2**10);
     await filestorage.reserveSpaceStub(account, 10**9);
     return filestorage;
