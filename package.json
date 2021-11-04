@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@openzeppelin/upgrades-core": "^1.5.1",
-    "@openzeppelin/contracts": "^4.3.2"
+    "@openzeppelin/contracts-upgradeable": "^4.3.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",

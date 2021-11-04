@@ -21,11 +21,11 @@ pragma solidity ^0.8.0;
 
 import "./Utils.sol";
 import "./PrecompiledCaller.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
-import "@openzeppelin/contracts/utils/StorageSlot.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/StorageSlotUpgradeable.sol";
 
 
-contract FileStorage is AccessControl {
+contract FileStorage is AccessControlUpgradeable {
     using Utils for *;
     using PrecompiledCaller for *;
 
@@ -272,7 +272,7 @@ contract FileStorage is AccessControl {
     }
 
     function getTotalStorageSpace() public view returns (uint) {
-        return StorageSlot.getUint256Slot(STORAGE_SLOT).value;
+        return StorageSlotUpgradeable.getUint256Slot(STORAGE_SLOT).value;
     }
 
     function getTotalReservedSpace() public view returns (uint) {

@@ -15,7 +15,7 @@ contract FileStorageTest is FileStorage {
     }
 
     function setStorageSpace(uint storageSpace) public {
-        StorageSlot.getUint256Slot(STORAGE_SLOT).value = storageSpace;
+        StorageSlotUpgradeable.getUint256Slot(STORAGE_SLOT).value = storageSpace;
     }
 
     function setContentCount(uint contentCount) public {
