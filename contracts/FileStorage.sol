@@ -17,7 +17,7 @@
     along with FileStorage.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 
 import "./Utils.sol";
 import "./PrecompiledCaller.sol";
@@ -70,16 +70,16 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         _;
     }
 
-    function reserveSpace(address userAddress, uint reservedSpace) public {
+    function reserveSpace(address userAddress, uint reservedSpace) external {
         require(hasRole(ALLOCATOR_ROLE, msg.sender), "Caller is not allowed to reserve space");
         require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
-        require(reservedSpace + totalReservedSpace <= getTotalStorageSpace(), "Not enough memory in the Filestorage");
+        require(reservedSpace + totalReservedSpace <= storageSpace(), "Not enough memory in the Filestorage");
         totalReservedSpace -= reservedStorageSpace[userAddress];
         reservedStorageSpace[userAddress] = reservedSpace;
         totalReservedSpace += reservedSpace;
     }
 
-    function createDirectory(string memory directoryPath) public initializing {
+    function createDirectory(string memory directoryPath) external initializing {
         require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
@@ -102,7 +102,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     // TODO: delete dir with all content in it
-    function deleteDirectory(string memory directoryPath) public {
+    function deleteDirectory(string memory directoryPath) external {
         address owner = msg.sender;
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
         Directory storage currentDirectory = rootDirectories[owner];
@@ -123,7 +123,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         delete currentDirectory.directories[targetDirectory];
     }
 
-    function startUpload(string memory filePath, uint256 fileSize) public initializing {
+    function startUpload(string memory filePath, uint256 fileSize) external initializing {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
@@ -151,7 +151,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         occupiedStorageSpace[owner] += fileSize;
     }
 
-    function uploadChunk(string memory filePath, uint position, bytes memory data) public {
+    function uploadChunk(string memory filePath, uint position, bytes memory data) external {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
@@ -172,7 +172,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         file.isChunkUploaded[position / maxChunkSize] = true;
     }
 
-    function finishUpload(string memory filePath) public {
+    function finishUpload(string memory filePath) external {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
@@ -189,7 +189,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(success, "Hash hasn't been calculated");
     }
 
-    function deleteFile(string memory filePath) public {
+    function deleteFile(string memory filePath) external {
         address owner = msg.sender;
         ContentInfo memory file = getContentInfo(owner, filePath);
         require(file.status != FileStatus.NONEXISTENT, "File not exists");
@@ -210,7 +210,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     function readChunk(string memory storagePath, uint position, uint length)
-        public
+        external
         view
         returns (bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
@@ -230,7 +230,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     // TODO: handle root dir
-    function listDirectory(string memory storagePath) public view returns (ContentInfo[] memory) {
+    function listDirectory(string memory storagePath) external view returns (ContentInfo[] memory) {
         (address owner, string memory directoryPath) = Utils.parseStoragePath(storagePath);
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
         Directory storage currentDirectory = rootDirectories[owner];
@@ -241,7 +241,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         return currentDirectory.contents;
     }
 
-    function getFileStatus(string memory storagePath) public view returns (FileStatus) {
+    function getFileStatus(string memory storagePath) external view returns (FileStatus) {
         (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
@@ -259,7 +259,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         return file.status;
     }
 
-    function getFileSize(string memory storagePath) public view returns (uint fileSize) {
+    function getFileSize(string memory storagePath) external view returns (uint fileSize) {
         (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, filePath);
         require(
@@ -271,19 +271,19 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(success, "EVM error in getFileSize");
     }
 
-    function getTotalStorageSpace() public view returns (uint) {
-        return StorageSlotUpgradeable.getUint256Slot(STORAGE_SLOT).value;
+    function getTotalStorageSpace() external view returns (uint) {
+        return storageSpace();
     }
 
-    function getTotalReservedSpace() public view returns (uint) {
+    function getTotalReservedSpace() external view returns (uint) {
         return totalReservedSpace;
     }
 
-    function getReservedSpace(address owner) public view returns (uint) {
+    function getReservedSpace(address owner) external view returns (uint) {
         return reservedStorageSpace[owner];
     }
 
-    function getOccupiedSpace(address owner) public view returns (uint) {
+    function getOccupiedSpace(address owner) external view returns (uint) {
         return occupiedStorageSpace[owner];
     }
 
@@ -298,5 +298,9 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(currentDirectory.contentIndexes[contentName] > EMPTY_INDEX, "Invalid path");
         ContentInfo storage result = currentDirectory.contents[currentDirectory.contentIndexes[contentName] - 1];
         return result;
+    }
+
+    function storageSpace() internal view returns (uint) {
+        return StorageSlotUpgradeable.getUint256Slot(STORAGE_SLOT).value;
     }
 }

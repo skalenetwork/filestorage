@@ -1,4 +1,4 @@
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.9;
 import "./FileStorage.sol";
 
 
@@ -10,23 +10,23 @@ contract FileStorageTest is FileStorage {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
-    function reserveSpaceStub(address userAddress, uint reservedSpace) public {
+    function reserveSpaceStub(address userAddress, uint reservedSpace) external {
         reservedStorageSpace[userAddress] = reservedSpace;
     }
 
-    function setStorageSpace(uint storageSpace) public {
+    function setStorageSpace(uint storageSpace) external {
         StorageSlotUpgradeable.getUint256Slot(STORAGE_SLOT).value = storageSpace;
     }
 
-    function setContentCount(uint contentCount) public {
+    function setContentCount(uint contentCount) external {
         maxContentCount = contentCount;
     }
 
-    function setChunkSize(uint chunkSize) public {
+    function setChunkSize(uint chunkSize) external {
         maxChunkSize = chunkSize;
     }
 
-    function getContentCount() public view returns (uint) {
+    function getContentCount() external view returns (uint) {
         return maxContentCount;
     }
 }
