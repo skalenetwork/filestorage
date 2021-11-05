@@ -8,9 +8,15 @@ const FILESTORAGE_IMPLEMENTATION_ADDRESS = '0xD300300000000000000000000000000000
 
 const ADMIN_SLOT = '0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103';
 const IMPLEMENTATION_SLOT = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
-const TEST_ADMIN_SLOT = '0xb8ed22ac9436074398066df0e76c44027b2a8877a3b7d151f0127233e4742618';
 const STORAGE_SLOT = '0x7c3980c5a16c63a43ac94f60a7ec70c7836423a0d06753639662f9349a9b9ad2';
 const BASE_SLOT = '0x0';
+
+const TEST_ROLES_SLOTS = {
+    "0x683723e34a772b6e4f2c919bba7fa32ed8ea11a8325f54da7db716e9d9dd98c7": "0x01",
+    "0x9b45063904f2ebdb41aaf8a5497dea92590ffba8896d1c63b108aa6868119ada": "0x01",
+    "0x2dd8db9e26b2996e42648eaa4a235e69f68c16392431007c6e963fa26c4b8212": "0xd2c5b39b4e735c17612bb5a08fd024ccc5dbcb23",
+    "0x2a7e0be9e49f90b81d1db502fcecd7cc7059330a12c2d322257a272c1d31f827": "0x01"
+}
 
 let artifactsData;
 let config;
@@ -62,7 +68,7 @@ function generatePredeployedData(ownerAddress, allocatedStorage) {
         }
         if (name === 'filestorageProxy') {
             contract.storage[STORAGE_SLOT] = allocatedStorage.toString();
-            contract.storage[TEST_ADMIN_SLOT] = '0x01';
+            contract.storage = {...contract.storage, ...TEST_ROLES_SLOTS};
         }
         config[contract.address] = {
             'code': contract.bytecode,

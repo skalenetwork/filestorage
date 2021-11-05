@@ -21,11 +21,11 @@ pragma solidity ^0.8.0;
 
 import "./Utils.sol";
 import "./PrecompiledCaller.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/StorageSlotUpgradeable.sol";
 
 
-contract FileStorage is AccessControlUpgradeable {
+contract FileStorage is AccessControlEnumerableUpgradeable {
     using Utils for *;
     using PrecompiledCaller for *;
 

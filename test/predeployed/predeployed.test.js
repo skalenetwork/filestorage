@@ -45,12 +45,19 @@ contract('Filestorage', accounts => {
             foreignDir = 'foreignDir';
         });
 
+        it('test roles', async function () {
+            let adminRole = await filestorage.DEFAULT_ADMIN_ROLE();
+            let address = await filestorage.getRoleMember(adminRole, 0);
+            assert.equal(address, accounts[0]);
+        });
+
         it('test initial values', async function () {
             let totalSpace = await filestorage.getTotalStorageSpace();
             assert.equal(totalSpace, testTotalSpace);
             let reservedSpace = await filestorage.getTotalReservedSpace(accounts[0]);
             assert.equal(reservedSpace, 0);
         });
+
 
         it('full pipeline test', async function () {
             let data = addBytesSymbol(randomstring.generate({
