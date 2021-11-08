@@ -14,8 +14,8 @@ contract FileStorageTest is FileStorage {
         reservedStorageSpace[userAddress] = reservedSpace;
     }
 
-    function setStorageSpace(uint storageSpace) external {
-        StorageSlotUpgradeable.getUint256Slot(STORAGE_SPACE_SLOT).value = storageSpace;
+    function setStorageSpace(uint newStorageSpace) external {
+        StorageSlotUpgradeable.getUint256Slot(STORAGE_SPACE_SLOT).value = newStorageSpace;
     }
 
     function setContentCount(uint contentCount) external {

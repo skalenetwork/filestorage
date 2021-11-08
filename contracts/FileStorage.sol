@@ -92,6 +92,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(Utils.checkContentName(newDir), "Invalid directory name");
         bool success = PrecompiledCaller.createDirectory(owner, directoryPath);
         require(success, "Directory not created");
+        // slither-disable-next-line uninitialized-local
         ContentInfo memory directoryInfo;
         directoryInfo.name = newDir;
         directoryInfo.isFile = false;
@@ -118,6 +119,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[targetDirectory];
         currentDirectory.contentIndexes[targetDirectory] = EMPTY_INDEX;
         currentDirectory.contents.pop();
+        // slither-disable-next-line mapping-deletion
         delete currentDirectory.directories[targetDirectory];
     }
 
@@ -159,7 +161,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             data.length == file.size - position ||
             data.length == maxChunkSize, "Incorrect chunk length"
         );
-        require(file.isChunkUploaded[position / maxChunkSize] == false, "Chunk is already uploaded");
+        require(!file.isChunkUploaded[position / maxChunkSize], "Chunk is already uploaded");
         bool success = PrecompiledCaller.uploadChunk(
             owner,
             filePath,
@@ -177,7 +179,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         bool isFileUploaded = true;
         uint chunkCount = file.isChunkUploaded.length;
         for (uint i = 0; i < chunkCount; ++i) {
-            if (file.isChunkUploaded[i] == false) {
+            if (!file.isChunkUploaded[i]) {
                 isFileUploaded = false;
             }
         }
