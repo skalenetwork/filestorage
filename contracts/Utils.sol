@@ -23,7 +23,7 @@ import "./thirdparty/strings.sol";
 
 
 library Utils {
-    using strings for string;
+    using strings for *;
     uint constant MAX_FILENAME_LENGTH = 255;
 
     function checkContentName(string memory contentName) internal pure returns (bool) {
@@ -41,7 +41,7 @@ library Utils {
 
     function parseDirectoryPath(string memory directoryPath) internal pure returns (string[] memory decreasePart) {
         strings.slice memory pathSlice = directoryPath.toSlice();
-        strings.slice memory delimiter = "/".toSlice();
+        strings.slice memory delimiter = string("/").toSlice();
         string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
         for (uint i = 0; i < parts.length; i++) {
             parts[i] = pathSlice.split(delimiter).toString();
