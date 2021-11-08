@@ -19,8 +19,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npm i truffle@5.1.30 -g
-          truffle compile
+          npx truffle compile
       - name: Run lint
         run: |
           npm run lint
@@ -61,8 +60,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npm i truffle@5.1.30 -g
-          truffle compile
+          npx truffle compile
       - name: Generating sChain config
         run: |
           npm run generate-config
@@ -98,8 +96,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npm i truffle@5.1.30 -g
-          truffle compile
+          npx truffle compile
       - name: Coverage
         run: |
           npm run coverage || true

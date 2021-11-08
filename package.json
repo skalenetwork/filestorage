@@ -17,12 +17,12 @@
   "main": "artifacts.json",
   "scripts": {
     "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
-    "build": "rm -r ./build; truffle build",
-    "coverage": "truffle run coverage --file=\"test/unit/*\"",
-    "test": "truffle test test/unit/* --network skaled",
+    "build": "rm -r ./build; npx truffle build",
+    "coverage": "npx truffle run coverage --file=\"test/unit/*\"",
+    "test": "npx truffle test test/unit/* --network skaled",
     "lint": "npx ethlint -d contracts",
     "lint-fix": "npm run lint -- --fix",
-    "predeployed-test": "truffle test test/predeployed/* --network skaled",
+    "predeployed-test": "npx truffle test test/predeployed/* --network skaled",
     "slither": "slither . --filter-path strings --filter-path Migrations",
     "version": "node -e \"console.log(require('./package.json').version);\""
   },
