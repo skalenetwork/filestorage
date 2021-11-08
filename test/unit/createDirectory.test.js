@@ -53,6 +53,15 @@ contract('Filestorage', accounts => {
 
         it('should create empty dir in root', async function () {
             await filestorage.createDirectory(dirName, {from: accounts[0]});
+            let root = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/');
+            let dirInfo = root.find(obj => {
+                return obj.name === dirName;
+            })
+            assert.equal(dirInfo['status'], 0)
+            assert.equal(dirInfo['size'],  0)
+            assert.equal(dirInfo['name'],  dirName)
+            assert.equal(dirInfo['isFile'], false)
+            assert.isEmpty(dirInfo['isChunkUploaded'])
             let dir = await filestorage.listDirectory(dirPath);
             assert.isArray(dir);
         });
