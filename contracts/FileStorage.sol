@@ -92,10 +92,13 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(Utils.checkContentName(newDir), "Invalid directory name");
         bool success = PrecompiledCaller.createDirectory(owner, directoryPath);
         require(success, "Directory not created");
-        // slither-disable-next-line uninitialized-local
-        ContentInfo memory directoryInfo;
-        directoryInfo.name = newDir;
-        directoryInfo.isFile = false;
+        ContentInfo memory directoryInfo = ContentInfo({
+            name: newDir,
+            isFile: false,
+            size: 0,
+            status: FileStatus.NONEXISTENT,
+            isChunkUploaded: new bool[](0)
+        });
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
     }
