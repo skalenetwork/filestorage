@@ -23,6 +23,14 @@ jobs:
       - name: Run lint
         run: |
           npm run lint
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Run slither
+        run: |
+          pip3 install slither-analyzer
+          slither .
       - name: Generating sChain config
         run: |
           npm run generate-config
