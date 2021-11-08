@@ -30,7 +30,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     using PrecompiledCaller for *;
 
     bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
-    bytes32 public constant STORAGE_SLOT = keccak256("STORAGE_SLOT");
+    bytes32 public constant STORAGE_SPACE_SLOT = keccak256("STORAGE_SPACE_SLOT");
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant MAX_FILESIZE = 10 ** 8;
@@ -301,6 +301,6 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     function storageSpace() internal view returns (uint) {
-        return StorageSlotUpgradeable.getUint256Slot(STORAGE_SLOT).value;
+        return StorageSlotUpgradeable.getUint256Slot(STORAGE_SPACE_SLOT).value;
     }
 }

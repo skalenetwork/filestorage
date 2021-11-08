@@ -8,7 +8,7 @@ const FILESTORAGE_IMPLEMENTATION_ADDRESS = '0xD300300000000000000000000000000000
 
 const ADMIN_SLOT = '0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103';
 const IMPLEMENTATION_SLOT = '0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc';
-const STORAGE_SLOT = '0x7c3980c5a16c63a43ac94f60a7ec70c7836423a0d06753639662f9349a9b9ad2';
+const STORAGE_SPACE_SLOT = '0x3c39c62cb61ae774091322c3a742c0553a9b766b6285c7730ebd72b6cd270fb7';
 const BASE_SLOT = '0x0';
 
 const TEST_ROLES_SLOTS = {
@@ -50,7 +50,7 @@ function generateArtifacts(npm=false) {
             }
         }
         config['proxyAdmin']['storage'][BASE_SLOT] = '{{ owner_address }}';
-        config['filestorageProxy']['storage'][STORAGE_SLOT] = '{{ allocated_storage }}';
+        config['filestorageProxy']['storage'][STORAGE_SPACE_SLOT] = '{{ allocated_storage }}';
         config['filestorageProxy']['storage'][ADMIN_SLOT] = PROXY_ADMIN_ADDRESS;
         config['filestorageProxy']['storage'][IMPLEMENTATION_SLOT] = FILESTORAGE_IMPLEMENTATION_ADDRESS;
         artifactsData['predeployedConfig'] = config;
@@ -67,7 +67,7 @@ function generatePredeployedData(ownerAddress, allocatedStorage) {
             contract.storage[BASE_SLOT] = ownerAddress;
         }
         if (name === 'filestorageProxy') {
-            contract.storage[STORAGE_SLOT] = allocatedStorage.toString();
+            contract.storage[STORAGE_SPACE_SLOT] = allocatedStorage.toString();
             contract.storage = {...contract.storage, ...TEST_ROLES_SLOTS};
         }
         config[contract.address] = {
