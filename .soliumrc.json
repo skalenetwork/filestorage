@@ -22,7 +22,6 @@
     "function-order": "error",
     "uppercase": "error",
     "error-reason": "error",
-    "security/no-inline-assembly": "off",
-    "security/no-tx-origin": "off"
+    "security/no-inline-assembly": "off"
   }
 }

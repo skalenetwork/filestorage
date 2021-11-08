@@ -23,6 +23,7 @@ import "./thirdparty/strings.sol";
 
 
 library Utils {
+
     using strings for *;
     uint constant MAX_FILENAME_LENGTH = 255;
 
