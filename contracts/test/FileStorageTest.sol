@@ -1,5 +1,5 @@
 pragma solidity ^0.8.9;
-import "./FileStorage.sol";
+import "../FileStorage.sol";
 
 
 contract FileStorageTest is FileStorage {

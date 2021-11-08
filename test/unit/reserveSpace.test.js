@@ -4,7 +4,7 @@ const assert = chai.assert;
 chai.should();
 chai.use(require('chai-as-promised'));
 
-let filestorageTest = artifacts.require('./FileStorageTest');
+let filestorageTest = artifacts.require('./test/FileStorageTest');
 let sendTransaction = require('../utils/helper').sendTransaction;
 const generateAccount = require('../utils/helper').generateAccount;
 const getFunds = require('../utils/helper').getFunds;

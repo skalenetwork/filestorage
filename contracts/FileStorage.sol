@@ -26,8 +26,6 @@ import "@openzeppelin/contracts-upgradeable/utils/StorageSlotUpgradeable.sol";
 
 
 contract FileStorage is AccessControlEnumerableUpgradeable {
-    using Utils for *;
-    using PrecompiledCaller for *;
 
     bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
     bytes32 public constant STORAGE_SPACE_SLOT = keccak256("STORAGE_SPACE_SLOT");

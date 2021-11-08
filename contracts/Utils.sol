@@ -19,11 +19,11 @@
 
 pragma solidity ^0.8.9;
 
-import "./strings.sol";
+import "./thirdparty/strings.sol";
 
 
 library Utils {
-    using strings for *;
+    using strings for string;
     uint constant MAX_FILENAME_LENGTH = 255;
 
     function checkContentName(string memory contentName) internal pure returns (bool) {

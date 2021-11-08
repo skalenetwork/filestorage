@@ -4,7 +4,7 @@ const assert = chai.assert;
 chai.should();
 chai.use(require('chai-as-promised'));
 
-const FileStorageTest = artifacts.require("./FileStorageTest");
+const FileStorageTest = artifacts.require("./test/FileStorageTest");
 const FileStorage = artifacts.require("./FileStorage");
 
 contract('Filestorage', accounts => {

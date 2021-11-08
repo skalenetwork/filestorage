@@ -152,7 +152,7 @@ contract('Filestorage', accounts => {
             let filestorage;
 
             beforeEach(async function () {
-                filestorage = await artifacts.require('./FileStorageTest').new({from: accounts[0]});
+                filestorage = await artifacts.require('./test/FileStorageTest').new({from: accounts[0]});
                 let allocatorRole = await filestorage.ALLOCATOR_ROLE();
                 await filestorage.grantRole(allocatorRole, accounts[0]);
                 await filestorage.setStorageSpace(MAX_FILESIZE);
