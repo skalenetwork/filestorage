@@ -30,13 +30,12 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
     bytes32 public constant STORAGE_SPACE_SLOT = keccak256("STORAGE_SPACE_SLOT");
 
-    uint constant MAX_BLOCK_COUNT = 2 ** 15;
-    uint constant MAX_FILESIZE = 10 ** 8;
-    uint constant EMPTY_INDEX = 0;
+    uint public constant MAX_BLOCK_COUNT = 2 ** 15;
+    uint public constant MAX_FILESIZE = 10 ** 8;
+    uint public constant EMPTY_INDEX = 0;
 
-    bool internal isInitialized;
-    uint internal maxContentCount;
-    uint internal maxChunkSize;
+    uint internal constant MAX_CONTENT_COUNT = 2 ** 13;
+    uint internal constant MAX_CHUNK_SIZE = 2 ** 20;
 
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
@@ -59,15 +58,6 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     mapping(address => Directory) rootDirectories;
     uint totalReservedSpace = 0;
 
-    modifier initializing() {
-        if (!isInitialized) {
-            maxContentCount = 2 ** 13;
-            maxChunkSize = 2 ** 20;
-            isInitialized = true;
-        }
-        _;
-    }
-
     function reserveSpace(address userAddress, uint reservedSpace) external {
         require(hasRole(ALLOCATOR_ROLE, msg.sender), "Caller is not allowed to reserve space");
         require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
@@ -77,7 +67,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         totalReservedSpace += reservedSpace;
     }
 
-    function createDirectory(string memory directoryPath) external initializing {
+    function createDirectory(string memory directoryPath) external {
         require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
@@ -86,7 +76,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             require(currentDirectory.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDirectory = currentDirectory.directories[dirs[i - 1]];
         }
-        require(currentDirectory.contents.length < maxContentCount, "Directory is full");
+        require(currentDirectory.contents.length < getMaxContentCount(), "Directory is full");
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDirectory.contentIndexes[newDir] == EMPTY_INDEX, "File or directory exists");
         require(Utils.checkContentName(newDir), "Invalid directory name");
@@ -126,7 +116,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         delete currentDirectory.directories[targetDirectory];
     }
 
-    function startUpload(string memory filePath, uint256 fileSize) external initializing {
+    function startUpload(string memory filePath, uint256 fileSize) external {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
@@ -136,13 +126,13 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             require(currentDirectory.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
             currentDirectory = currentDirectory.directories[dirs[i - 1]];
         }
-        require(currentDirectory.contents.length < maxContentCount, "Directory is full");
+        require(currentDirectory.contents.length < getMaxContentCount(), "Directory is full");
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDirectory.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
         require(Utils.checkContentName(pureFileName), "Filename should be < 256");
         bool success = PrecompiledCaller.startUpload(owner, filePath, fileSize);
         require(success, "File not created");
-        bool[] memory isChunkUploaded = new bool[]((fileSize + maxChunkSize - 1) / maxChunkSize);
+        bool[] memory isChunkUploaded = new bool[]((fileSize + getMaxChunkSize() - 1) / getMaxChunkSize());
         currentDirectory.contents.push(ContentInfo({
             name : pureFileName,
             isFile : true,
@@ -158,13 +148,13 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
-        require(position % maxChunkSize == 0 && position < file.size, "Incorrect chunk position");
+        require(position % getMaxChunkSize() == 0 && position < file.size, "Incorrect chunk position");
         require(
-            file.size - position < maxChunkSize &&
+            file.size - position < getMaxChunkSize() &&
             data.length == file.size - position ||
-            data.length == maxChunkSize, "Incorrect chunk length"
+            data.length == getMaxChunkSize(), "Incorrect chunk length"
         );
-        require(!file.isChunkUploaded[position / maxChunkSize], "Chunk is already uploaded");
+        require(!file.isChunkUploaded[position / getMaxChunkSize()], "Chunk is already uploaded");
         bool success = PrecompiledCaller.uploadChunk(
             owner,
             filePath,
@@ -172,7 +162,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             data
         );
         require(success, "Chunk wasn't uploaded");
-        file.isChunkUploaded[position / maxChunkSize] = true;
+        file.isChunkUploaded[position / getMaxChunkSize()] = true;
     }
 
     function finishUpload(string memory filePath) external {
@@ -220,7 +210,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.COMPLETED, "File hasn't been uploaded");
-        require(length <= maxChunkSize && length > 0, "Incorrect chunk length");
+        require(length <= getMaxChunkSize() && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
         bool success;
         (success, chunk) = PrecompiledCaller.readChunk(
@@ -288,6 +278,14 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function getOccupiedSpace(address owner) external view returns (uint) {
         return occupiedStorageSpace[owner];
+    }
+
+    function getMaxContentCount() virtual public view returns (uint) {
+        return MAX_CONTENT_COUNT;
+    }
+
+    function getMaxChunkSize() virtual public view returns (uint) {
+        return MAX_CHUNK_SIZE;
     }
 
     function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage) {

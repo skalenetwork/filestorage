@@ -3,10 +3,12 @@ import "../FileStorage.sol";
 
 
 contract FileStorageTest is FileStorage {
+    uint internal maxContentCount = MAX_CONTENT_COUNT;
+    uint internal maxChunkSize = MAX_CHUNK_SIZE;
+
     constructor() public {
         maxContentCount = 2 ** 13;
         maxChunkSize = 2 ** 10;
-        isInitialized = true;
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
     }
 
@@ -28,5 +30,13 @@ contract FileStorageTest is FileStorage {
 
     function getContentCount() external view returns (uint) {
         return maxContentCount;
+    }
+
+    function getMaxContentCount() public override view returns (uint) {
+        return maxContentCount;
+    }
+
+    function getMaxChunkSize() public override view returns (uint) {
+        return maxChunkSize;
     }
 }
