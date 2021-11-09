@@ -2,3 +2,5 @@ __pycache__
 venv/
 idea/
 *.egg-info/
+src/filestorage_predeployed/artifacts/*
+!src/filestorage_predeployed/artifacts/.keep
