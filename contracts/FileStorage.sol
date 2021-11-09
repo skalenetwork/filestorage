@@ -67,7 +67,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         totalReservedSpace += reservedSpace;
     }
 
-    function createDirectory(string memory directoryPath) external {
+    function createDirectory(string calldata directoryPath) external {
         require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
@@ -94,7 +94,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     // TODO: delete dir with all content in it
-    function deleteDirectory(string memory directoryPath) external {
+    function deleteDirectory(string calldata directoryPath) external {
         address owner = msg.sender;
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
         Directory storage currentDirectory = rootDirectories[owner];
@@ -116,7 +116,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         delete currentDirectory.directories[targetDirectory];
     }
 
-    function startUpload(string memory filePath, uint256 fileSize) external {
+    function startUpload(string calldata filePath, uint256 fileSize) external {
         address owner = msg.sender;
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
@@ -144,7 +144,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         occupiedStorageSpace[owner] += fileSize;
     }
 
-    function uploadChunk(string memory filePath, uint position, bytes memory data) external {
+    function uploadChunk(string calldata filePath, uint position, bytes calldata data) external {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
@@ -165,7 +165,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         file.isChunkUploaded[position / getMaxChunkSize()] = true;
     }
 
-    function finishUpload(string memory filePath) external {
+    function finishUpload(string calldata filePath) external {
         address owner = msg.sender;
         ContentInfo storage file = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
@@ -182,7 +182,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(success, "Hash hasn't been calculated");
     }
 
-    function deleteFile(string memory filePath) external {
+    function deleteFile(string calldata filePath) external {
         address owner = msg.sender;
         ContentInfo memory file = getContentInfo(owner, filePath);
         require(file.status != FileStatus.NONEXISTENT, "File not exists");
@@ -202,7 +202,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         occupiedStorageSpace[owner] -= file.size;
     }
 
-    function readChunk(string memory storagePath, uint position, uint length)
+    function readChunk(string calldata storagePath, uint position, uint length)
         external
         view
         returns (bytes32[MAX_BLOCK_COUNT] memory chunk)
@@ -223,7 +223,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     // TODO: handle root dir
-    function listDirectory(string memory storagePath) external view returns (ContentInfo[] memory) {
+    function listDirectory(string calldata storagePath) external view returns (ContentInfo[] memory) {
         (address owner, string memory directoryPath) = Utils.parseStoragePath(storagePath);
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
         Directory storage currentDirectory = rootDirectories[owner];
@@ -234,7 +234,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         return currentDirectory.contents;
     }
 
-    function getFileStatus(string memory storagePath) external view returns (FileStatus) {
+    function getFileStatus(string calldata storagePath) external view returns (FileStatus) {
         (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
@@ -252,7 +252,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         return file.status;
     }
 
-    function getFileSize(string memory storagePath) external view returns (uint fileSize) {
+    function getFileSize(string calldata storagePath) external view returns (uint fileSize) {
         (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
         ContentInfo memory file = getContentInfo(owner, filePath);
         require(
