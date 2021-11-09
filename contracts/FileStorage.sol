@@ -280,11 +280,11 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         return occupiedStorageSpace[owner];
     }
 
-    function getMaxContentCount() virtual public view returns (uint) {
+    function getMaxContentCount() public virtual view returns (uint) {
         return MAX_CONTENT_COUNT;
     }
 
-    function getMaxChunkSize() virtual public view returns (uint) {
+    function getMaxChunkSize() public virtual view returns (uint) {
         return MAX_CHUNK_SIZE;
     }
 

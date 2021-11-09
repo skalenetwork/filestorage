@@ -22,6 +22,7 @@
     "function-order": "error",
     "uppercase": "error",
     "error-reason": "error",
+    "visibility-first": "error",
     "security/no-inline-assembly": "off"
   }
 }
