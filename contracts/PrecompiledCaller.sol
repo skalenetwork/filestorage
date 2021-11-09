@@ -149,7 +149,6 @@ library PrecompiledCaller {
             let p_position := add(ptr, mul(32, filePathBlocks))
             mstore(p_position, position)
             mstore(add(32, p_position), length)
-            // slither-disable-next-line divide-before-multiply
             success := staticcall(not(0), READ_CHUNK_ADDRESS, p, mul(32, add(3, filePathBlocks)), chunk, mul(32, returnedDataBlocks))
         }
     }

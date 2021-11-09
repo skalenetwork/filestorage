@@ -16,7 +16,6 @@
   "author": "SKALE Labs and contributors",
   "main": "artifacts.json",
   "scripts": {
-    "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
     "build": "rm -r ./build; npx truffle build",
     "coverage": "npx truffle run coverage --file=\"test/unit/*\"",
     "test": "npx truffle test test/unit/* --network skaled",
@@ -27,7 +26,6 @@
     "version": "node -e \"console.log(require('./package.json').version);\""
   },
   "dependencies": {
-    "@openzeppelin/upgrades-core": "^1.5.1",
     "@openzeppelin/contracts-upgradeable": "^4.3.2"
   },
   "devDependencies": {
