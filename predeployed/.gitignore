@@ -5,3 +5,4 @@ idea/
 src/filestorage_predeployed/artifacts/*
 !src/filestorage_predeployed/artifacts/.keep
 test/data/config.json
+test/data/artifacts.json
