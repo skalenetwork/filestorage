@@ -5,7 +5,7 @@ const Web3 = require('web3');
 const generatePredeployedData = require('../../scripts/generate').generatePredeployedData;
 
 const testBalance = '2';
-const testSpace = 1000000;
+const testSpace = 10000000;
 const rootPrivateKey = process.env.SCHAIN_OWNER_PK;
 const web3 = new Web3(process.env.ENTRYPOINT);
 

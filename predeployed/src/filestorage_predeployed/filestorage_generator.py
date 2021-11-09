@@ -37,15 +37,8 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
         w3.solidityKeccak(['string'], ['STORAGE_SPACE_SLOT']),
         byteorder='big')
 
-    # ---------- storage ----------
-    # --AccessControl---
-    # 0:  _roles
-    # AccessControlEnumerable
-    # 1:  _roleMembers
-    # ----------FileStorage----------
-
-    ROLES_SLOT = 0
-    ROLE_MEMBERS_SLOT = AccessControlEnumerableGenerator.next_slot(ROLES_SLOT)
+    ROLES_SLOT = 101
+    ROLE_MEMBERS_SLOT = 151
 
     def __init__(self):
         generator = FileStorageGenerator.from_hardhat_artifact(join(
