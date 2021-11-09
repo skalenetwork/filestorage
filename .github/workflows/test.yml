@@ -33,9 +33,8 @@ jobs:
           slither .
       - name: Generating sChain config
         run: |
-          npm run generate-config
           mkdir -p ~/schain_data/data_dir
-          mv test/utils/config.json ~/schain_data/
+          mv ./predeployed/test/data/base_config.json ~/schain_data/
       - name: Run sChain container
         run: |
           docker pull skalenetwork/schain:${{ env.SCHAIN_VERSION }}
@@ -81,7 +80,7 @@ jobs:
           mkdir -p ~/schain_data/data_dir
           cp ./build/contracts/FileStorage.json ./predeployed/src/filestorage_predeployed/artifacts/
           python ./predeployed/test/generate.py
-          mv test/utils/config.json ~/schain_data/
+          mv ./predeployed/test/data/config.json ~/schain_data/
       - name: Run sChain container
         run: |
           docker pull skalenetwork/schain:${{ env.SCHAIN_VERSION }}
