@@ -95,10 +95,10 @@ jobs:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Node 14
+      - name: Set up Node 12
         uses: actions/setup-node@v1
         with:
-          node-version: 14
+          node-version: 12
       - name: Install dependencies
         run: |
           npm i
