@@ -19,8 +19,11 @@
 
 from os.path import dirname, join
 from typing import Dict
+
+from predeployed_generator.openzeppelin.proxy_admin_generator import ProxyAdminGenerator
 from web3.auto import w3
 
+from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
 from predeployed_generator.openzeppelin.access_control_enumerable_generator \
     import AccessControlEnumerableGenerator
 
@@ -61,3 +64,11 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
         cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [schain_owner])
         cls._write_uint256(storage, cls.STORAGE_SPACE_SLOT, allocated_storage)
         return storage
+
+
+class UpgradeableFileStorageGenerator(UpgradeableContractGenerator):
+    '''Generates upgradeable instance of FileStorageUpgradeable
+    '''
+
+    def __init__(self):
+        super().__init__(implementation_generator=FileStorageGenerator())
