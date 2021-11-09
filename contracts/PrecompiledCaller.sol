@@ -18,9 +18,11 @@
 */
 
 pragma solidity ^0.8.9;
+import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 
 library PrecompiledCaller {
+    using MathUpgradeable for uint;
 
     uint constant MAX_BLOCK_COUNT = 2 ** 15;
     uint constant FREE_MEM_PTR = 0x40;
@@ -34,7 +36,7 @@ library PrecompiledCaller {
     uint constant CALCULATE_FILE_HASH = 0x11;
 
     function createDirectory(address owner, string memory directoryPath) internal returns (bool success) {
-        uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
+        uint blocks = bytes(directoryPath).length.ceilDiv(32) + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
@@ -47,7 +49,7 @@ library PrecompiledCaller {
     }
 
     function deleteDirectory(address owner, string memory directoryPath) internal returns (bool success) {
-        uint blocks = (bytes(directoryPath).length + 31) / 32 + 1;
+        uint blocks = bytes(directoryPath).length.ceilDiv(32) + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
@@ -60,7 +62,7 @@ library PrecompiledCaller {
     }
 
     function startUpload(address owner, string memory filePath, uint256 fileSize) internal returns (bool success) {
-        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
+        uint blocks = bytes(filePath).length.ceilDiv(32) + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
@@ -82,8 +84,8 @@ library PrecompiledCaller {
         internal
         returns (bool success)
     {
-        uint dataBlocks = (data.length + 31) / 32 + 1;
-        uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
+        uint dataBlocks = data.length.ceilDiv(32) + 1;
+        uint filePathBlocks = bytes(filePath).length.ceilDiv(32) + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
@@ -100,7 +102,7 @@ library PrecompiledCaller {
     }
 
     function calculateFileHash(address owner, string memory filePath) internal returns (bool success) {
-        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
+        uint blocks = bytes(filePath).length.ceilDiv(32) + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
@@ -113,7 +115,7 @@ library PrecompiledCaller {
     }
 
     function deleteFile(address owner, string memory filePath) internal returns (bool success) {
-        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
+        uint blocks = bytes(filePath).length.ceilDiv(32) + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
@@ -135,8 +137,8 @@ library PrecompiledCaller {
         view
         returns (bool success, bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
-        uint filePathBlocks = (bytes(filePath).length + 31) / 32 + 1;
-        uint returnedDataBlocks = (length + 31) / 32;
+        uint filePathBlocks = bytes(filePath).length.ceilDiv(32) + 1;
+        uint returnedDataBlocks = length.ceilDiv(32);
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
@@ -157,7 +159,7 @@ library PrecompiledCaller {
         view
         returns (bool success, uint fileSize)
     {
-        uint blocks = (bytes(filePath).length + 31) / 32 + 1;
+        uint blocks = bytes(filePath).length.ceilDiv(32) + 1;
         assembly {
             let p := mload(FREE_MEM_PTR)
             mstore(p, owner)
