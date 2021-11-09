@@ -4,3 +4,4 @@ idea/
 *.egg-info/
 src/filestorage_predeployed/artifacts/*
 !src/filestorage_predeployed/artifacts/.keep
+test/data/config.json

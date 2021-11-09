@@ -20,7 +20,6 @@
 from os.path import dirname, join
 from typing import Dict
 
-from predeployed_generator.openzeppelin.proxy_admin_generator import ProxyAdminGenerator
 from web3.auto import w3
 
 from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
