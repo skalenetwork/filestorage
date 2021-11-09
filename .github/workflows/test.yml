@@ -34,7 +34,7 @@ jobs:
       - name: Generating sChain config
         run: |
           mkdir -p ~/schain_data/data_dir
-          mv ./predeployed/test/data/base_config.json ~/schain_data/
+          cp ./predeployed/test/data/base_config.json ~/schain_data/config.json
       - name: Run sChain container
         run: |
           docker pull skalenetwork/schain:${{ env.SCHAIN_VERSION }}
