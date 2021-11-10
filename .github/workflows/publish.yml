@@ -1,7 +1,6 @@
 name: Publish
 on:
   pull_request:
-    types: [closed]
     branches:
       - stable
       - develop
@@ -19,12 +18,16 @@ jobs:
         with:
           node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
       - name: Install dependencies
         run: |
           npm i
+          pip install -e ./predeployed
       - name: Compile with truffle
         run: |
-          npx truffle compile
+          npm run compile
       - name: Set version and branch
         run: |
           export BRANCH=${GITHUB_REF##*/}
@@ -34,39 +37,38 @@ jobs:
           echo "Version $VERSION"
       - name: Generate artifacts.json NPM
         run: |
-          node scripts/deploy.js --npm
-      - name: Publish on npm
-        if: github.ref != 'refs/heads/stable'
-        run: |
-          npm version --no-git-tag-version ${{ env.VERSION }}
-          npm publish --access public --tag ${{ env.BRANCH }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Publish on npm (stable)
-        if: github.ref == 'refs/heads/stable'
-        run: |
-          npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Generate artifacts.json
-        run: |
-          node scripts/deploy.js
-      - name: Create Release
-        if: github.ref != 'refs/heads/stable'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.VERSION }}
-          release_name: ${{ env.VERSION }}
-          draft: false
-          prerelease: true
-      - name: Create Release (stable)
-        if: github.ref == 'refs/heads/stable'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.VERSION }}
-          release_name: ${{ env.VERSION }}
-          draft: false
+          python predeployed/utils/generate_artifacts.py
+          cp predeployed/utils/data/artifacts.json .
+          cat artifacts.json
+#      - name: Publish on npm
+#        if: github.ref != 'refs/heads/stable'
+#        run: |
+#          npm version --no-git-tag-version ${{ env.VERSION }}
+#          npm publish --access public --tag ${{ env.BRANCH }}
+#        env:
+#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+#      - name: Publish on npm (stable)
+#        if: github.ref == 'refs/heads/stable'
+#        run: |
+#          npm publish --access public
+#        env:
+#          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+#      - name: Create Release
+#        if: github.ref != 'refs/heads/stable'
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ env.VERSION }}
+#          release_name: ${{ env.VERSION }}
+#          draft: false
+#          prerelease: true
+#      - name: Create Release (stable)
+#        if: github.ref == 'refs/heads/stable'
+#        uses: actions/create-release@v1
+#        env:
+#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#        with:
+#          tag_name: ${{ env.VERSION }}
+#          release_name: ${{ env.VERSION }}
+#          draft: false

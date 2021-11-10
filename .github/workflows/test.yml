@@ -19,7 +19,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npx truffle compile
+          npm run compile
       - name: Run lint
         run: |
           npm run lint
@@ -74,11 +74,10 @@ jobs:
           pip install -e ./predeployed
       - name: Compile with truffle
         run: |
-          npx truffle compile
+          npm run compile
       - name: Generating sChain config
         run: |
           mkdir -p ~/schain_data/data_dir
-          cp ./build/contracts/FileStorage.json ./predeployed/src/filestorage_predeployed/artifacts/
           python ./predeployed/utils/generate_config.py
           mv ./predeployed/utils/data/config.json ~/schain_data/
       - name: Run sChain container
@@ -111,7 +110,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npx truffle compile
+          npm run compile
       - name: Coverage
         run: |
           npm run coverage || true
