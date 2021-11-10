@@ -1,8 +1,5 @@
 require('dotenv').config();
-const fs = require('fs');
-const path = require('path');
 const Web3 = require('web3');
-const generatePredeployedData = require('../../scripts/generate').generatePredeployedData;
 
 const testBalance = '2';
 const testSpace = 10000000;
@@ -70,22 +67,10 @@ async function initFilestorage(account, artifacts) {
     return filestorage;
 }
 
-function generateTestConfig() {
-    let skaledConfigPath = path.join(path.resolve(__dirname), 'config.json');
-    let skaledConfig = require(skaledConfigPath);
-    let rootAccount = web3.eth.accounts.privateKeyToAccount(rootPrivateKey).address;
-    let predeployedData = generatePredeployedData(rootAccount, testSpace);
-    for (let address in predeployedData) {
-        skaledConfig.accounts[address] = predeployedData[address];
-    }
-    fs.writeFileSync(skaledConfigPath, JSON.stringify(skaledConfig, null, '\t'));
-}
-
 module.exports.getFunds = getFunds;
 module.exports.privateKeyToAddress = privateKeyToAddress;
 module.exports.sendTransaction = sendTransaction;
 module.exports.initFilestorage = initFilestorage;
-module.exports.generateTestConfig = generateTestConfig;
 module.exports.generateAccount = generateAccount;
 module.exports.getNonce = getNonce;
 module.exports.testSpace = testSpace;

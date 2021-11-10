@@ -7,8 +7,9 @@ require('dotenv').config();
 let randomstring = require('randomstring');
 let path = require('path').posix;
 let filestorageContract = artifacts.require('./FileStorage');
+
 const testTotalSpace = require('../utils/helper').testSpace;
-const FILESTORAGE_PROXY_ADDRESS = require('../../scripts/generate').FILESTORAGE_PROXY_ADDRESS;
+const FILESTORAGE_PROXY_ADDRESS = '0xD3002000000000000000000000000000000000d3';
 
 contract('Filestorage', accounts => {
     let filestorage;
