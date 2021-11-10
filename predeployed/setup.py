@@ -33,6 +33,9 @@ setup(
     extras_require=extras_require,
     keywords=['skale', 'filestorage', 'predeployed'],
     packages=find_packages(),
+    package_data={
+        'filestorage_predeployed': ['artifacts/FileStorage.json']
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

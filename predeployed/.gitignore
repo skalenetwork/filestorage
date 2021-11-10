@@ -1,8 +1,9 @@
 __pycache__
 venv/
 idea/
+dist/
 *.egg-info/
-src/filestorage_predeployed/artifacts/*
-!src/filestorage_predeployed/artifacts/.keep
+filestorage_predeployed/artifacts/*
+!filestorage_predeployed/artifacts/.keep
 utils/data/config.json
 utils/data/artifacts.json

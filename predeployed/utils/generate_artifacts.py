@@ -1,7 +1,7 @@
 import json
 import os
 
-from src.filestorage_predeployed import FILESTORAGE_ADDRESS
+from filestorage_predeployed import FILESTORAGE_ADDRESS
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 CONTRACT_DATA_PATH = os.path.join(DIR_PATH, '..', 'src', 'filestorage_predeployed', 'artifacts', 'FileStorage.json')

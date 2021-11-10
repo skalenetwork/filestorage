@@ -2,9 +2,9 @@ import json
 import os
 
 from predeployed_generator.openzeppelin.proxy_admin_generator import ProxyAdminGenerator
-from src.filestorage_predeployed import (UpgradeableFileStorageGenerator, FILESTORAGE_ADDRESS,
-                                         FILESTORAGE_IMPLEMENTATION_ADDRESS,
-                                         FILESTORAGE_ADMIN_ADDRESS)
+from filestorage_predeployed import (UpgradeableFileStorageGenerator, FILESTORAGE_ADDRESS,
+                                     FILESTORAGE_IMPLEMENTATION_ADDRESS,
+                                     FILESTORAGE_ADMIN_ADDRESS)
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
 BASE_CONFIG_PATH = os.path.join(DIR_PATH, 'data', 'base_config.json')
