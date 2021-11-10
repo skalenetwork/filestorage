@@ -80,7 +80,7 @@ jobs:
           mkdir -p ~/schain_data/data_dir
           cp ./build/contracts/FileStorage.json ./predeployed/src/filestorage_predeployed/artifacts/
           python ./predeployed/utils/generate_config.py
-          mv ./predeployed/test/data/config.json ~/schain_data/
+          mv ./predeployed/utils/data/config.json ~/schain_data/
       - name: Run sChain container
         run: |
           docker pull skalenetwork/schain:${{ env.SCHAIN_VERSION }}
