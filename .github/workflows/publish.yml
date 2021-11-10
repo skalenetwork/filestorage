@@ -71,16 +71,20 @@ jobs:
       - name: Compile with truffle
         run: |
           npm run compile
-      - name: Build library
+      - name: Calculate versions
         run: |
-          export BRANCH=${GITHUB_REF##*/}
+          export BRANCH=develop
           echo "Branch $BRANCH"
           export GITHUB_VERSION=$(bash ./scripts/calculate_version.sh)
+          echo "GITHUB_VERSION=$GITHUB_VERSION" >> $GITHUB_ENV
           export VERSION=$(bash predeployed/scripts/calculate_version.sh)
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "GITHUB_VERSION=GITHUB_VERSION" >> $GITHUB_ENV
-          echo "Version $VERSION"
-          bash ./predeployed/scripts/build.sh
+          echo "Release version $GITHUB_VERSION"
+          echo "Pkg version $VERSION"
+      - name: Build
+        working-directory: ./predeployed
+        run: |
+          bash ./scripts/build.sh
 #      - name: Publish to pip
 #        run: |
 #          bash predeployed/scripts/publish.sh

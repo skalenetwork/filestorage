@@ -4,7 +4,7 @@ import os
 from filestorage_predeployed import FILESTORAGE_ADDRESS
 
 DIR_PATH = os.path.dirname(os.path.realpath(__file__))
-CONTRACT_DATA_PATH = os.path.join(DIR_PATH, '..', 'src', 'filestorage_predeployed', 'artifacts', 'FileStorage.json')
+CONTRACT_DATA_PATH = os.path.join(DIR_PATH, '..', 'filestorage_predeployed', 'artifacts', 'FileStorage.json')
 ARTIFACTS_PATH = os.path.join(DIR_PATH, 'data', 'artifacts.json')
 
 if __name__ == '__main__':

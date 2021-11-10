@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-: "${PIP_USERNAME?Need to set PIP_USERNAME}"
-: "${PIP_PASSWORD?Need to set PIP_PASSWORD}"
+#: "${PIP_USERNAME?Need to set PIP_USERNAME}"
+#: "${PIP_PASSWORD?Need to set PIP_PASSWORD}"
 
 if [ $TEST = 1 ]; then
     twine upload --repository testpypi dist/*
