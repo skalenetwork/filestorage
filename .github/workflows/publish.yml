@@ -68,6 +68,7 @@ jobs:
         run: |
           npm i
           pip install -e ./predeployed
+          pip install wheel
       - name: Compile with truffle
         run: |
           npm run compile
