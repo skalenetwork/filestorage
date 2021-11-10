@@ -1,6 +1,7 @@
 name: Publish
 on:
   pull_request:
+    types: [closed]
     branches:
       - stable
       - develop
@@ -8,7 +9,7 @@ on:
 
 
 jobs:
-  build:
+  npm:
     runs-on: ubuntu-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -39,7 +40,6 @@ jobs:
         run: |
           python predeployed/utils/generate_artifacts.py
           cp predeployed/utils/data/artifacts.json .
-          cat artifacts.json
 #      - name: Publish on npm
 #        if: github.ref != 'refs/heads/stable'
 #        run: |
@@ -53,14 +53,46 @@ jobs:
 #          npm publish --access public
 #        env:
 #          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  predeployed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+          registry-url: 'https://registry.npmjs.org'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
+        run: |
+          npm i
+          pip install -e ./predeployed
+      - name: Compile with truffle
+        run: |
+          npm run compile
+      - name: Build library
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export GITHUB_VERSION=$(bash ./scripts/calculate_version.sh)
+          export VERSION=$(bash predeployed/scripts/calculate_version.sh)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "GITHUB_VERSION=GITHUB_VERSION" >> $GITHUB_ENV
+          echo "Version $VERSION"
+          bash ./predeployed/scripts/build.sh
+#      - name: Publish to pip
+#        run: |
+#          bash predeployed/scripts/publish.sh
 #      - name: Create Release
 #        if: github.ref != 'refs/heads/stable'
 #        uses: actions/create-release@v1
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #        with:
-#          tag_name: ${{ env.VERSION }}
-#          release_name: ${{ env.VERSION }}
+#          tag_name: ${{ env.GITHUB_VERSION }}
+#          release_name: ${{ env.GITHUB_VERSION }}
 #          draft: false
 #          prerelease: true
 #      - name: Create Release (stable)
@@ -69,6 +101,6 @@ jobs:
 #        env:
 #          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 #        with:
-#          tag_name: ${{ env.VERSION }}
-#          release_name: ${{ env.VERSION }}
+#          tag_name: ${{ env.GITHUB_VERSION }}
+#          release_name: ${{ env.GITHUB_VERSION }}
 #          draft: false

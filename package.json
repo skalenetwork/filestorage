@@ -18,7 +18,7 @@
   "scripts": {
     "build": "rm -r ./build; npx truffle build",
     "coverage": "npx truffle run coverage --file=\"test/unit/*\"",
-    "compile": "npx truffle compile; cp build/contracts/FileStorage.json predeployed/src/filestorage_predeployed/artifacts/",
+    "compile": "npx truffle compile; cp build/contracts/FileStorage.json predeployed/filestorage_predeployed/artifacts/",
     "test": "npx truffle test test/unit/* --network skaled",
     "lint": "npx ethlint -d contracts",
     "lint-fix": "npm run lint -- --fix",
