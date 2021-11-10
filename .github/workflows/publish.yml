@@ -78,6 +78,7 @@ jobs:
           echo "Branch $BRANCH"
           export GITHUB_VERSION=$(bash ./scripts/calculate_version.sh)
           echo "GITHUB_VERSION=$GITHUB_VERSION" >> $GITHUB_ENV
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "Release version $GITHUB_VERSION"
       - name: Build
         working-directory: ./predeployed
