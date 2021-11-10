@@ -56,6 +56,9 @@ jobs:
 
   predeployed:
     runs-on: ubuntu-latest
+    env:
+      PIP_USERNAME: ${{ secrets.PIP_USERNAME }}
+      PIP_PASSWORD: ${{ secrets.PIP_PASSWORD }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
