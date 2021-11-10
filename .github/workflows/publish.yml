@@ -81,10 +81,6 @@ jobs:
         run: |
           export BRANCH=${GITHUB_REF##*/}
           echo "Branch $BRANCH"
-          export GITHUB_VERSION=$(bash ./scripts/calculate_version.sh)
-          echo "GITHUB_VERSION=$GITHUB_VERSION" >> $GITHUB_ENV
-          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
-          echo "Release version $GITHUB_VERSION"
       - name: Build
         working-directory: ./predeployed
         run: |
@@ -96,6 +92,27 @@ jobs:
         working-directory: ./predeployed
         run: |
           bash ./scripts/publish.sh
+
+  github:
+    needs: [npm, predeployed]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Install dependencies
+        run: |
+          npm i
+      - name: Calculate versions
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export GITHUB_VERSION=$(bash ./scripts/calculate_version.sh)
+          echo "GITHUB_VERSION=$GITHUB_VERSION" >> $GITHUB_ENV
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "Release version $GITHUB_VERSION"
       - name: Create Release
         if: github.ref != 'refs/heads/stable'
         uses: actions/create-release@v1
