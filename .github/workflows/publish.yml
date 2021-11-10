@@ -67,7 +67,8 @@ jobs:
       - name: Install dependencies
         run: |
           npm i
-          pip install -e ./predeployed
+          cd predeployed/
+          pip install -e .[dev]
           pip install wheel
       - name: Compile with truffle
         run: |
