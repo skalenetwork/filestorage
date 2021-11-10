@@ -25,7 +25,7 @@ setup(
     long_description_markdown_filename='README.md',
     author='SKALE Labs',
     author_email='support@skalelabs.com',
-    url='https://github.com/skalenetwork/filestorage/predeployed',
+    url='https://github.com/skalenetwork/filestorage',
     install_requires=[
         "predeployed-generator == 0.0.1a2"
     ],
