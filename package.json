@@ -16,17 +16,18 @@
   "author": "SKALE Labs and contributors",
   "main": "artifacts.json",
   "scripts": {
-    "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
-    "build": "rm -r ./build; truffle build",
-    "coverage": "truffle run coverage --file=\"test/unit/*\"",
-    "test": "truffle test test/unit/* --network skaled",
+    "build": "rm -r ./build; npx truffle build",
+    "coverage": "npx truffle run coverage --file=\"test/unit/*\"",
+    "compile": "npx truffle compile; cp build/contracts/FileStorage.json predeployed/filestorage_predeployed/artifacts/",
+    "test": "npx truffle test test/unit/* --network skaled",
     "lint": "npx ethlint -d contracts",
     "lint-fix": "npm run lint -- --fix",
+    "predeployed-test": "npx truffle test test/predeployed/* --network skaled",
     "slither": "slither . --filter-path strings --filter-path Migrations",
     "version": "node -e \"console.log(require('./package.json').version);\""
   },
   "dependencies": {
-    "@openzeppelin/upgrades-core": "^1.5.1"
+    "@openzeppelin/contracts-upgradeable": "^4.3.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -35,7 +36,7 @@
     "dotenv": "^8.2.0",
     "randomstring": "^1.1.5",
     "solidity-coverage": "^0.7.17",
-    "truffle": "5.1.0",
+    "truffle": "5.1.30",
     "@truffle/hdwallet-provider": "^1.5.1",
     "web3": "^1.2.1"
   },

@@ -17,24 +17,15 @@
     along with FileStorage.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-pragma solidity ^0.5.3;
+pragma solidity ^0.8.9;
 
-import "./strings.sol";
-
-interface Context
-{
-    function getSchainOwnerAddress() external view returns (address);
-}
+import "./thirdparty/strings.sol";
 
 
 library Utils {
+
     using strings for *;
     uint constant MAX_FILENAME_LENGTH = 255;
-    address constant CONTEXT_ADDRESS = 0xD2001000000000000000000000000000000000D2;
-
-    function getSchainOwner() internal view returns (address) {
-        return Context(CONTEXT_ADDRESS).getSchainOwnerAddress();
-    }
 
     function checkContentName(string memory contentName) internal pure returns (bool) {
         if (keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("..")) ||
@@ -51,7 +42,7 @@ library Utils {
 
     function parseDirectoryPath(string memory directoryPath) internal pure returns (string[] memory decreasePart) {
         strings.slice memory pathSlice = directoryPath.toSlice();
-        strings.slice memory delimiter = "/".toSlice();
+        strings.slice memory delimiter = string("/").toSlice();
         string[] memory parts = new string[](pathSlice.count(delimiter) + 1);
         for (uint i = 0; i < parts.length; i++) {
             parts[i] = pathSlice.split(delimiter).toString();
@@ -75,18 +66,18 @@ library Utils {
         for (uint i = 0; i < addressLength; i++) {
             ownerAddress[i] = bytes(storagePath)[i];
         }
-        uint result = 0;
+        uint160 result = 0;
         for (uint i = 0; i < addressLength; i++) {
-            uint c = uint(uint8(ownerAddress[i]));
+            uint c = uint160(uint8(ownerAddress[i]));
             require((c >= 48 && c <= 57) || (c >= 65 && c <= 90) || (c >= 97 && c <= 102), "Invalid storagePath");
             if (c >= 48 && c <= 57) {
-                result = result * 16 + (c - 48);
+                result = result * 16 + uint160(c - 48);
             }
             if (c >= 65 && c <= 90) {
-                result = result * 16 + (c - 55);
+                result = result * 16 + uint160(c - 55);
             }
             if (c >= 97 && c <= 102) {
-                result = result * 16 + (c - 87);
+                result = result * 16 + uint160(c - 87);
             }
         }
         owner = address(result);
@@ -94,7 +85,7 @@ library Utils {
         uint fileNameLength = bytes(storagePath).length - addressLength - 1;
         filePath = new string(fileNameLength);
         for (uint i = 0; i < fileNameLength; i++) {
-            byte char = bytes(storagePath)[i + addressLength + 1];
+            bytes1 char = bytes(storagePath)[i + addressLength + 1];
             bytes(filePath)[i] = char;
         }
     }

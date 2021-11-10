@@ -4,7 +4,7 @@ const assert = chai.assert;
 chai.should();
 chai.use(require('chai-as-promised'));
 
-let filestorageTest = artifacts.require('./FileStorageTest');
+let filestorageTest = artifacts.require('./test/FileStorageTest');
 let sendTransaction = require('../utils/helper').sendTransaction;
 const generateAccount = require('../utils/helper').generateAccount;
 const getFunds = require('../utils/helper').getFunds;
@@ -19,6 +19,9 @@ contract('Filestorage', accounts => {
         beforeEach(async function () {
             let nonce = await getNonce(accounts[0]);
             filestorage = await filestorageTest.new({from: accounts[0], nonce: nonce});
+            let allocatorRole = await filestorage.ALLOCATOR_ROLE();
+            await filestorage.grantRole(allocatorRole, accounts[0]);
+            await filestorage.setStorageSpace(100000);
             userAddress = "0x77333da3492c4DDb9CCf3aD6Bb73d6302F86cdA8";
         });
 
@@ -64,7 +67,7 @@ contract('Filestorage', accounts => {
             await sendTransaction(tx, filestorage.address, 20000000, account.privateKey)
                 .should
                 .eventually
-                .rejectedWith('Invalid sender');
+                .rejectedWith('Caller is not allowed to reserve space');
         });
 
         it('should fail to decrease space', async function () {

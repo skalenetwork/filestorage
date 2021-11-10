@@ -10,25 +10,31 @@ jobs:
       ENTRYPOINT: "http://127.0.0.1:2234"
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Node 12
+      - name: Set up Node 14
         uses: actions/setup-node@v1
         with:
-          node-version: 12
+          node-version: 14
       - name: Install dependencies
         run: |
           npm i
       - name: Compile with truffle
         run: |
-          npm i truffle@5.1.0 -g
-          truffle compile
+          npm run compile
       - name: Run lint
         run: |
           npm run lint
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Run slither
+        run: |
+          pip3 install slither-analyzer
+          slither .
       - name: Generating sChain config
         run: |
-          npm run generate-config
           mkdir -p ~/schain_data/data_dir
-          mv test/utils/config.json ~/schain_data/
+          cp ./predeployed/utils/data/base_config.json ~/schain_data/config.json
       - name: Run sChain container
         run: |
           docker pull skalenetwork/schain:${{ env.SCHAIN_VERSION }}
@@ -44,6 +50,51 @@ jobs:
       - name: Run tests
         run: |
           npm test
+  predeployed-test:
+    runs-on: ubuntu-18.04
+    env:
+      SCHAIN_VERSION: 3.7.5-stable.0
+      SCHAIN_OWNER_PK: ${{ secrets.SCHAIN_OWNER_PK }}
+      ENTRYPOINT: "http://127.0.0.1:2234"
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Node 14
+        uses: actions/setup-node@v1
+        with:
+          node-version: 14
+      - name: Install dependencies
+        run: |
+          npm i
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install python dependencies
+        run: |
+          pip install -e ./predeployed
+      - name: Compile with truffle
+        run: |
+          npm run compile
+      - name: Generating sChain config
+        run: |
+          mkdir -p ~/schain_data/data_dir
+          python ./predeployed/utils/generate_config.py
+          mv ./predeployed/utils/data/config.json ~/schain_data/
+      - name: Run sChain container
+        run: |
+          docker pull skalenetwork/schain:${{ env.SCHAIN_VERSION }}
+          docker run -d \
+            -v ~/schain_data:/schain_data \
+            -p 2234:2234 \
+            -e SSL_CERT_PATH=None \
+            -e HTTP_RPC_PORT=2234 \
+            -e DATA_DIR=/schain_data/data_dir \
+            skalenetwork/schain:${{ env.SCHAIN_VERSION }} \
+            --config /schain_data/config.json
+          sleep 30
+      - name: Run tests
+        run: |
+          npm run predeployed-test
   coverage:
     runs-on: ubuntu-18.04
     env:
@@ -59,8 +110,7 @@ jobs:
           npm i
       - name: Compile with truffle
         run: |
-          npm i truffle@5.1.0 -g
-          truffle compile
+          npm run compile
       - name: Coverage
         run: |
           npm run coverage || true

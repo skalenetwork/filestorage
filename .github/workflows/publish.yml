@@ -9,7 +9,7 @@ on:
 
 
 jobs:
-  build:
+  npm:
     runs-on: ubuntu-latest
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
@@ -17,15 +17,18 @@ jobs:
       - uses: actions/checkout@v2
       - uses: actions/setup-node@v1
         with:
-          node-version: '12.x'
+          node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
       - name: Install dependencies
         run: |
           npm i
+          pip install -e ./predeployed
       - name: Compile with truffle
         run: |
-          npm i truffle@5.1.0 -g
-          truffle compile
+          npm run compile
       - name: Set version and branch
         run: |
           export BRANCH=${GITHUB_REF##*/}
@@ -35,7 +38,8 @@ jobs:
           echo "Version $VERSION"
       - name: Generate artifacts.json NPM
         run: |
-          node scripts/deploy.js --npm
+          python predeployed/utils/generate_artifacts.py
+          cp predeployed/utils/data/artifacts.json .
       - name: Publish on npm
         if: github.ref != 'refs/heads/stable'
         run: |
@@ -49,17 +53,54 @@ jobs:
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - name: Generate artifacts.json
+
+  predeployed:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v1
+        with:
+          node-version: '14.x'
+          registry-url: 'https://registry.npmjs.org'
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install dependencies
         run: |
-          node scripts/deploy.js
+          npm i
+          cd predeployed/
+          pip install -e .[dev]
+          pip install wheel
+      - name: Compile with truffle
+        run: |
+          npm run compile
+      - name: Calculate versions
+        run: |
+          export BRANCH=${GITHUB_REF##*/}
+          echo "Branch $BRANCH"
+          export GITHUB_VERSION=$(bash ./scripts/calculate_version.sh)
+          echo "GITHUB_VERSION=$GITHUB_VERSION" >> $GITHUB_ENV
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
+          echo "Release version $GITHUB_VERSION"
+      - name: Build
+        working-directory: ./predeployed
+        run: |
+          export VERSION=$(bash ./scripts/calculate_version.sh)
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Pkg version $VERSION"
+          bash ./scripts/build.sh
+      - name: Publish to pip
+        working-directory: ./predeployed
+        run: |
+          bash ./scripts/publish.sh
       - name: Create Release
         if: github.ref != 'refs/heads/stable'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: ${{ env.VERSION }}
+          tag_name: ${{ env.GITHUB_VERSION }}
+          release_name: ${{ env.GITHUB_VERSION }}
           draft: false
           prerelease: true
       - name: Create Release (stable)
@@ -68,6 +109,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.VERSION }}
-          release_name: ${{ env.VERSION }}
+          tag_name: ${{ env.GITHUB_VERSION }}
+          release_name: ${{ env.GITHUB_VERSION }}
           draft: false

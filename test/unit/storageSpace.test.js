@@ -4,7 +4,7 @@ const assert = chai.assert;
 chai.should();
 chai.use(require('chai-as-promised'));
 
-const FileStorageTest = artifacts.require("./FileStorageTest");
+const FileStorageTest = artifacts.require("./test/FileStorageTest");
 const FileStorage = artifacts.require("./FileStorage");
 
 contract('Filestorage', accounts => {
@@ -17,8 +17,9 @@ contract('Filestorage', accounts => {
             assert.equal(spaceSize, 0);
         });
 
-        it('should return 10 ** 8 for FileStorageTest contract', async function () {
+        it('should return 10 ** 10 for FileStorageTest contract', async function () {
             filestorage = await FileStorageTest.new({from: accounts[0]});
+            await filestorage.setStorageSpace(10 ** 10)
             let spaceSize = await filestorage.getTotalStorageSpace();
             assert.equal(spaceSize, 10 ** 10);
         });
