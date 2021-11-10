@@ -80,6 +80,7 @@ jobs:
       - name: Calculate versions
         run: |
           export BRANCH=${GITHUB_REF##*/}
+          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "Branch $BRANCH"
       - name: Build
         working-directory: ./predeployed
