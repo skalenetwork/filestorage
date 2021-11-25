@@ -33,6 +33,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     uint public constant MAX_BLOCK_COUNT = 2 ** 15;
     uint public constant MAX_FILESIZE = 10 ** 8;
     uint public constant EMPTY_INDEX = 0;
+    uint public constant FILESYSTEM_BLOCK_SIZE = 2 ** 12;
 
     uint internal constant MAX_CONTENT_COUNT = 2 ** 13;
     uint internal constant MAX_CHUNK_SIZE = 2 ** 20;
@@ -118,8 +119,9 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function startUpload(string calldata filePath, uint256 fileSize) external {
         address owner = msg.sender;
+        uint realFileSize = calculateFilesystemSize(fileSize);
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
-        require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
+        require(realFileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
@@ -141,7 +143,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             isChunkUploaded : isChunkUploaded
         }));
         currentDirectory.contentIndexes[pureFileName] = currentDirectory.contents.length;
-        occupiedStorageSpace[owner] += fileSize;
+        occupiedStorageSpace[owner] += realFileSize;
     }
 
     function uploadChunk(string calldata filePath, uint position, bytes calldata data) external {

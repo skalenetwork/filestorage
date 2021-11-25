@@ -89,4 +89,8 @@ library Utils {
             bytes(filePath)[i] = char;
         }
     }
+
+    function calculateFilesystemSize(uint size) internal pure returns (uint) {
+        return size.ceilDiv(FILESYSTEM_BLOCK_SIZE) * FILESYSTEM_BLOCK_SIZE;
+    }
 }
