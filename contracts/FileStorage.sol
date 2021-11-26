@@ -69,6 +69,8 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     function createDirectory(string calldata directoryPath) external {
+        uint directoryFsSize = FILESYSTEM_BLOCK_SIZE;
+        require(directoryFsSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
@@ -92,6 +94,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         });
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
+        occupiedStorageSpace[owner] += directoryFsSize;
     }
 
     // TODO: delete dir with all content in it
@@ -115,11 +118,12 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         // slither-disable-next-line mapping-deletion
         delete currentDirectory.directories[targetDirectory];
+        occupiedStorageSpace[owner] -= FILESYSTEM_BLOCK_SIZE;
     }
 
     function startUpload(string calldata filePath, uint256 fileSize) external {
         address owner = msg.sender;
-        uint realFileSize = calculateFilesystemSize(fileSize);
+        uint realFileSize = Utils.calculateFilesystemSize(fileSize);
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(realFileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
