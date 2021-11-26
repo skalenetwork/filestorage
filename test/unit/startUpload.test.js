@@ -29,7 +29,7 @@ contract('Filestorage', accounts => {
 
     describe('startUpload', function () {
         const MAX_FILENAME_LENGTH = 255;
-        const MAX_FILESIZE = 10 ** 8;
+        const MAX_FILESIZE = 100 * 2 ** 20;
         let fileName;
         let fileSize;
         let foreignDir;
@@ -48,7 +48,7 @@ contract('Filestorage', accounts => {
             let storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
-            assert.equal(occupiedSpace, fileSize, 'Incorrect occupied space');
+            assert.equal(occupiedSpace, 4096, 'Incorrect occupied space');
             assert.equal(status, 1, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect")
         });
@@ -125,7 +125,8 @@ contract('Filestorage', accounts => {
             let account = await generateAccount();
             await getFunds(account.address);
             let nonce = await getNonce(accounts[0]);
-            await filestorage.createDirectory(foreignDir, {from: accounts[0], nonce: nonce});
+            await filestorage.reserveSpace(account.address, 4096, {from: accounts[0], nonce: nonce});
+            await filestorage.createDirectory(foreignDir, {from: accounts[0]});
             let tx = filestorage.contract.methods.startUpload(path.join(foreignDir, fileName), 0);
             await sendTransaction(tx, filestorage.address, 20000000, account.privateKey)
                 .should

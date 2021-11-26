@@ -207,7 +207,8 @@ contract('Filestorage', accounts => {
             let account = await generateAccount();
             await getFunds(account.address);
             let nonce = await getNonce(accounts[0]);
-            await filestorage.createDirectory(foreignDir, {from: accounts[0], nonce: nonce});
+            await filestorage.reserveSpace(account.address, 4096, {from: accounts[0], nonce: nonce});
+            await filestorage.createDirectory(foreignDir, {from: accounts[0]});
             let tx = filestorage.contract.methods.createDirectory(path.join(foreignDir, 'dir'));
             await sendTransaction(tx, filestorage.address, 20000000, account.privateKey)
                 .should
