@@ -20,12 +20,17 @@
 pragma solidity ^0.8.9;
 
 import "./thirdparty/strings.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 
 
 library Utils {
 
     using strings for *;
+    using MathUpgradeable for uint;
+
     uint constant MAX_FILENAME_LENGTH = 255;
+    uint constant FILESYSTEM_BLOCK_SIZE = 2 ** 12;
+    uint constant DIRECTORY_FS_SIZE = FILESYSTEM_BLOCK_SIZE;
 
     function checkContentName(string memory contentName) internal pure returns (bool) {
         if (keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("..")) ||

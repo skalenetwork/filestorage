@@ -33,7 +33,6 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     uint public constant MAX_BLOCK_COUNT = 2 ** 15;
     uint public constant MAX_FILESIZE = 10 ** 8;
     uint public constant EMPTY_INDEX = 0;
-    uint public constant FILESYSTEM_BLOCK_SIZE = 2 ** 12;
 
     uint internal constant MAX_CONTENT_COUNT = 2 ** 13;
     uint internal constant MAX_CHUNK_SIZE = 2 ** 20;
@@ -69,10 +68,10 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     function createDirectory(string calldata directoryPath) external {
-        uint directoryFsSize = FILESYSTEM_BLOCK_SIZE;
+        address owner = msg.sender;
+        uint directoryFsSize = Utils.DIRECTORY_FS_SIZE;
         require(directoryFsSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         require(bytes(directoryPath).length > 0, "Invalid path");
-        address owner = msg.sender;
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
@@ -118,7 +117,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         // slither-disable-next-line mapping-deletion
         delete currentDirectory.directories[targetDirectory];
-        occupiedStorageSpace[owner] -= FILESYSTEM_BLOCK_SIZE;
+        occupiedStorageSpace[owner] -= Utils.DIRECTORY_FS_SIZE;
     }
 
     function startUpload(string calldata filePath, uint256 fileSize) external {
