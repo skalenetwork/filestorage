@@ -45,6 +45,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         uint size;
         FileStatus status;
         bool[] isChunkUploaded;
+        uint realSize;
     }
 
     struct Directory {
@@ -69,7 +70,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function createDirectory(string calldata directoryPath) external {
         address owner = msg.sender;
-        uint directoryFsSize = Utils.DIRECTORY_FS_SIZE;
+        uint directoryFsSize = Utils.calculateDirectorySize();
         require(directoryFsSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         require(bytes(directoryPath).length > 0, "Invalid path");
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
@@ -89,7 +90,8 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             isFile: false,
             size: 0,
             status: FileStatus.NONEXISTENT,
-            isChunkUploaded: new bool[](0)
+            isChunkUploaded: new bool[](0),
+            realSize: directoryFsSize
         });
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
@@ -117,12 +119,12 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         // slither-disable-next-line mapping-deletion
         delete currentDirectory.directories[targetDirectory];
-        occupiedStorageSpace[owner] -= Utils.DIRECTORY_FS_SIZE;
+        occupiedStorageSpace[owner] -= Utils.calculateDirectorySize();
     }
 
     function startUpload(string calldata filePath, uint256 fileSize) external {
         address owner = msg.sender;
-        uint realFileSize = Utils.calculateFilesystemSize(fileSize);
+        uint realFileSize = Utils.calculateFileSize(fileSize);
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
         require(realFileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
@@ -143,7 +145,8 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             isFile : true,
             size : fileSize,
             status : FileStatus.UPLOADING,
-            isChunkUploaded : isChunkUploaded
+            isChunkUploaded : isChunkUploaded,
+            realSize: realFileSize
         }));
         currentDirectory.contentIndexes[pureFileName] = currentDirectory.contents.length;
         occupiedStorageSpace[owner] += realFileSize;
@@ -204,7 +207,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[file.name];
         currentDirectory.contentIndexes[file.name] = EMPTY_INDEX;
-        occupiedStorageSpace[owner] -= file.size;
+        occupiedStorageSpace[owner] -= file.realSize;
     }
 
     function readChunk(string calldata storagePath, uint position, uint length)
