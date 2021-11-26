@@ -30,7 +30,6 @@ library Utils {
 
     uint constant MAX_FILENAME_LENGTH = 255;
     uint constant FILESYSTEM_BLOCK_SIZE = 2 ** 12;
-    uint constant DIRECTORY_FS_SIZE = FILESYSTEM_BLOCK_SIZE;
 
     function checkContentName(string memory contentName) internal pure returns (bool) {
         if (keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("..")) ||
