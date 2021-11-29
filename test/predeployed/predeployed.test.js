@@ -9,6 +9,7 @@ let path = require('path').posix;
 let filestorageContract = artifacts.require('./FileStorage');
 
 const testTotalSpace = require('../utils/helper').testSpace;
+const fileSystemBlock = require('../utils/helper').fileSystemBlock;
 const FILESTORAGE_PROXY_ADDRESS = '0xD3002000000000000000000000000000000000d3';
 
 contract('Filestorage', accounts => {
@@ -70,7 +71,7 @@ contract('Filestorage', accounts => {
                 length: 2 * fileSize,
                 charset: 'hex'
             }));
-            await filestorage.reserveSpace(accounts[0], fileSize, {from: accounts[0]});
+            await filestorage.reserveSpace(accounts[0], 3 * fileSystemBlock, {from: accounts[0]});
             await filestorage.createDirectory('test', {from: accounts[0]});
             await filestorage.startUpload('test/'+fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk('test/'+fileName, 0, data, {from: accounts[0]});

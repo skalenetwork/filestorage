@@ -3,6 +3,7 @@ const Web3 = require('web3');
 
 const testBalance = '2';
 const testSpace = 10000000;
+const fileSystemBlock = 4096;
 const rootPrivateKey = process.env.SCHAIN_OWNER_PK;
 const web3 = new Web3(process.env.ENTRYPOINT);
 
@@ -74,3 +75,4 @@ module.exports.initFilestorage = initFilestorage;
 module.exports.generateAccount = generateAccount;
 module.exports.getNonce = getNonce;
 module.exports.testSpace = testSpace;
+module.exports.fileSystemBlock = fileSystemBlock;
