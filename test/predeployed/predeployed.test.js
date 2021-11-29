@@ -84,8 +84,8 @@ contract('Filestorage', accounts => {
             let size = await filestorage.getFileSize(storagePath);
             assert.equal(status, 2, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect");
-            assert.equal(reservedSpace, fileSize, "reservedSpace is incorrect");
-            assert.equal(occupiedSpace, fileSize, "occupiedSpace is incorrect");
+            assert.equal(reservedSpace, 3 * fileSystemBlock, "reservedSpace is incorrect");
+            assert.equal(occupiedSpace, 2 * fileSystemBlock, "occupiedSpace is incorrect");
 
             let content = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/test');
             content.find(obj => {
