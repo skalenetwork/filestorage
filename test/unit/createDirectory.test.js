@@ -79,6 +79,9 @@ contract('Filestorage', accounts => {
                 return obj.name === nestedDirName;
             }));
             assert.isArray(nestedDir);
+
+            await occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
+            assert.equal(occupiedSpace, 4096);
         });
 
         it('should create file in dir', async function () {
@@ -123,7 +126,7 @@ contract('Filestorage', accounts => {
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
 
-        it('should create directory blocksize space reserved', async function () {
+        it('should create directory for blocksize reserved space', async function () {
             await filestorage.reserveSpaceStub(accounts[0], 4096, {from: accounts[0]});
             await filestorage.createDirectory(dirName, {from: accounts[0]});
             let root = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/');
