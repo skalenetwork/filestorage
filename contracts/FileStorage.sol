@@ -30,12 +30,14 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
     bytes32 public constant STORAGE_SPACE_SLOT = keccak256("STORAGE_SPACE_SLOT");
 
+    uint public constant MEGABYTE = 2 ** 20;
     uint public constant MAX_BLOCK_COUNT = 2 ** 15;
-    uint public constant MAX_FILESIZE = 100 * 2 ** 20;
     uint public constant EMPTY_INDEX = 0;
 
     uint internal constant MAX_CONTENT_COUNT = 2 ** 13;
-    uint internal constant MAX_CHUNK_SIZE = 2 ** 20;
+
+    uint public constant MAX_FILESIZE = 100 * MEGABYTE;
+    uint internal constant MAX_CHUNK_SIZE = 1 * MEGABYTE;
 
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
