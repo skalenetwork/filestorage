@@ -47,7 +47,6 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         uint size;
         FileStatus status;
         bool[] isChunkUploaded;
-        uint realSize;
     }
 
     struct Directory {
@@ -92,8 +91,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             isFile: false,
             size: 0,
             status: FileStatus.NONEXISTENT,
-            isChunkUploaded: new bool[](0),
-            realSize: directoryFsSize
+            isChunkUploaded: new bool[](0)
         });
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
@@ -147,8 +145,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             isFile : true,
             size : fileSize,
             status : FileStatus.UPLOADING,
-            isChunkUploaded : isChunkUploaded,
-            realSize: realFileSize
+            isChunkUploaded : isChunkUploaded
         }));
         currentDirectory.contentIndexes[pureFileName] = currentDirectory.contents.length;
         occupiedStorageSpace[owner] += realFileSize;
@@ -209,7 +206,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[file.name];
         currentDirectory.contentIndexes[file.name] = EMPTY_INDEX;
-        occupiedStorageSpace[owner] -= file.realSize;
+        occupiedStorageSpace[owner] -= Utils.calculateRefile.size;
     }
 
     function readChunk(string calldata storagePath, uint position, uint length)

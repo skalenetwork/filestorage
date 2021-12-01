@@ -123,6 +123,27 @@ contract('Filestorage', accounts => {
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
         });
 
+        it('should create directory blocksize space reserved', async function () {
+            await filestorage.reserveSpaceStub(accounts[0], 4096, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            let root = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/');
+            let dirInfo = root.find(obj => {
+                return obj.name === dirName;
+            })
+            assert.equal(dirInfo['name'],  dirName);
+            assert.equal(dirInfo['isFile'], false);
+        });
+
+        it('should fail creating directory with no reserved space', async function () {
+            await filestorage.reserveSpaceStub(accounts[0], 0, {from: accounts[0]});
+            try {
+                await filestorage.createDirectory(dirName, {from: accounts[0]});
+                assert.fail('Directory was unexpectedly created');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Not enough reserved space');
+            }
+        });
+
         it('should fail to create dirs with the same name', async function () {
             await filestorage.createDirectory(dirName, {from: accounts[0]});
             try {

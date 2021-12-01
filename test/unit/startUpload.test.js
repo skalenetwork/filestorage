@@ -63,6 +63,27 @@ contract('Filestorage', accounts => {
             }
         });
 
+        it('should fail while creating file which real sizes more than reserved', async function () {
+            await filestorage.reserveSpaceStub(accounts[0], 1000, {from: accounts[0]});
+            try {
+                await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+                assert.fail('File was unexpectedly uploaded');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Not enough reserved space');
+            }
+        });
+
+        it('should fail while creating 2 files which real sizes more than reserved', async function () {
+            await filestorage.reserveSpaceStub(accounts[0], 4096, {from: accounts[0]});
+            await filestorage.startUpload(fileName, 1000, {from: accounts[0]});
+            try {
+                await filestorage.startUpload(fileName, 1000, {from: accounts[0]});
+                assert.fail('File was unexpectedly uploaded');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Not enough reserved space');
+            }
+        });
+
         it('should fail while creating file > 100 mb', async function () {
             fileSize = MAX_FILESIZE + 1;
             try {
