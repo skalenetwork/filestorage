@@ -206,7 +206,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[file.name];
         currentDirectory.contentIndexes[file.name] = EMPTY_INDEX;
-        occupiedStorageSpace[owner] -= Utils.calculateRefile.size;
+        occupiedStorageSpace[owner] -= Utils.calculateFileSize(file.size);
     }
 
     function readChunk(string calldata storagePath, uint position, uint length)
