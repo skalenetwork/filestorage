@@ -81,7 +81,7 @@ contract('Filestorage', accounts => {
             assert.isArray(nestedDir);
 
             let occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
-            assert.equal(occupiedSpace, 4096);
+            assert.equal(occupiedSpace, 8192);
         });
 
         it('should create file in dir', async function () {
