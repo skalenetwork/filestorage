@@ -95,6 +95,9 @@ library Utils {
     }
 
     function calculateFileSize(uint size) internal pure returns (uint) {
+        if (size == 0) {
+            return FILESYSTEM_BLOCK_SIZE;
+        }
         return size.ceilDiv(FILESYSTEM_BLOCK_SIZE) * FILESYSTEM_BLOCK_SIZE;
     }
 

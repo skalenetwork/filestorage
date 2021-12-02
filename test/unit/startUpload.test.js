@@ -53,6 +53,14 @@ contract('Filestorage', accounts => {
             assert.equal(size, fileSize, "Size is incorrect")
         });
 
+        it('should create empty file with 1 status', async function () {
+            let initOccupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
+            await filestorage.startUpload(fileName, 0, {from: accounts[0]});
+            let occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]) - initOccupiedSpace;
+            assert.equal(occupiedSpace, 4096, 'Incorrect occupied space');
+            assert.equal(size, 0, "Size is incorrect")
+        });
+
         it('should fail while creating 2 files with the same name', async function () {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             try {
