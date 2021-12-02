@@ -80,7 +80,7 @@ contract('Filestorage', accounts => {
             }));
             assert.isArray(nestedDir);
 
-            await occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
+            let occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
             assert.equal(occupiedSpace, 4096);
         });
 
