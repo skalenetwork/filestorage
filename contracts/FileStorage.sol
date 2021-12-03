@@ -30,12 +30,14 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
     bytes32 public constant STORAGE_SPACE_SLOT = keccak256("STORAGE_SPACE_SLOT");
 
+    uint public constant MEGABYTE = 2 ** 20;
     uint public constant MAX_BLOCK_COUNT = 2 ** 15;
-    uint public constant MAX_FILESIZE = 10 ** 8;
     uint public constant EMPTY_INDEX = 0;
 
     uint internal constant MAX_CONTENT_COUNT = 2 ** 13;
-    uint internal constant MAX_CHUNK_SIZE = 2 ** 20;
+
+    uint public constant MAX_FILESIZE = 100 * MEGABYTE;
+    uint internal constant MAX_CHUNK_SIZE = 1 * MEGABYTE;
 
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
@@ -68,8 +70,10 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     }
 
     function createDirectory(string calldata directoryPath) external {
-        require(bytes(directoryPath).length > 0, "Invalid path");
         address owner = msg.sender;
+        uint directoryFsSize = Utils.calculateDirectorySize();
+        require(directoryFsSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
+        require(bytes(directoryPath).length > 0, "Invalid path");
         string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
@@ -91,6 +95,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         });
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
+        occupiedStorageSpace[owner] += directoryFsSize;
     }
 
     // TODO: delete dir with all content in it
@@ -114,12 +119,14 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         // slither-disable-next-line mapping-deletion
         delete currentDirectory.directories[targetDirectory];
+        occupiedStorageSpace[owner] -= Utils.calculateDirectorySize();
     }
 
     function startUpload(string calldata filePath, uint256 fileSize) external {
         address owner = msg.sender;
+        uint realFileSize = Utils.calculateFileSize(fileSize);
         require(fileSize <= MAX_FILESIZE, "File should be less than 100 MB");
-        require(fileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
+        require(realFileSize + occupiedStorageSpace[owner] <= reservedStorageSpace[owner], "Not enough reserved space");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
@@ -141,7 +148,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             isChunkUploaded : isChunkUploaded
         }));
         currentDirectory.contentIndexes[pureFileName] = currentDirectory.contents.length;
-        occupiedStorageSpace[owner] += fileSize;
+        occupiedStorageSpace[owner] += realFileSize;
     }
 
     function uploadChunk(string calldata filePath, uint position, bytes calldata data) external {
@@ -199,7 +206,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.pop();
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[file.name];
         currentDirectory.contentIndexes[file.name] = EMPTY_INDEX;
-        occupiedStorageSpace[owner] -= file.size;
+        occupiedStorageSpace[owner] -= Utils.calculateFileSize(file.size);
     }
 
     function readChunk(string calldata storagePath, uint position, uint length)

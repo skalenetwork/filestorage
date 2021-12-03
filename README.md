@@ -10,9 +10,105 @@ Filestorage - smart contract, that controls decentralized file storage on SKALE 
 
 Filestorage is a cost-effective storage layer within Ethereum capable of handling files up to 100MB. Filestorage uses UNIX-based filesystem of SKALE chains. Filestorage smart contract is a set of functions to interact with files on EVM. This contract may be predeployed on SKALE chains. It contains functions to work with Filestorage precompiled smart contracts. 
 
-Smart contract language - Solidity 0.5.3
+Smart contract language - Solidity 0.8.9
 
 ## API Reference
+
+### Filestorage space handling 
+
+To start using Filestorage (upload/delete files and create/remove directories) the space should be allocated for specific account, it could be done from account that is given ALLOCATOR_ROLE. 
+Rules of occupying space in Filestorage:
+
+1. For directory **4096** bytes is taken
+2. File could be uploaded up to **100** MB (104857600 bytes)
+3. Occupying space for file is rounded up to the nearest multiple of **4096** bytes
+4. **Empty** file takes 4096 bytes of free space
+
+After deleting file/directory's amount of space is freed according to the rules above
+
+### Space handling API
+#### reserveSpace
+
+```solidity
+function reserveSpace(address userAddress, uint reservedSpace)
+```
+
+Reserves the Filestorage space for specific address. Could be called only with ALLOCATOR_ROLE
+
+**Parameters:**
+
+| Parameter             | Description                           |
+| --------------------- | ------------------------------------- |
+| `address` userAddress | Address to allocate space for         |
+| `uint` reservedSpace  | Amount of space to reserve in bytes   |
+
+#### getTotalStorageSpace
+
+```solidity
+function getTotalStorageSpace()
+```
+
+Gets total space in Filestorage in bytes.
+
+**Returns:**
+
+| Parameter       | Description                        |
+| --------------- | ---------------------------------- |
+| `uint`          | Space in bytes                     |
+
+#### getTotalReservedSpace
+
+```solidity
+function getTotalStorageSpace()
+```
+
+Gets total reserved space in Filestorage in bytes.
+
+**Returns:**
+
+| Parameter       | Description                        |
+| --------------- | ---------------------------------- |
+| `uint`          | Space in bytes                     |
+
+#### getReservedSpace
+
+```solidity
+function getReservedSpace(address owner)
+```
+
+Gets reserved space for account.
+
+**Parameters:**
+
+| Parameter            | Description                          |
+| -------------------- | ------------------------------------ |
+| `address` owner      | Account address                      |
+
+**Returns:**
+
+| Parameter       | Description                        |
+| --------------- | ---------------------------------- |
+| `uint`          | Size of reserved space for account |
+
+#### getOccupiedSpace
+
+```solidity
+function getOccupiedSpace(address owner)
+```
+
+Gets occupied space for account.
+
+**Parameters:**
+
+| Parameter            | Description                          |
+| -------------------- | ------------------------------------ |
+| `address` owner      | Account address                      |
+
+**Returns:**
+
+| Parameter       | Description                                 |
+| --------------- | ------------------------------------------- |
+| `uint`          | Size of occupied space for account in bytes |
 
 ### File interaction methods
 

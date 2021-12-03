@@ -9,6 +9,7 @@ let path = require('path').posix;
 let filestorageContract = artifacts.require('./FileStorage');
 
 const testTotalSpace = require('../utils/helper').testSpace;
+const fileSystemBlock = require('../utils/helper').fileSystemBlock;
 const FILESTORAGE_PROXY_ADDRESS = '0xD3002000000000000000000000000000000000d3';
 
 contract('Filestorage', accounts => {
@@ -70,7 +71,7 @@ contract('Filestorage', accounts => {
                 length: 2 * fileSize,
                 charset: 'hex'
             }));
-            await filestorage.reserveSpace(accounts[0], fileSize, {from: accounts[0]});
+            await filestorage.reserveSpace(accounts[0], 3 * fileSystemBlock, {from: accounts[0]});
             await filestorage.createDirectory('test', {from: accounts[0]});
             await filestorage.startUpload('test/'+fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk('test/'+fileName, 0, data, {from: accounts[0]});
@@ -83,8 +84,8 @@ contract('Filestorage', accounts => {
             let size = await filestorage.getFileSize(storagePath);
             assert.equal(status, 2, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect");
-            assert.equal(reservedSpace, fileSize, "reservedSpace is incorrect");
-            assert.equal(occupiedSpace, fileSize, "occupiedSpace is incorrect");
+            assert.equal(reservedSpace, 3 * fileSystemBlock, "reservedSpace is incorrect");
+            assert.equal(occupiedSpace, 2 * fileSystemBlock, "occupiedSpace is incorrect");
 
             let content = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/test');
             content.find(obj => {

@@ -5,7 +5,7 @@ jobs:
   test:
     runs-on: ubuntu-18.04
     env:
-      SCHAIN_VERSION: 3.7.5-stable.0
+      SCHAIN_VERSION: 3.9.1-develop.4
       SCHAIN_OWNER_PK: ${{ secrets.SCHAIN_OWNER_PK }}
       ENTRYPOINT: "http://127.0.0.1:2234"
     steps:

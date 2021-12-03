@@ -71,7 +71,7 @@ contract('Filestorage', accounts => {
         });
 
         it('should fail to decrease space', async function () {
-            await filestorage.reserveSpace(accounts[0], 2000);
+            await filestorage.reserveSpace(accounts[0], 5000);
             await filestorage.startUpload("Test", 1500);
             try {
                 await filestorage.reserveSpace(accounts[0], 1000);
