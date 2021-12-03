@@ -59,10 +59,9 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
             let initOccupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
             await filestorage.deleteFile(fileName, {from: accounts[0]});
-            let occupiedSpace = initOccupiedSpace - await filestorage.getOccupiedSpace(accounts[0]);
+            let occupiedSpaceDiff = initOccupiedSpace - await filestorage.getOccupiedSpace(accounts[0]);
             let status = await filestorage.getFileStatus(storagePath);
-            assert.equal(initOccupiedSpace, 4096);
-            assert.equal(occupiedSpace, 0);
+            assert.equal(occupiedSpaceDiff, 4096);
             assert.equal(status, 0);
         });
 
