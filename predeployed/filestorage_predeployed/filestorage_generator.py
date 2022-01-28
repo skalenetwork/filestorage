@@ -45,7 +45,10 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
             dirname(__file__),
             'artifacts',
             self.ARTIFACT_FILENAME))
-        super().__init__(bytecode=generator.bytecode)
+        super().__init__(
+            bytecode=generator.bytecode,
+            abi=generator.abi
+        )
 
     @classmethod
     def generate_storage(cls, **kwargs) -> Dict[str, str]:
