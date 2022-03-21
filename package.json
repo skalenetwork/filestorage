@@ -1,24 +1,33 @@
 {
   "name": "@skalenetwork/filestorage",
-  "private": true,
+  "version": "1.0.1",
+  "description": "SKALE Filestorage contracts",
   "keywords": [
     "SKALE",
     "blockchain",
     "ethereum"
   ],
+  "homepage": "https://github.com/skalenetwork/filestorage#readme",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/skalenetwork/filestorage.git"
   },
   "license": "AGPL-3.0",
   "author": "SKALE Labs and contributors",
+  "main": "artifacts.json",
   "scripts": {
-    "build": "rm -r ./build && truffle build",
-    "lint": "npx ethlint -d contracts --fix",
-    "slither": "slither . --filter-path strings --filter-path Migrations"
+    "build": "rm -r ./build; npx truffle build",
+    "coverage": "npx truffle run coverage --file=\"test/unit/*\"",
+    "compile": "npx truffle compile; cp build/contracts/FileStorage.json predeployed/filestorage_predeployed/artifacts/",
+    "test": "npx truffle test test/unit/* --network skaled",
+    "lint": "npx ethlint -d contracts",
+    "lint-fix": "npm run lint -- --fix",
+    "predeployed-test": "npx truffle test test/predeployed/* --network skaled",
+    "slither": "slither . --filter-path strings --filter-path Migrations",
+    "version": "node -e \"console.log(require('./package.json').version);\""
   },
   "dependencies": {
-    "@truffle/hdwallet-provider": "^1.0.18"
+    "@openzeppelin/contracts-upgradeable": "^4.3.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",
@@ -26,9 +35,12 @@
     "codecov": "^3.3.0",
     "dotenv": "^8.2.0",
     "randomstring": "^1.1.5",
-    "solidity-coverage": "^0.6.7",
-    "truffle": "^5.0.27",
-    "truffle-privatekey-provider": "^1.3.0",
+    "solidity-coverage": "^0.7.17",
+    "truffle": "5.1.30",
+    "@truffle/hdwallet-provider": "^1.5.1",
     "web3": "^1.2.1"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

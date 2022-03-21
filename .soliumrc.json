@@ -22,7 +22,7 @@
     "function-order": "error",
     "uppercase": "error",
     "error-reason": "error",
-    "security/no-inline-assembly": "off",
-    "security/no-tx-origin": "off"
+    "visibility-first": "error",
+    "security/no-inline-assembly": "off"
   }
 }
