@@ -136,7 +136,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(currentDirectory.contents.length < getMaxContentCount(), "Directory is full");
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
         require(currentDirectory.contentIndexes[pureFileName] == EMPTY_INDEX, "File or directory exists");
-        require(Utils.checkContentName(pureFileName), "Filename should be < 256");
+        require(Utils.checkContentName(pureFileName), "Invalid filename");
         bool success = PrecompiledCaller.startUpload(owner, filePath, fileSize);
         require(success, "File not created");
         bool[] memory isChunkUploaded = new bool[]((fileSize + getMaxChunkSize() - 1) / getMaxChunkSize());
