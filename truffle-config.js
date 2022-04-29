@@ -9,7 +9,8 @@ module.exports = {
           gasPrice: 0,
           network_id: "*",
           gas: 100000000,
-          provider: () => new PrivateKeyProvider(process.env.SCHAIN_OWNER_PK, process.env.ENTRYPOINT)
+          provider: () => new PrivateKeyProvider(process.env.SCHAIN_OWNER_PK, process.env.ENTRYPOINT),
+          networkCheckTimeout: 20000
       },
   },
 

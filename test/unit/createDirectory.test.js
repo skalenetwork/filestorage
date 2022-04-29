@@ -209,6 +209,18 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid directory name');
             }
             try {
+                await filestorage.createDirectory('./', {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Invalid directory name');
+            }
+            try {
+                await filestorage.createDirectory('../', {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Invalid directory name');
+            }
+            try {
                 await filestorage.createDirectory('', {from: accounts[0]});
                 assert.fail();
             } catch (error) {

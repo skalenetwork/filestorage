@@ -34,6 +34,9 @@ library Utils {
     function checkContentName(string memory contentName) internal pure returns (bool) {
         if (keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("..")) ||
         keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked(".")) ||
+        keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("./")) ||
+        keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("../")) ||
+        keccak256(abi.encodePacked(contentName)) == keccak256(abi.encodePacked("/")) ||
         bytes(contentName).length == 0) {
             return false;
         }
