@@ -160,13 +160,13 @@ contract('Filestorage', accounts => {
                 await filestorage.startUpload('dir/.', fileSize, {from: accounts[0]});
                 assert.fail('File was unexpectedly uploaded');
             } catch (error) {
-                assert.equal(error.receipt.revertReason, "Filename should be < 256");
+                assert.equal(error.receipt.revertReason, "Invalid filename");
             }
             try {
                 await filestorage.startUpload('dir/..', fileSize, {from: accounts[0]});
                 assert.fail('File was unexpectedly uploaded');
             } catch (error) {
-                assert.equal(error.receipt.revertReason, "Filename should be < 256");
+                assert.equal(error.receipt.revertReason, "Invalid filename");
             }
             await filestorage.deleteDirectory('dir', {from: accounts[0]});
         });
