@@ -270,3 +270,14 @@ Run tests:
 ```bash
 truffle test --network skaled
 ```
+
+## Legacy upgrading
+
+For v0 sChains owner can upgrade Filestorage to the latest legacy filestorage version:
+
+```bash
+ENDPOINT=... PRIVATE_KEY=... npm run legacy-upgrade
+```
+
+* ENDPOINT - v0 sChain endpoint
+* PRIVATE_KEY - sChain owner private key
