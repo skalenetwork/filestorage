@@ -19,6 +19,7 @@
     "generate-config": "node -e 'require(\"./test/utils/helper.js\").generateTestConfig()'",
     "build": "rm -r ./build; truffle build",
     "test": "truffle test test/unit/* --network skaled",
+    "legacy-upgrade": "truffle compile && node upgrade/legacy/upgrade.js",
     "lint": "npx ethlint -d contracts",
     "lint-fix": "npm run lint -- --fix",
     "slither": "slither . --filter-path strings --filter-path Migrations",
