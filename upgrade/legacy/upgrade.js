@@ -44,6 +44,7 @@ async function switchImplementation(newAddress) {
 async function upgrade() {
     let receipt = await deployImplementation();
     await switchImplementation(receipt.contractAddress);
+    console.log('Contract successfully upgraded. New impl address:', receipt.contractAddress);
 }
 
 upgrade();
