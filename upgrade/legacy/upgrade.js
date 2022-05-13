@@ -5,18 +5,23 @@ const web3 = new Web3(process.env.ENDPOINT);
 
 const PROXY_ADMIN_ADDRESS = '0xD3001000000000000000000000000000000000D3';
 const FILESTORAGE_PROXY_ADDRESS = '0xD3002000000000000000000000000000000000D3';
-const ledger = true;
+
 let rootAccount;
 let pk;
+let ledgerAddressIndex;
 
-if (ledger) {
+if (process.argv[2]) {
+    ledgerAddressIndex = parseInt(process.argv[2]);
+}
+
+if (ledgerAddressIndex) {
     const Transport = require('@ledgerhq/hw-transport-node-hid').default
     const AppEth = require('@ledgerhq/hw-app-eth').default
     const devices = await Transport.list()
     if (devices.length === 0) throw 'no device'
     const transport = await Transport.create()
     const eth = new AppEth(transport)
-    rootAccount = eth.getAddress(`44'/60'/${index}'/0/0`).address;
+    rootAccount = eth.getAddress(`44'/60'/${ledgerAddressIndex}'/0/0`).address;
 } else {
     pk = process.env.PRIVATE_KEY;
     rootAccount = web3.eth.accounts.privateKeyToAccount(pk).address;
@@ -62,7 +67,7 @@ async function signAndSend(txData) {
     if (ledger) {
         const tx = new Tx(txData);
         const serializedTx = tx.serialize().toString('hex');
-        const sig = await eth.signTransaction(`44'/60'/${index}'/0/0`, serializedTx);
+        const sig = await eth.signTransaction(`44'/60'/${ledgerAddressIndex}'/0/0`, serializedTx);
         txData.v = '0x' + sig.v
         txData.r = '0x' + sig.r
         txData.s = '0x' + sig.s
