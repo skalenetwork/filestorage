@@ -114,8 +114,15 @@ jobs:
           echo "GITHUB_VERSION=$GITHUB_VERSION" >> $GITHUB_ENV
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "Release version $GITHUB_VERSION"
+          ( test $BRANCH = "stable" || test $BRANCH = "master" && export PRERELEASE=false ) || export PRERELEASE=true
+          echo "PRERELEASE=$PRERELEASE" >> $GITHUB_ENV
+      - name: Compile with truffle
+        env:
+          VERSION: ${{ env.GITHUB_VERSION }}
+        run: |
+          npm run compile
+          cp build/contracts/FileStorage.json filestorage-$VERSION-abi.json
       - name: Create Release
-        if: github.ref != 'refs/heads/stable'
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -123,13 +130,4 @@ jobs:
           tag_name: ${{ env.GITHUB_VERSION }}
           release_name: ${{ env.GITHUB_VERSION }}
           draft: false
-          prerelease: true
-      - name: Create Release (stable)
-        if: github.ref == 'refs/heads/stable'
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ env.GITHUB_VERSION }}
-          release_name: ${{ env.GITHUB_VERSION }}
-          draft: false
+          prerelease: ${{ env.PRERELEASE }}
