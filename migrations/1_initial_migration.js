@@ -6,6 +6,6 @@ module.exports = async function(deployer) {
     if (deployer.network === 'skaled') {
         await getFunds(deployer.networks[deployer.network].from);
     }
-    deployer.deploy(Migrations);
-    deployer.deploy(Filestorage);
+    await deployer.deploy(Migrations);
+    await deployer.deploy(Filestorage);
 };

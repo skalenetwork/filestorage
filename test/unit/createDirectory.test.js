@@ -53,6 +53,15 @@ contract('Filestorage', accounts => {
 
         it('should create empty dir in root', async function () {
             await filestorage.createDirectory(dirName, {from: accounts[0]});
+            let root = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/');
+            let dirInfo = root.find(obj => {
+                return obj.name === dirName;
+            })
+            assert.equal(dirInfo['status'], 0)
+            assert.equal(dirInfo['size'],  0)
+            assert.equal(dirInfo['name'],  dirName)
+            assert.equal(dirInfo['isFile'], false)
+            assert.isEmpty(dirInfo['isChunkUploaded'])
             let dir = await filestorage.listDirectory(dirPath);
             assert.isArray(dir);
         });
@@ -70,6 +79,9 @@ contract('Filestorage', accounts => {
                 return obj.name === nestedDirName;
             }));
             assert.isArray(nestedDir);
+
+            let occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
+            assert.equal(occupiedSpace, 8192);
         });
 
         it('should create file in dir', async function () {
@@ -112,6 +124,27 @@ contract('Filestorage', accounts => {
             let receivedData = await filestorage.readChunk(path.join(dirPath, fileName),
                 0, chunkLength, {gas: UPLOADING_GAS});
             assert.equal(data, addBytesSymbol(receivedData.map(x => rmBytesSymbol(x)).join('')));
+        });
+
+        it('should create directory for blocksize reserved space', async function () {
+            await filestorage.reserveSpaceStub(accounts[0], 4096, {from: accounts[0]});
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            let root = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/');
+            let dirInfo = root.find(obj => {
+                return obj.name === dirName;
+            })
+            assert.equal(dirInfo['name'],  dirName);
+            assert.equal(dirInfo['isFile'], false);
+        });
+
+        it('should fail creating directory with no reserved space', async function () {
+            await filestorage.reserveSpaceStub(accounts[0], 0, {from: accounts[0]});
+            try {
+                await filestorage.createDirectory(dirName, {from: accounts[0]});
+                assert.fail('Directory was unexpectedly created');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Not enough reserved space');
+            }
         });
 
         it('should fail to create dirs with the same name', async function () {
@@ -176,6 +209,18 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid directory name');
             }
             try {
+                await filestorage.createDirectory('./', {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Invalid directory name');
+            }
+            try {
+                await filestorage.createDirectory('../', {from: accounts[0]});
+                assert.fail();
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Invalid directory name');
+            }
+            try {
                 await filestorage.createDirectory('', {from: accounts[0]});
                 assert.fail();
             } catch (error) {
@@ -198,7 +243,8 @@ contract('Filestorage', accounts => {
             let account = await generateAccount();
             await getFunds(account.address);
             let nonce = await getNonce(accounts[0]);
-            await filestorage.createDirectory(foreignDir, {from: accounts[0], nonce: nonce});
+            await filestorage.reserveSpaceStub(account.address, 4096, {from: accounts[0], nonce: nonce});
+            await filestorage.createDirectory(foreignDir, {from: accounts[0]});
             let tx = filestorage.contract.methods.createDirectory(path.join(foreignDir, 'dir'));
             await sendTransaction(tx, filestorage.address, 20000000, account.privateKey)
                 .should

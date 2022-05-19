@@ -8,6 +8,7 @@
 		"EIP158ForkBlock": "0x00",
 		"byzantiumForkBlock": "0x0",
 		"constantinopleForkBlock": "0x0",
+		"skaleUnlimitedForkBlock": "0x0",
 		"networkID": "12313219",
 		"chainID": "0x01",
 		"maximumExtraDataSize": "0x20",
@@ -29,6 +30,21 @@
 		"parentHash": "0x0000000000000000000000000000000000000000000000000000000000000000",
 		"extraData": "0x11bbe8db4e347b4e8c937c1c8370e4b5ed33adb3db69cbdb7a38e1e50b1b82fa",
 		"gasLimit": "0xFFFFFFF"
+	},
+	"unddos": {
+		"origins": [
+			{
+				"enabled": false,
+				"origin": [
+					"*"
+				],
+				"ban_lengthy": 500,
+				"ban_peak": 1500,
+				"max_calls_per_minute": 1000000000,
+				"max_calls_per_second": 1000000000,
+				"max_ws_conn": 20000
+			}
+		]
 	},
 	"accounts": {
 		"0000000000000000000000000000000000000001": {
@@ -1397,12 +1413,15 @@
 			"httpsRpcPort": 10002,
 			"wsRpcPort": 10003,
 			"wssRpcPort": 10008,
-			"bindIP": "0.0.0.0"
+			"bindIP": "0.0.0.0",
+			"ecdsaKeyName": ""
 		},
 		"sChain": {
 			"schainID": 1,
 			"schainName": "test-chain",
 			"schainOwner": "0xd2c5b39B4e735C17612Bb5a08FD024ccc5dBCb23",
+			"contractStorageLimit": 1000000000,
+			"snapshotIntervalSec": 0,
 			"nodes": [
 				{
 					"nodeID": 1,
