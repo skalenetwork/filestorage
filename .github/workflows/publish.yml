@@ -36,19 +36,22 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "BRANCH=$BRANCH" >> $GITHUB_ENV
           echo "Version $VERSION"
+          test $BRANCH = "stable" && export STABLE=true || export NOT_STABLE=true
+          echo "STABLE=$STABLE" >> $GITHUB_ENV
+          echo "NOT_STABLE=$NOT_STABLE" >> $GITHUB_ENV
       - name: Generate artifacts.json NPM
         run: |
           python predeployed/utils/generate_artifacts.py
           cp predeployed/utils/data/artifacts.json .
       - name: Publish on npm
-        if: github.ref != 'refs/heads/stable'
+        if: ${{ env.NOT_STABLE }}
         run: |
           npm version --no-git-tag-version ${{ env.VERSION }}
           npm publish --access public --tag ${{ env.BRANCH }}
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish on npm (stable)
-        if: github.ref == 'refs/heads/stable'
+        if: ${{ env.STABLE }}
         run: |
           npm publish --access public
         env:
