@@ -141,3 +141,4 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./filestorage-${{ env.GITHUB_VERSION }}-abi.json
           asset_name: filestorage-${{ env.GITHUB_VERSION }}-abi.json
+          asset_content_type: application/json
