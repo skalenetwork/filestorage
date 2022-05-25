@@ -281,3 +281,12 @@ ENDPOINT=... PRIVATE_KEY=... npm run legacy-upgrade
 
 * ENDPOINT - v0 sChain endpoint
 * PRIVATE_KEY - sChain owner private key
+
+Upgrading with ledger:
+
+```bash
+ENDPOINT=... npm run legacy-upgrade -- LEDGER_ADDRESS_INDEX
+```
+
+* ENDPOINT - v0 sChain endpoint
+* LEDGER_ADDRESS_INDEX - sChain owner address index on ledger
