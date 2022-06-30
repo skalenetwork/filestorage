@@ -1,6 +1,6 @@
 {
   "name": "@skalenetwork/filestorage",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "SKALE Filestorage contracts",
   "keywords": [
     "SKALE",
@@ -34,10 +34,13 @@
     "chai-as-promised": "^7.1.1",
     "codecov": "^3.3.0",
     "dotenv": "^8.2.0",
+    "hardhat": "^2.6.4",
     "randomstring": "^1.1.5",
     "solidity-coverage": "^0.7.17",
     "truffle": "5.1.30",
     "@truffle/hdwallet-provider": "^1.5.1",
+    "ts-node": "^10.2.1",
+    "typescript": "^4.4.3",
     "web3": "^1.2.1"
   },
   "publishConfig": {

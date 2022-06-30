@@ -20,7 +20,7 @@ extras_require['dev'] = (
 
 setup(
     name='filestorage-predeployed',
-    version='1.0.1',
+    version='1.0.2',
     description='A tool for generating predeployed filestorage smart contract',
     long_description_markdown_filename='README.md',
     author='SKALE Labs',
