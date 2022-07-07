@@ -42,7 +42,7 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
     ROLE_MEMBERS_SLOT = 151
 
     def __init__(self):
-        generator = FileStorageGenerator.ffrom_hardhat_artifact(
+        generator = FileStorageGenerator.from_hardhat_artifact(
             join(dirname(__file__), 'artifacts', self.ARTIFACT_FILENAME),
             join(dirname(__file__), 'artifacts', self.META_FILENAME))
         super().__init__(
