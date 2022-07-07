@@ -27,7 +27,7 @@ setup(
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/filestorage',
     install_requires=[
-        "predeployed-generator"
+        "predeployed-generator >= 1.1.0a1"
     ],
     python_requires='>=3.7,<4',
     extras_require=extras_require,
