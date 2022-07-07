@@ -32,6 +32,7 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
     '''
 
     ARTIFACT_FILENAME = 'FileStorage.json'
+    META_FILENAME = 'FileStorage.meta.json'
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     STORAGE_SPACE_SLOT = int.from_bytes(
         w3.solidityKeccak(['string'], ['STORAGE_SPACE_SLOT']),
@@ -41,13 +42,13 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
     ROLE_MEMBERS_SLOT = 151
 
     def __init__(self):
-        generator = FileStorageGenerator.from_hardhat_artifact(join(
-            dirname(__file__),
-            'artifacts',
-            self.ARTIFACT_FILENAME))
+        generator = FileStorageGenerator.ffrom_hardhat_artifact(
+            join(dirname(__file__), 'artifacts', self.ARTIFACT_FILENAME),
+            join(dirname(__file__), 'artifacts', self.META_FILENAME))
         super().__init__(
             bytecode=generator.bytecode,
-            abi=generator.abi
+            abi=generator.abi,
+            meta=generator.meta
         )
 
     @classmethod
