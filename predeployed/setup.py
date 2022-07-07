@@ -20,14 +20,14 @@ extras_require['dev'] = (
 
 setup(
     name='filestorage-predeployed',
-    version='1.0.1',
+    version='1.1.0',
     description='A tool for generating predeployed filestorage smart contract',
     long_description_markdown_filename='README.md',
     author='SKALE Labs',
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/filestorage',
     install_requires=[
-        "predeployed-generator"
+        "predeployed-generator >= 1.1.0a1"
     ],
     python_requires='>=3.7,<4',
     extras_require=extras_require,

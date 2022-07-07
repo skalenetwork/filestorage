@@ -4,6 +4,8 @@
 ### Solidity ###
 build/
 artifacts.json
+artifacts/
+cache/
 
 ### Coverage ###
 coverage.json
