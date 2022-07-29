@@ -109,7 +109,7 @@ contract('Filestorage', accounts => {
         it('should fail to reserve more than max space', async function () {
             await filestorage.setStorageSpace(100);
             try {
-                await filestorage.reserveSpace(userAddress, 1000);
+                await filestorage.reserveSpace(userAddress, 101);
                 assert.fail();
             } catch (error) {
                 assert.equal(error.receipt.revertReason, 'Not enough memory in the Filestorage');

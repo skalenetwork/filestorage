@@ -63,8 +63,8 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     function reserveSpace(address userAddress, uint reservedSpace) external {
         require(hasRole(ALLOCATOR_ROLE, msg.sender), "Caller is not allowed to reserve space");
         require(occupiedStorageSpace[userAddress] <= reservedSpace, "Could not reserve less than used space");
-        require(reservedSpace + totalReservedSpace <= storageSpace(), "Not enough memory in the Filestorage");
         totalReservedSpace -= reservedStorageSpace[userAddress];
+        require(totalReservedSpace + reservedSpace <= storageSpace(), "Not enough memory in the Filestorage");
         reservedStorageSpace[userAddress] = reservedSpace;
         totalReservedSpace += reservedSpace;
     }
