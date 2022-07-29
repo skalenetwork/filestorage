@@ -12,16 +12,18 @@ const getNonce = require('../utils/helper').getNonce;
 
 contract('Filestorage', accounts => {
     let filestorage;
+    let storageSpace;
 
     describe('reserveSpace', function () {
         let userAddress;
 
         beforeEach(async function () {
+            storageSpace = 100000;
             let nonce = await getNonce(accounts[0]);
             filestorage = await filestorageTest.new({from: accounts[0], nonce: nonce});
             let allocatorRole = await filestorage.ALLOCATOR_ROLE();
             await filestorage.grantRole(allocatorRole, accounts[0]);
-            await filestorage.setStorageSpace(100000);
+            await filestorage.setStorageSpace(storageSpace);
             userAddress = "0x77333da3492c4DDb9CCf3aD6Bb73d6302F86cdA8";
         });
 
@@ -39,6 +41,29 @@ contract('Filestorage', accounts => {
         it('should increase space', async function () {
             let space = 1000;
             let newSpace = 2000;
+            await filestorage.reserveSpace(userAddress, space);
+            await filestorage.reserveSpace(userAddress, newSpace);
+            let result = await filestorage.getReservedSpace(userAddress);
+            let total = await filestorage.getTotalReservedSpace();
+            let occupiedSpace = await filestorage.getOccupiedSpace(userAddress);
+            assert.equal(result, newSpace);
+            assert.equal(total, newSpace);
+            assert.equal(occupiedSpace, 0);
+        });
+
+        it('should reserve all space', async function () {
+            await filestorage.reserveSpace(userAddress, storageSpace);
+            let result = await filestorage.getReservedSpace(userAddress);
+            let total = await filestorage.getTotalReservedSpace();
+            let occupiedSpace = await filestorage.getOccupiedSpace(userAddress);
+            assert.equal(result, storageSpace);
+            assert.equal(total, storageSpace);
+            assert.equal(occupiedSpace, 0);
+        });
+
+        it('should increase to the total space', async function () {
+            let space = 1000;
+            let newSpace = storageSpace;
             await filestorage.reserveSpace(userAddress, space);
             await filestorage.reserveSpace(userAddress, newSpace);
             let result = await filestorage.getReservedSpace(userAddress);
