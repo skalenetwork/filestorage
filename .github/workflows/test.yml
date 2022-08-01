@@ -72,9 +72,11 @@ jobs:
       - name: Install python dependencies
         run: |
           pip install -e ./predeployed
-      - name: Compile with truffle
+      - name: Compile
         run: |
           npm run compile
+          npm run compile-hardhat
+          python ./predeployed/scripts/prepare_artifacts.py
       - name: Generating sChain config
         run: |
           mkdir -p ~/schain_data/data_dir

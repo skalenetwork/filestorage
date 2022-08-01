@@ -28,7 +28,8 @@ jobs:
           pip install -e ./predeployed
       - name: Compile with truffle
         run: |
-          npm run compile
+          npm run compile-hardhat
+          python ./predeployed/scripts/prepare_artifacts.py
       - name: Set version and branch
         run: |
           export BRANCH=${GITHUB_REF##*/}
@@ -77,9 +78,10 @@ jobs:
           cd predeployed/
           pip install -e .[dev]
           pip install wheel
-      - name: Compile with truffle
+      - name: Compile
         run: |
-          npm run compile
+          npm run compile-hardhat
+          python ./predeployed/scripts/prepare_artifacts.py
       - name: Calculate versions
         run: |
           export BRANCH=${GITHUB_REF##*/}
