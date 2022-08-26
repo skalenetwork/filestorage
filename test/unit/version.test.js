@@ -1,5 +1,5 @@
 const chai = require('chai');
-const {sendTransaction, generateAccount} = require("../utils/helper");
+const {sendTransaction, generateAccount, getFunds} = require("../utils/helper");
 const assert = chai.assert;
 
 chai.should();
@@ -27,6 +27,7 @@ contract('Filestorage', accounts => {
         it('should fail to set version', async function () {
             filestorage = await FileStorageTest.new({from: accounts[0]});
             let account = await generateAccount();
+            await getFunds(account.address);
             let tx = filestorage.contract.methods.setVersion('1.0.2');
             await sendTransaction(tx, filestorage.address, 20000000, account.privateKey)
                 .should
