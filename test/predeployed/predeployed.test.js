@@ -59,10 +59,12 @@ contract('Filestorage', accounts => {
             assert.equal(totalSpace, testTotalSpace);
             let reservedSpace = await filestorage.getTotalReservedSpace(accounts[0]);
             assert.equal(reservedSpace, 0);
-            let maxContentCount = await  filestorage.getMaxContentCount();
+            let maxContentCount = await filestorage.getMaxContentCount();
             assert.equal(maxContentCount, 2 ** 13);
-            let maxChunkSize = await  filestorage.getMaxChunkSize();
+            let maxChunkSize = await filestorage.getMaxChunkSize();
             assert.equal(maxChunkSize, 2 ** 20);
+            let version = await filestorage.version();
+            assert.equal(version, '1.0.0');
         });
 
 

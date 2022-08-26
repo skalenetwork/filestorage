@@ -24,7 +24,8 @@ if __name__ == '__main__':
         proxy_admin_address=FILESTORAGE_ADMIN_ADDRESS,
         implementation_address=FILESTORAGE_IMPLEMENTATION_ADDRESS,
         allocated_storage=10000000,
-        schain_owner=schain_owner
+        schain_owner=schain_owner,
+        version='1.0.0'
     )
     config['accounts'].update(proxy_admin)
     config['accounts'].update(filestorage_upgradeable)
