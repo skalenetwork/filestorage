@@ -39,6 +39,8 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     uint public constant MAX_FILESIZE = 100 * MEGABYTE;
     uint internal constant MAX_CHUNK_SIZE = 1 * MEGABYTE;
 
+    string version;
+
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
     struct ContentInfo {
@@ -67,6 +69,11 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(totalReservedSpace + reservedSpace <= storageSpace(), "Not enough memory in the Filestorage");
         reservedStorageSpace[userAddress] = reservedSpace;
         totalReservedSpace += reservedSpace;
+    }
+
+    function setVersion(string calldata newVersion) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not the admin");
+        version = newVersion;
     }
 
     function createDirectory(string calldata directoryPath) external {
