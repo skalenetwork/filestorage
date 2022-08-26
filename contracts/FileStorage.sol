@@ -30,6 +30,8 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     bytes32 public constant ALLOCATOR_ROLE = keccak256("ALLOCATOR_ROLE");
     bytes32 public constant STORAGE_SPACE_SLOT = keccak256("STORAGE_SPACE_SLOT");
 
+    string public version;
+
     uint public constant MEGABYTE = 2 ** 20;
     uint public constant MAX_BLOCK_COUNT = 2 ** 15;
     uint public constant EMPTY_INDEX = 0;
@@ -38,6 +40,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     uint public constant MAX_FILESIZE = 100 * MEGABYTE;
     uint internal constant MAX_CHUNK_SIZE = 1 * MEGABYTE;
+
 
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
@@ -67,6 +70,11 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(totalReservedSpace + reservedSpace <= storageSpace(), "Not enough memory in the Filestorage");
         reservedStorageSpace[userAddress] = reservedSpace;
         totalReservedSpace += reservedSpace;
+    }
+
+    function setVersion(string calldata newVersion) external {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not the admin");
+        version = newVersion;
     }
 
     function createDirectory(string calldata directoryPath) external {
