@@ -41,6 +41,10 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     uint public constant MAX_FILESIZE = 100 * MEGABYTE;
     uint internal constant MAX_CHUNK_SIZE = 1 * MEGABYTE;
 
+    event ContentCreated(address indexed owner, string indexed path, uint timestamp, bool isFile);
+    event ContentDeleted(address indexed owner, string indexed path, uint timestamp);
+    event ChunkUploaded(address indexed owner, string indexed path, uint timestamp);
+    event UploadCompleted(address indexed owner, string indexed path, uint timestamp);
 
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
 
