@@ -41,9 +41,9 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     uint public constant MAX_FILESIZE = 100 * MEGABYTE;
     uint internal constant MAX_CHUNK_SIZE = 1 * MEGABYTE;
 
-    event ContentCreated(address indexed owner, string indexed path, uint timestamp, bool isFile);
+    event ContentCreated(address indexed owner, string indexed path, uint size, bool isFile, uint timestamp);
     event ContentDeleted(address indexed owner, string indexed path, uint timestamp);
-    event ChunkUploaded(address indexed owner, string indexed path, uint timestamp);
+    event ChunkUploaded(address indexed owner, string indexed path, uint position, uint timestamp);
     event UploadCompleted(address indexed owner, string indexed path, uint timestamp);
 
     enum FileStatus { NONEXISTENT, UPLOADING, COMPLETED }
@@ -108,6 +108,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
         occupiedStorageSpace[owner] += directoryFsSize;
+        emit ContentCreated(owner, directoryPath, directoryFsSize, false, block.timestamp);
     }
 
     // TODO: delete dir with all content in it
@@ -132,6 +133,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         // slither-disable-next-line mapping-deletion
         delete currentDirectory.directories[targetDirectory];
         occupiedStorageSpace[owner] -= Utils.calculateDirectorySize();
+        emit ContentDeleted(owner, directoryPath, block.timestamp);
     }
 
     function startUpload(string calldata filePath, uint256 fileSize) external {
@@ -161,6 +163,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         }));
         currentDirectory.contentIndexes[pureFileName] = currentDirectory.contents.length;
         occupiedStorageSpace[owner] += realFileSize;
+        emit ContentCreated(owner, filePath, fileSize, true, block.timestamp);
     }
 
     function uploadChunk(string calldata filePath, uint position, bytes calldata data) external {
@@ -182,6 +185,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         );
         require(success, "Chunk wasn't uploaded");
         file.isChunkUploaded[position / getMaxChunkSize()] = true;
+        emit ChunkUploaded(owner, filePath, position, block.timestamp);
     }
 
     function finishUpload(string calldata filePath) external {
@@ -199,6 +203,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         file.status = FileStatus.COMPLETED;
         bool success = PrecompiledCaller.calculateFileHash(owner, filePath);
         require(success, "Hash hasn't been calculated");
+        emit UploadCompleted(owner, filePath, block.timestamp);
     }
 
     function deleteFile(string calldata filePath) external {
@@ -219,6 +224,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[file.name];
         currentDirectory.contentIndexes[file.name] = EMPTY_INDEX;
         occupiedStorageSpace[owner] -= Utils.calculateFileSize(file.size);
+        emit ContentDeleted(owner, filePath, block.timestamp);
     }
 
     function readChunk(string calldata storagePath, uint position, uint length)
