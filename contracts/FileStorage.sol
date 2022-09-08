@@ -60,6 +60,13 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         ContentInfo[] contents;
         mapping(string => uint) contentIndexes;
         mapping(string => Directory) directories;
+        TimeInfo[] timeInfoList;
+    }
+
+    struct TimeInfo {
+        string name;
+        uint createdTime;
+        uint finishedTime;
     }
 
     mapping(address => uint) reservedStorageSpace;
@@ -262,14 +269,11 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     // TODO: handle root dir
     function listDirectory(string calldata storagePath) external view returns (ContentInfo[] memory) {
-        (address owner, string memory directoryPath) = Utils.parseStoragePath(storagePath);
-        string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
-        Directory storage currentDirectory = rootDirectories[owner];
-        for (uint i = 0; i < dirs.length; ++i) {
-            require(currentDirectory.contentIndexes[dirs[i]] > EMPTY_INDEX, "Invalid path");
-            currentDirectory = currentDirectory.directories[dirs[i]];
-        }
-        return currentDirectory.contents;
+        return getDirectory(storagePath).contents;
+    }
+
+    function listTimeInfo(string calldata storagePath) external view returns (TimeInfo[] memory) {
+        return getDirectory(storagePath).timeInfoList;
     }
 
     function getFileStatus(string calldata storagePath) external view returns (FileStatus) {
@@ -337,6 +341,17 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         require(currentDirectory.contentIndexes[contentName] > EMPTY_INDEX, "Invalid path");
         ContentInfo storage result = currentDirectory.contents[currentDirectory.contentIndexes[contentName] - 1];
         return result;
+    }
+
+    function getDirectory(string calldata storagePath) internal view returns (Directory storage) {
+        (address owner, string memory directoryPath) = Utils.parseStoragePath(storagePath);
+        string[] memory dirs = Utils.parseDirectoryPath(directoryPath);
+        Directory storage currentDirectory = rootDirectories[owner];
+        for (uint i = 0; i < dirs.length; ++i) {
+            require(currentDirectory.contentIndexes[dirs[i]] > EMPTY_INDEX, "Invalid path");
+            currentDirectory = currentDirectory.directories[dirs[i]];
+        }
+        return currentDirectory;
     }
 
     function storageSpace() internal view returns (uint) {
