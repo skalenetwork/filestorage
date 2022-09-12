@@ -52,10 +52,15 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         bool[] isChunkUploaded;
     }
 
+    struct DetailedInfo {
+        bool isImmutable;
+    }
+
     struct Directory {
         ContentInfo[] contents;
         mapping(string => uint) contentIndexes;
         mapping(string => Directory) directories;
+        mapping(string => DetailedInfo) contentDetails;
     }
 
     mapping(address => uint) reservedStorageSpace;
