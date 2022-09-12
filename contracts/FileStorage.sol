@@ -166,7 +166,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function uploadChunk(string calldata filePath, uint position, bytes calldata data) external {
         address owner = msg.sender;
-        ContentInfo storage file = getContentInfo(owner, filePath);
+        (ContentInfo storage file,) = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
         require(position % getMaxChunkSize() == 0 && position < file.size, "Incorrect chunk position");
         require(
@@ -187,7 +187,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function finishUpload(string calldata filePath) external {
         address owner = msg.sender;
-        ContentInfo storage file = getContentInfo(owner, filePath);
+        (ContentInfo storage file,) = getContentInfo(owner, filePath);
         require(file.status == FileStatus.UPLOADING, "File not found");
         bool isFileUploaded = true;
         uint chunkCount = file.isChunkUploaded.length;
@@ -204,7 +204,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function deleteFile(string calldata filePath) external {
         address owner = msg.sender;
-        ContentInfo memory file = getContentInfo(owner, filePath);
+        (ContentInfo memory file,) = getContentInfo(owner, filePath);
         require(file.status != FileStatus.NONEXISTENT, "File not exists");
         bool success = PrecompiledCaller.deleteFile(owner, filePath);
         require(success, "File not deleted");
@@ -228,7 +228,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         returns (bytes32[MAX_BLOCK_COUNT] memory chunk)
     {
         (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
-        ContentInfo memory file = getContentInfo(owner, filePath);
+        (ContentInfo memory file,) = getContentInfo(owner, filePath);
         require(file.status == FileStatus.COMPLETED, "File hasn't been uploaded");
         require(length <= getMaxChunkSize() && length > 0, "Incorrect chunk length");
         require(position + length <= file.size, "Incorrect chunk position");
@@ -274,7 +274,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function getFileSize(string calldata storagePath) external view returns (uint fileSize) {
         (address owner, string memory filePath) = Utils.parseStoragePath(storagePath);
-        ContentInfo memory file = getContentInfo(owner, filePath);
+        (ContentInfo memory file,) = getContentInfo(owner, filePath);
         require(
             file.status == FileStatus.UPLOADING ||
             file.status == FileStatus.COMPLETED, "File not found"
@@ -308,7 +308,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         return MAX_CHUNK_SIZE;
     }
 
-    function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage) {
+    function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage, DetailedInfo storage) {
         string[] memory dirs = Utils.parseDirectoryPath(contentPath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
@@ -317,8 +317,9 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : contentPath;
         require(currentDirectory.contentIndexes[contentName] > EMPTY_INDEX, "Invalid path");
-        ContentInfo storage result = currentDirectory.contents[currentDirectory.contentIndexes[contentName] - 1];
-        return result;
+        ContentInfo storage contentInfo = currentDirectory.contents[currentDirectory.contentIndexes[contentName] - 1];
+        DetailedInfo storage detailedInfo = currentDirectory.contentDetails[contentName];
+        return (contentInfo, detailedInfo);
     }
 
     function storageSpace() internal view returns (uint) {
