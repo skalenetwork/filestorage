@@ -226,7 +226,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function setImmutable(string calldata contentPath) external {
         address owner = msg.sender;
-        (,DetailedInfo memory content) = getContentInfo(owner, filePath);
+        (,DetailedInfo memory content) = getContentInfo(owner, contentPath);
         require(!content.isImmutable, "Content is already immutable");
         content.isImmutable = true;
     }
