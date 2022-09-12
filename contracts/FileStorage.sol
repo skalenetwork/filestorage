@@ -204,8 +204,9 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function deleteFile(string calldata filePath) external {
         address owner = msg.sender;
-        (ContentInfo memory file,) = getContentInfo(owner, filePath);
+        (ContentInfo memory file, DetailedInfo memory details) = getContentInfo(owner, filePath);
         require(file.status != FileStatus.NONEXISTENT, "File not exists");
+        require(!details.isImmutable, "File is immutable");
         bool success = PrecompiledCaller.deleteFile(owner, filePath);
         require(success, "File not deleted");
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
@@ -220,6 +221,13 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contentIndexes[lastContent.name] = currentDirectory.contentIndexes[file.name];
         currentDirectory.contentIndexes[file.name] = EMPTY_INDEX;
         occupiedStorageSpace[owner] -= Utils.calculateFileSize(file.size);
+    }
+
+    function setImmutable(string calldata contentPath) external {
+        address owner = msg.sender;
+        (,DetailedInfo memory content) = getContentInfo(owner, filePath);
+        require(!content.isImmutable, "Content is already immutable");
+        content.isImmutable = true;
     }
 
     function readChunk(string calldata storagePath, uint position, uint length)
@@ -282,6 +290,12 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         bool success;
         (success, fileSize) = PrecompiledCaller.getFileSize(owner, filePath);
         require(success, "EVM error in getFileSize");
+    }
+
+    function isImmutable(string calldata storagePath) external view returns (bool) {
+        (address owner, string memory contentPath) = Utils.parseStoragePath(storagePath);
+        (,DetailedInfo memory content) = getContentInfo(owner, contentPath);
+        return content.isImmutable;
     }
 
     function getTotalStorageSpace() external view returns (uint) {
