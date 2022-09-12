@@ -123,6 +123,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         string memory targetDirectory = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDirectory.contentIndexes[targetDirectory] > EMPTY_INDEX, "Invalid path");
         require(currentDirectory.directories[targetDirectory].contents.length == 0, "Directory is not empty");
+        require(!currentDirectory.contentDetails[targetDirectory].isImmutable, "Directory is immutable");
         bool success = PrecompiledCaller.deleteDirectory(owner, directoryPath);
         require(success, "Directory is not deleted");
         ContentInfo memory lastContent = currentDirectory.contents[currentDirectory.contents.length - 1];
