@@ -226,7 +226,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function setImmutable(string calldata contentPath) external {
         address owner = msg.sender;
-        (,DetailedInfo memory content) = getContentInfo(owner, contentPath);
+        (,DetailedInfo storage content) = getContentInfo(owner, contentPath);
         require(!content.isImmutable, "Content is already immutable");
         content.isImmutable = true;
     }
@@ -321,6 +321,10 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
 
     function getMaxChunkSize() public virtual view returns (uint) {
         return MAX_CHUNK_SIZE;
+    }
+
+    function getContentInfoP(address owner, string memory contentPath) public view returns (ContentInfo memory, DetailedInfo memory) {
+        return getContentInfo(owner, contentPath);
     }
 
     function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage, DetailedInfo storage) {
