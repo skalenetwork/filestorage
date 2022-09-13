@@ -323,10 +323,6 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         return MAX_CHUNK_SIZE;
     }
 
-    function getContentInfoP(address owner, string memory contentPath) public view returns (ContentInfo memory, DetailedInfo memory) {
-        return getContentInfo(owner, contentPath);
-    }
-
     function getContentInfo(address owner, string memory contentPath) internal view returns (ContentInfo storage, DetailedInfo storage) {
         string[] memory dirs = Utils.parseDirectoryPath(contentPath);
         Directory storage currentDirectory = rootDirectories[owner];
