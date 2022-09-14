@@ -74,5 +74,20 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
         });
+
+        it('should fail deleting immutable file', async function () {
+            fileName = randomstring.generate();
+            let fileSize = 0;
+            storagePath = path.join(rmBytesSymbol(accounts[0]), fileName);
+            await filestorage.startUpload(fileName, fileSize, {from: accounts[0]});
+            await filestorage.finishUpload(fileName, {from: accounts[0]});
+            await filestorage.setImmutable(fileName, {from: accounts[0]});
+            try {
+                await filestorage.deleteFile(fileName, {from: accounts[0]});
+                assert.fail('File was unexpectedly deleted');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'File is immutable');
+            }
+        });
     });
 });
