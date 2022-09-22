@@ -26,7 +26,7 @@ Rules of occupying space in Filestorage:
 
 After deleting file/directory's amount of space is freed according to the rules above
 
-### Space handling API
+### FileStorage managing API
 #### reserveSpace
 
 ```solidity
@@ -41,6 +41,34 @@ Reserves the Filestorage space for specific address. Could be called only with A
 | --------------------- | ------------------------------------- |
 | `address` userAddress | Address to allocate space for         |
 | `uint` reservedSpace  | Amount of space to reserve in bytes   |
+
+#### Set version
+
+```solidity
+function setVersion(string newVersion)
+```
+
+Set the Filestorage version. Could be called only with DEFAULT_ADMIN_ROLE
+
+**Parameters:**
+
+| Parameter             | Description                           |
+| --------------------- | ------------------------------------- |
+| `string` newVersion   | New version of the Filestorage        |
+
+#### Get version
+
+```solidity
+function version()
+```
+
+Get the Filestorage version.
+
+**Parameters:**
+
+| Parameter             | Description                           |
+| --------------------- | ------------------------------------- |
+| `string`              | Version of the Filestorage            |
 
 #### getTotalStorageSpace
 

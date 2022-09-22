@@ -70,5 +70,16 @@ contract('Filestorage', accounts => {
                 assert.equal(error.receipt.revertReason, 'Invalid path');
             }
         });
+
+        it('should delete dir from root dir', async function () {
+            await filestorage.createDirectory(dirName, {from: accounts[0]});
+            await filestorage.setImmutable(dirName, {from: accounts[0]});
+            try {
+                await filestorage.deleteDirectory(dirName, {from: accounts[0]});
+                assert.fail('Directory was unexpectedly deleted');
+            } catch (error) {
+                assert.equal(error.receipt.revertReason, 'Directory is immutable');
+            }
+        });
     });
 });

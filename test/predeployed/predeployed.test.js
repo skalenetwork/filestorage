@@ -59,10 +59,12 @@ contract('Filestorage', accounts => {
             assert.equal(totalSpace, testTotalSpace);
             let reservedSpace = await filestorage.getTotalReservedSpace(accounts[0]);
             assert.equal(reservedSpace, 0);
-            let maxContentCount = await  filestorage.getMaxContentCount();
+            let maxContentCount = await filestorage.getMaxContentCount();
             assert.equal(maxContentCount, 2 ** 13);
-            let maxChunkSize = await  filestorage.getMaxChunkSize();
+            let maxChunkSize = await filestorage.getMaxChunkSize();
             assert.equal(maxChunkSize, 2 ** 20);
+            let version = await filestorage.version();
+            assert.equal(version, '1.0.0');
         });
 
 
@@ -76,16 +78,19 @@ contract('Filestorage', accounts => {
             await filestorage.startUpload('test/'+fileName, fileSize, {from: accounts[0]});
             await filestorage.uploadChunk('test/'+fileName, 0, data, {from: accounts[0]});
             await filestorage.finishUpload('test/'+fileName, {from: accounts[0]});
+            await filestorage.setVersion('2.0.0', {from: accounts[0]});
 
             let reservedSpace = await filestorage.getReservedSpace(accounts[0]);
             let occupiedSpace = await filestorage.getOccupiedSpace(accounts[0]);
             let storagePath = path.join(rmBytesSymbol(accounts[0]), 'test', fileName);
             let status = await filestorage.getFileStatus(storagePath);
             let size = await filestorage.getFileSize(storagePath);
+            let version = await filestorage.version();
             assert.equal(status, 2, 'Status is incorrect');
             assert.equal(size, fileSize, "Size is incorrect");
             assert.equal(reservedSpace, 3 * fileSystemBlock, "reservedSpace is incorrect");
             assert.equal(occupiedSpace, 2 * fileSystemBlock, "occupiedSpace is incorrect");
+            assert.equal(version, '2.0.0', "Version is incorrect");
 
             let content = await filestorage.listDirectory(rmBytesSymbol(accounts[0])+'/test');
             content.find(obj => {
@@ -104,6 +109,7 @@ contract('Filestorage', accounts => {
             await filestorage.deleteFile('test/'+fileName, {from: accounts[0]});
             await filestorage.deleteDirectory('test', {from: accounts[0]});
             await filestorage.reserveSpace(accounts[0], 0, {from: accounts[0]});
+            await filestorage.setVersion('1.0.0', {from: accounts[0]});
         });
 
         after(async function () {
