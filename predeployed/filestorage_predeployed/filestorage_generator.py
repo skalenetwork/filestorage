@@ -20,6 +20,7 @@
 from os.path import dirname, join
 from typing import Dict
 
+from pkg_resources import get_distribution
 from web3.auto import w3
 
 from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
@@ -80,12 +81,12 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
     def generate_storage(cls, **kwargs) -> Dict[str, str]:
         schain_owner = kwargs['schain_owner']
         allocated_storage = kwargs['allocated_storage']
-        version = kwargs['version']
         storage: Dict[str, str] = {}
         roles_slots = cls.RolesSlots(roles=cls.ROLES_SLOT, role_members=cls.ROLE_MEMBERS_SLOT)
         cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [schain_owner])
         cls._write_uint256(storage, cls.STORAGE_SPACE_SLOT, allocated_storage)
-        cls._write_string(storage, cls.VERSION_SLOT, version)
+        cls._write_string(storage, cls.VERSION_SLOT,
+                          get_distribution('filestorage_predeployed').version)
         return storage
 
 
