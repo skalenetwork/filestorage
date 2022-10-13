@@ -61,13 +61,15 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
     # ...   __gap
     # 200:  __gap
     # ---------TokenManager---------
-    # 201:  totalReservedSpace
-    # 202:  version
+    # 201:  reservedStorageSpace
+    # 202:  occupiedStorageSpace
+    # 203:  rootDirectories
+    # 204:  totalReservedSpace
+    # 205:  version
 
     ROLES_SLOT = 101
     ROLE_MEMBERS_SLOT = 151
-    TOTAL_RESERVED_SPACE_SLOT = 201
-    VERSION_SLOT = AccessControlEnumerableGenerator.next_slot(TOTAL_RESERVED_SPACE_SLOT)
+    VERSION_SLOT = 205
 
     def __init__(self):
         generator = FileStorageGenerator.from_hardhat_artifact(
