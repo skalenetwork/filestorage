@@ -64,7 +64,7 @@ contract('Filestorage', accounts => {
             let maxChunkSize = await filestorage.getMaxChunkSize();
             assert.equal(maxChunkSize, 2 ** 20);
             let version = await filestorage.version();
-            assert.equal(version, '1.0.0');
+            assert.equal(version, '1.1.0');
         });
 
 
