@@ -12,6 +12,8 @@ const testTotalSpace = require('../utils/helper').testSpace;
 const fileSystemBlock = require('../utils/helper').fileSystemBlock;
 const FILESTORAGE_PROXY_ADDRESS = '0xD3002000000000000000000000000000000000d3';
 
+const pkgVersion = require('../../../package.json')['version'];
+
 contract('Filestorage', accounts => {
     let filestorage;
 
@@ -64,7 +66,7 @@ contract('Filestorage', accounts => {
             let maxChunkSize = await filestorage.getMaxChunkSize();
             assert.equal(maxChunkSize, 2 ** 20);
             let version = await filestorage.version();
-            assert.equal(version, '1.1.0');
+            assert.equal(version, pkgVersion);
         });
 
 
@@ -109,7 +111,7 @@ contract('Filestorage', accounts => {
             await filestorage.deleteFile('test/'+fileName, {from: accounts[0]});
             await filestorage.deleteDirectory('test', {from: accounts[0]});
             await filestorage.reserveSpace(accounts[0], 0, {from: accounts[0]});
-            await filestorage.setVersion('1.1.0', {from: accounts[0]});
+            await filestorage.setVersion(pkgVersion, {from: accounts[0]});
         });
 
         after(async function () {
