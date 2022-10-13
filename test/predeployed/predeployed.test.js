@@ -109,7 +109,7 @@ contract('Filestorage', accounts => {
             await filestorage.deleteFile('test/'+fileName, {from: accounts[0]});
             await filestorage.deleteDirectory('test', {from: accounts[0]});
             await filestorage.reserveSpace(accounts[0], 0, {from: accounts[0]});
-            await filestorage.setVersion('1.0.0', {from: accounts[0]});
+            await filestorage.setVersion('1.1.0', {from: accounts[0]});
         });
 
         after(async function () {
