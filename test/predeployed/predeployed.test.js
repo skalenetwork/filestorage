@@ -12,7 +12,7 @@ const testTotalSpace = require('../utils/helper').testSpace;
 const fileSystemBlock = require('../utils/helper').fileSystemBlock;
 const FILESTORAGE_PROXY_ADDRESS = '0xD3002000000000000000000000000000000000d3';
 
-const pkgVersion = require('../../../package.json')['version'];
+const pkgVersion = require('../../package.json')['version'];
 
 contract('Filestorage', accounts => {
     let filestorage;
