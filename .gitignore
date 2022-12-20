@@ -18,3 +18,14 @@ node_modules
 
 # Environment variables file
 .env
+
+# Custom
+cache/
+coverage.json
+typechain-types/
+data/*.json
+
+# OpenZeppelin
+.openzeppelin/dev-*.json
+.openzeppelin/unknown-*.json
+.openzeppelin/.session
