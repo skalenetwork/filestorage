@@ -30,7 +30,7 @@
   "dependencies": {
     "@openzeppelin/contracts-upgradeable": "^4.3.2",
     "@skalenetwork/ima-interfaces": "^1.1.0",
-    "@skalenetwork/upgrade-tools": "2.0.0-refactor.8"
+    "@skalenetwork/upgrade-tools": "2.0.0-refactor.14"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-ethers": "^2.2.1",
