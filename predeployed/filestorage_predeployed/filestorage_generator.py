@@ -67,6 +67,7 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
     # 204:  totalReservedSpace
     # 205:  version
 
+    INITIALIZED_SLOT = 0
     ROLES_SLOT = 101
     ROLE_MEMBERS_SLOT = 151
     VERSION_SLOT = 205
@@ -86,6 +87,7 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
         schain_owner = kwargs['schain_owner']
         allocated_storage = kwargs['allocated_storage']
         storage: Dict[str, str] = {}
+        cls._write_uint256(storage, cls.INITIALIZED_SLOT, 1)
         roles_slots = cls.RolesSlots(roles=cls.ROLES_SLOT, role_members=cls.ROLE_MEMBERS_SLOT)
         cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [schain_owner])
         cls._write_uint256(storage, cls.STORAGE_SPACE_SLOT, allocated_storage)
