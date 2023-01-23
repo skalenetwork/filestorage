@@ -61,17 +61,16 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         mapping(string => DetailedInfo) contentDetails;
     }
     
-    Directory[] private internalDirectories;
-
     mapping(address => uint) reservedStorageSpace;
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
 
     uint totalReservedSpace;
     string public version;
+    Directory[] private internalDirectories;
 
-    function initialize() external initializer {
-        totalReservedSpace = 0;
+    function initialize(address schainOwner) external initializer {
+        AccessControlUpgradeable._setupRole(DEFAULT_ADMIN_ROLE, schainOwner);
     }
 
     function reserveSpace(address userAddress, uint reservedSpace) external {
