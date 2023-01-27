@@ -31,7 +31,7 @@ nvm install $DEPLOYED_WITH_NODE_VERSION
 nvm use $DEPLOYED_WITH_NODE_VERSION
 yarn install
 
-cp $GITHUB_WORKSPACE/contracts/test/FileStorageOld.sol contracts/FileStorage.sol
+cp $GITHUB_WORKSPACE/contracts/test/FileStorageOld contracts/FileStorage.sol
 cp $GITHUB_WORKSPACE/hardhat.config.ts hardhat.config.ts
 cp $GITHUB_WORKSPACE/migrations/deploy.ts migrations/deploy.ts
 mkdir data/
