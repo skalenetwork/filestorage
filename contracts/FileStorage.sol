@@ -60,7 +60,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         mapping(string => uint) directories;
         mapping(string => DetailedInfo) contentDetails;
     }
-    
+
     mapping(address => uint) reservedStorageSpace;
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
@@ -111,9 +111,9 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             status: FileStatus.NONEXISTENT,
             isChunkUploaded: new bool[](0)
         });
-        uint256 dir_idx = internalDirectories.length;
+        uint256 dirIdx = internalDirectories.length;
         internalDirectories.push();
-        currentDirectory.directories[newDir] = dir_idx;
+        currentDirectory.directories[newDir] = dirIdx;
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
         occupiedStorageSpace[owner] += directoryFsSize;
