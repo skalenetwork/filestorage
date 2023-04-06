@@ -36,7 +36,7 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
     META_FILENAME = 'FileStorage.meta.json'
     DEFAULT_ADMIN_ROLE = (0).to_bytes(32, 'big')
     STORAGE_SPACE_SLOT = int.from_bytes(
-        w3.solidityKeccak(['string'], ['STORAGE_SPACE_SLOT']),
+        w3.solidity_keccak(['string'], ['STORAGE_SPACE_SLOT']),
         byteorder='big')
 
     # ---------- storage ----------
