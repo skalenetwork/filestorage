@@ -64,9 +64,9 @@ jobs:
 
   predeployed:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    env:
+      PIP_USERNAME: ${{ secrets.PIP_USERNAME }}
+      PIP_PASSWORD: ${{ secrets.PIP_PASSWORD }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -98,10 +98,10 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Pkg version $VERSION"
           bash ./scripts/build.sh
-      - name: Publish to PyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: predeployed/dist/
+      - name: Publish to pip
+        working-directory: ./predeployed
+        run: |
+          bash ./scripts/publish.sh
 
   github:
     needs: [npm, predeployed]
