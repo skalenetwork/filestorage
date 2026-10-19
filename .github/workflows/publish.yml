@@ -14,14 +14,14 @@ jobs:
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: "3.10"
       - name: Install dependencies
         run: |
           npm i
@@ -64,14 +64,14 @@ jobs:
       PIP_USERNAME: ${{ secrets.PIP_USERNAME }}
       PIP_PASSWORD: ${{ secrets.PIP_PASSWORD }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
-      - uses: actions/setup-python@v2
+      - uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version: "3.10"
       - name: Install dependencies
         run: |
           npm i
@@ -103,8 +103,8 @@ jobs:
     needs: [npm, predeployed]
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: '14.x'
           registry-url: 'https://registry.npmjs.org'
@@ -128,22 +128,10 @@ jobs:
           npm run compile
           cp build/contracts/FileStorage.json filestorage-$VERSION-abi.json
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ env.GITHUB_VERSION }}
-          release_name: ${{ env.GITHUB_VERSION }}
+          name: ${{ env.GITHUB_VERSION }}
           draft: false
           prerelease: ${{ env.PRERELEASE }}
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./filestorage-${{ env.GITHUB_VERSION }}-abi.json
-          asset_name: filestorage-${{ env.GITHUB_VERSION }}-abi.json
-          asset_content_type: application/json
+          files: ./filestorage-${{ env.GITHUB_VERSION }}-abi.json
