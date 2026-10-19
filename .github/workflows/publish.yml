@@ -11,6 +11,9 @@ on:
 jobs:
   npm:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
     env:
       ACTIONS_ALLOW_UNSECURE_COMMANDS: true
     steps:
@@ -44,19 +47,20 @@ jobs:
         run: |
           python predeployed/utils/generate_artifacts.py
           cp predeployed/utils/data/artifacts.json .
+      - name: Set up Node.js for publishing
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
       - name: Publish on npm
         if: ${{ env.NOT_STABLE }}
         run: |
           npm version --no-git-tag-version ${{ env.VERSION }}
           npm publish --access public --tag ${{ env.BRANCH }}
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Publish on npm (stable)
         if: ${{ env.STABLE }}
         run: |
           npm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   predeployed:
     runs-on: ubuntu-latest
