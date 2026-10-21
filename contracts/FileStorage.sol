@@ -57,7 +57,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     struct Directory {
         ContentInfo[] contents;
         mapping(string => uint) contentIndexes;
-        mapping(string => Directory) directories;
+        mapping(string => uint) directories;
         mapping(string => DetailedInfo) contentDetails;
     }
 
@@ -65,8 +65,13 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
     mapping(address => uint) occupiedStorageSpace;
     mapping(address => Directory) rootDirectories;
 
-    uint totalReservedSpace = 0;
+    uint totalReservedSpace;
     string public version;
+    Directory[] private internalDirectories;
+
+    function initialize(address schainOwner) external initializer {
+        AccessControlUpgradeable._setupRole(DEFAULT_ADMIN_ROLE, schainOwner);
+    }
 
     function reserveSpace(address userAddress, uint reservedSpace) external {
         require(hasRole(ALLOCATOR_ROLE, msg.sender), "Caller is not allowed to reserve space");
@@ -91,7 +96,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDirectory.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
-            currentDirectory = currentDirectory.directories[dirs[i - 1]];
+            currentDirectory = internalDirectories[currentDirectory.directories[dirs[i - 1]]];
         }
         require(currentDirectory.contents.length < getMaxContentCount(), "Directory is full");
         string memory newDir = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
@@ -106,6 +111,9 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             status: FileStatus.NONEXISTENT,
             isChunkUploaded: new bool[](0)
         });
+        uint256 dirIdx = internalDirectories.length;
+        internalDirectories.push();
+        currentDirectory.directories[newDir] = dirIdx;
         currentDirectory.contents.push(directoryInfo);
         currentDirectory.contentIndexes[newDir] = currentDirectory.contents.length;
         occupiedStorageSpace[owner] += directoryFsSize;
@@ -118,11 +126,11 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDirectory.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
-            currentDirectory = currentDirectory.directories[dirs[i - 1]];
+            currentDirectory = internalDirectories[currentDirectory.directories[dirs[i - 1]]];
         }
         string memory targetDirectory = (dirs.length > 1) ? dirs[dirs.length - 1] : directoryPath;
         require(currentDirectory.contentIndexes[targetDirectory] > EMPTY_INDEX, "Invalid path");
-        require(currentDirectory.directories[targetDirectory].contents.length == 0, "Directory is not empty");
+        require(internalDirectories[currentDirectory.directories[targetDirectory]].contents.length == 0, "Directory is not empty");
         require(!currentDirectory.contentDetails[targetDirectory].isImmutable, "Directory is immutable");
         bool success = PrecompiledCaller.deleteDirectory(owner, directoryPath);
         require(success, "Directory is not deleted");
@@ -132,6 +140,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         currentDirectory.contentIndexes[targetDirectory] = EMPTY_INDEX;
         currentDirectory.contents.pop();
         // slither-disable-next-line mapping-deletion
+        delete internalDirectories[currentDirectory.directories[targetDirectory]];
         delete currentDirectory.directories[targetDirectory];
         occupiedStorageSpace[owner] -= Utils.calculateDirectorySize();
     }
@@ -145,7 +154,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDirectory.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
-            currentDirectory = currentDirectory.directories[dirs[i - 1]];
+            currentDirectory = internalDirectories[currentDirectory.directories[dirs[i - 1]]];
         }
         require(currentDirectory.contents.length < getMaxContentCount(), "Directory is full");
         string memory pureFileName = (dirs.length > 1) ?  dirs[dirs.length - 1] : filePath;
@@ -213,7 +222,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         string[] memory dirs = Utils.parseDirectoryPath(filePath);
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
-            currentDirectory = currentDirectory.directories[dirs[i - 1]];
+            currentDirectory = internalDirectories[currentDirectory.directories[dirs[i - 1]]];
         }
         uint idx = currentDirectory.contentIndexes[file.name] - 1;
         ContentInfo memory lastContent = currentDirectory.contents[currentDirectory.contents.length - 1];
@@ -258,7 +267,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 0; i < dirs.length; ++i) {
             require(currentDirectory.contentIndexes[dirs[i]] > EMPTY_INDEX, "Invalid path");
-            currentDirectory = currentDirectory.directories[dirs[i]];
+            currentDirectory = internalDirectories[currentDirectory.directories[dirs[i]]];
         }
         return currentDirectory.contents;
     }
@@ -271,7 +280,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
             if (currentDirectory.contentIndexes[dirs[i - 1]] == EMPTY_INDEX) {
                 return FileStatus.NONEXISTENT;
             }
-            currentDirectory = currentDirectory.directories[dirs[i - 1]];
+            currentDirectory = internalDirectories[currentDirectory.directories[dirs[i - 1]]];
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : filePath;
         if (currentDirectory.contentIndexes[contentName] == EMPTY_INDEX) {
@@ -328,7 +337,7 @@ contract FileStorage is AccessControlEnumerableUpgradeable {
         Directory storage currentDirectory = rootDirectories[owner];
         for (uint i = 1; i < dirs.length; ++i) {
             require(currentDirectory.contentIndexes[dirs[i - 1]] > EMPTY_INDEX, "Invalid path");
-            currentDirectory = currentDirectory.directories[dirs[i - 1]];
+            currentDirectory = internalDirectories[currentDirectory.directories[dirs[i - 1]]];
         }
         string memory contentName = (dirs.length > 1) ? dirs[dirs.length - 1] : contentPath;
         require(currentDirectory.contentIndexes[contentName] > EMPTY_INDEX, "Invalid path");
