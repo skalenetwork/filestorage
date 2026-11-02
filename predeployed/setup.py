@@ -29,7 +29,7 @@ setup(
     install_requires=[
         "predeployed-generator >= 1.1.0"
     ],
-    python_requires='>=3.7,<4',
+    python_requires='>=3.8,<4',
     extras_require=extras_require,
     keywords=['skale', 'filestorage', 'predeployed'],
     packages=find_packages(),
@@ -44,6 +44,6 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)',
         'Natural Language :: English',
-        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ]
 )
