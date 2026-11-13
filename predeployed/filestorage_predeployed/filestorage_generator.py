@@ -20,7 +20,7 @@
 from os.path import dirname, join
 from typing import Dict
 
-from pkg_resources import get_distribution
+from importlib.metadata import version
 from web3.auto import w3
 
 from predeployed_generator.upgradeable_contract_generator import UpgradeableContractGenerator
@@ -90,7 +90,7 @@ class FileStorageGenerator(AccessControlEnumerableGenerator):
         cls._setup_role(storage, roles_slots, cls.DEFAULT_ADMIN_ROLE, [schain_owner])
         cls._write_uint256(storage, cls.STORAGE_SPACE_SLOT, allocated_storage)
         cls._write_string(storage, cls.VERSION_SLOT,
-                          get_distribution('filestorage_predeployed').version)
+                          version('filestorage_predeployed'))
         return storage
 
 
