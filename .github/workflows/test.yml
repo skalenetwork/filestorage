@@ -3,17 +3,17 @@ on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       SCHAIN_VERSION: 3.9.1-develop.4
       SCHAIN_OWNER_PK: ${{ secrets.SCHAIN_OWNER_PK }}
       ENTRYPOINT: "http://127.0.0.1:2234"
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node 14
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
         with:
-          node-version: 14
+          node-version: 24.22.3
       - name: Install dependencies
         run: |
           npm i
@@ -24,9 +24,9 @@ jobs:
         run: |
           npm run lint
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.14"
       - name: Run slither
         run: |
           pip3 install slither-analyzer
@@ -51,24 +51,24 @@ jobs:
         run: |
           npm test
   predeployed-test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       SCHAIN_VERSION: 3.7.5-stable.0
       SCHAIN_OWNER_PK: ${{ secrets.SCHAIN_OWNER_PK }}
       ENTRYPOINT: "http://127.0.0.1:2234"
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node 14
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
         with:
-          node-version: 14
+          node-version: 24.22.3
       - name: Install dependencies
         run: |
           npm i
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v7
         with:
-          python-version: "3.10"
+          python-version: "3.14"
       - name: Install python dependencies
         run: |
           pip install -e ./predeployed
@@ -98,15 +98,15 @@ jobs:
         run: |
           npm run predeployed-test
   coverage:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     env:
       CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node 12
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - name: Set up Node 24
+        uses: actions/setup-node@v7
         with:
-          node-version: 12
+          node-version: 24.22.3
       - name: Install dependencies
         run: |
           npm i
@@ -117,7 +117,7 @@ jobs:
         run: |
           npm run coverage || true
       - name: Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/lcov.info

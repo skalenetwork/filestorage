@@ -6,23 +6,17 @@ from setuptools import (
 )
 
 extras_require = {
-    'linter': [
-        "flake8==3.7.9"
-    ],
     'dev': [
-        "twine==3.1.1"
+        "twine==7.0.0"
     ],
 }
-
-extras_require['dev'] = (
-    extras_require['linter'] + extras_require['dev']
-)
 
 setup(
     name='filestorage-predeployed',
     version='1.1.0',
     description='A tool for generating predeployed filestorage smart contract',
-    long_description_markdown_filename='README.md',
+    long_description=open('README.md').read(),
+    long_description_content_type='text/markdown',
     author='SKALE Labs',
     author_email='support@skalelabs.com',
     url='https://github.com/skalenetwork/filestorage',
